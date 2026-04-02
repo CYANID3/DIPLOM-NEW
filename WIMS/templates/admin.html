@@ -33,23 +33,23 @@
 </tr>
 <tr id="edit-{{.Username}}" style="display:none;">
     <td colspan="5">
-        <form action="/admin/update" method="post">
-            <input type="hidden" name="old_username" value="{{.Username}}">
-            Имя: <input type="text" name="first_name" value="{{.FirstName}}" required>
-            Фамилия: <input type="text" name="last_name" value="{{.LastName}}" required>
-            Отчество: <input type="text" name="middle_name" value="{{.MiddleName}}">
-            Должность: <input type="text" name="position" value="{{.Position}}">
-            Логин: <input type="text" name="username" value="{{.Username}}" required>
-            Пароль: <input type="password" name="password" placeholder="Оставьте пустым, если не менять">
-            Роль: 
-            <select name="role">
-                <option value="user" {{if eq .Role "user"}}selected{{end}}>Пользователь</option>
-                <option value="manager" {{if eq .Role "manager"}}selected{{end}}>Менеджер</option>
-                <option value="admin" {{if eq .Role "admin"}}selected{{end}}>Админ</option>
-            </select>
-            <button type="submit">Сохранить</button>
-            <button type="button" onclick="hideEdit('{{.Username}}')">Отмена</button>
-        </form>
+        <form action="/admin/edit" method="post">
+    <input type="hidden" name="old_username" value="{{.Username}}">
+    Имя: <input type="text" name="first_name" value="{{.FirstName}}" required>
+    Фамилия: <input type="text" name="last_name" value="{{.LastName}}" required>
+    Отчество: <input type="text" name="middle_name" value="{{.MiddleName}}">
+    Должность: <input type="text" name="position" value="{{.Position}}">
+    Логин: <input type="text" name="username" value="{{.Username}}" required>
+    Пароль: <input type="password" name="password" placeholder="Оставьте пустым, если не менять">
+    Роль: 
+    <select name="role">
+        <option value="user" {{if eq .Role "user"}}selected{{end}}>Пользователь</option>
+        <option value="manager" {{if eq .Role "manager"}}selected{{end}}>Менеджер</option>
+        <option value="admin" {{if eq .Role "admin"}}selected{{end}}>Админ</option>
+    </select>
+    <button type="submit">Сохранить</button>
+    <button type="button" onclick="hideEdit('{{.Username}}')">Отмена</button>
+</form>
     </td>
 </tr>
 {{end}}

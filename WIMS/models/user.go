@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// User структура пользователя
 type User struct {
 	ID         int
 	Username   string
@@ -18,19 +19,30 @@ type User struct {
 	Email      string
 }
 
+// Хэширование пароля
+func HashPassword(password string) string {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(hash)
+}
+
 // Создание пользователя
 func CreateUser(username, password, role, firstName, lastName, middleName, position, email string) error {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashed := HashPassword(password)
+
+	// По умолчанию роль "user", если пустая
+	if role == "" {
+		role = "user"
+	}
 
 	_, err := database.DB.Exec(
 		`INSERT INTO users(username, password, role, first_name, last_name, middle_name, position, email)
 		 VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
-		username, string(hash), role, firstName, lastName, middleName, position, email,
+		username, hashed, role, firstName, lastName, middleName, position, email,
 	)
 	return err
 }
 
-// Проверка логина
+// Проверка логина и пароля
 func CheckUser(username, password string) (bool, *User) {
 	var u User
 	err := database.DB.QueryRow(
@@ -54,15 +66,12 @@ func GetUserByUsername(username string) *User {
 		username,
 	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
 	if err != nil {
-		return &User{Role: "user"}
-	}
-	if u.Role == "" {
-		u.Role = "user"
+		return &User{Role: "user"} // по умолчанию роль user
 	}
 	return &u
 }
 
-// Обновление профиля
+// Обновление профиля (сам пользователь)
 func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
 	_, err := database.DB.Exec(
 		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=? WHERE username=?",
@@ -71,8 +80,12 @@ func UpdateProfile(username, firstName, lastName, middleName, position, email st
 	return err
 }
 
-// Обновление пользователя (для админа)
+// Обновление пользователя (админ)
 func UpdateUser(username, firstName, lastName, middleName, position, email, role string) error {
+	// по умолчанию роль user
+	if role == "" {
+		role = "user"
+	}
 	_, err := database.DB.Exec(
 		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=?, role=? WHERE username=?",
 		firstName, lastName, middleName, position, email, role, username,
@@ -80,10 +93,10 @@ func UpdateUser(username, firstName, lastName, middleName, position, email, role
 	return err
 }
 
-// Обновление пароля
+// Обновление пароля пользователя (админ)
 func UpdateUserPassword(username, password string) error {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	_, err := database.DB.Exec("UPDATE users SET password=? WHERE username=?", string(hash), username)
+	hashed := HashPassword(password)
+	_, err := database.DB.Exec("UPDATE users SET password=? WHERE username=?", hashed, username)
 	return err
 }
 
@@ -101,9 +114,6 @@ func GetAllUsers() ([]User, error) {
 	for rows.Next() {
 		var u User
 		rows.Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
-		if u.Role == "" {
-			u.Role = "user"
-		}
 		users = append(users, u)
 	}
 	return users, nil

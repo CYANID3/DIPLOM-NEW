@@ -12,28 +12,24 @@ var adminTmpl = template.Must(template.ParseFiles("templates/admin.html"))
 func AdminPage(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	users, err := models.GetAllUsers()
-	if err != nil {
-		http.Error(w, "Ошибка при получении пользователей", http.StatusInternalServerError)
-		return
-	}
-
+	users, _ := models.GetAllUsers()
 	data := map[string]interface{}{
-		"Users":    users,
 		"Username": username,
+		"Users":    users,
 	}
-	adminTmpl.ExecuteTemplate(w, "admin.html", data)
+
+	adminTmpl.Execute(w, data)
 }
 
-// CreateUserHandler - создание нового пользователя
+// CreateUserHandler
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -46,9 +42,6 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		userRole := r.FormValue("role")
 		usernameInput := r.FormValue("username")
 
-		if userRole == "" {
-			userRole = "user"
-		}
 		if password == "" {
 			password = "12345" // дефолтный пароль
 		}
@@ -62,11 +55,11 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteUserHandler - удаление пользователя
+// DeleteUserHandler
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -76,20 +69,16 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Нельзя удалить себя", http.StatusForbidden)
 			return
 		}
-		err := models.DeleteUser(delUsername)
-		if err != nil {
-			http.Error(w, "Ошибка при удалении пользователя", http.StatusInternalServerError)
-			return
-		}
+		models.DeleteUser(delUsername)
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	}
 }
 
-// EditUserHandler - редактирование пользователя
+// EditUserHandler
 func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -99,30 +88,14 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		lastName := r.FormValue("last_name")
 		middleName := r.FormValue("middle_name")
 		position := r.FormValue("position")
-		email := r.FormValue("email")
 		newRole := r.FormValue("role")
 		password := r.FormValue("password")
 
-		if newRole == "" {
-			newRole = "user"
-		}
-
-		// Обновление пароля, если введён
 		if password != "" {
-			err := models.UpdateUserPassword(oldUsername, password)
-			if err != nil {
-				http.Error(w, "Не удалось обновить пароль", http.StatusInternalServerError)
-				return
-			}
+			models.UpdateUserPassword(oldUsername, password)
 		}
 
-		// Обновление остальных данных
-		err := models.UpdateUser(oldUsername, firstName, lastName, middleName, position, email, newRole)
-		if err != nil {
-			http.Error(w, "Не удалось обновить данные пользователя", http.StatusInternalServerError)
-			return
-		}
-
+		models.UpdateUser(oldUsername, firstName, lastName, middleName, position, "", newRole)
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	}
 }

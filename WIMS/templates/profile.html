@@ -5,10 +5,16 @@
 </head>
 <body>
 
-<h3>Вы вошли как: {{.User.Username}}</h3>
+<h3>Вы вошли как: {{.Username}}</h3>
+<p>
+    <a href="/">Главная</a> | 
+    <a href="/history">История</a> | 
+    {{if eq .Role "admin"}}<a href="/admin">Админка</a> | {{end}}
+    <a href="/logout">Выйти</a>
+</p>
+
 <h1>Профиль пользователя</h1>
 
-<!-- Отображение профиля -->
 <div id="profile-view">
     <p><strong>Логин:</strong> {{.User.Username}}</p>
     <p><strong>ФИО:</strong> {{.User.FirstName}} {{.User.LastName}} {{.User.MiddleName}}</p>
@@ -20,7 +26,6 @@
     </button>
 </div>
 
-<!-- Форма редактирования -->
 <div id="profile-edit" style="display:none;">
     <form action="/profile" method="post">
         <label>Имя:</label>
@@ -38,7 +43,6 @@
         <label>Email:</label>
         <input type="email" name="email" value="{{.User.Email}}"><br><br>
 
-        <!-- Логин и роль только для просмотра -->
         <p><strong>Логин:</strong> {{.User.Username}}</p>
         <p><strong>Роль:</strong> {{.User.Role}}</p>
 
@@ -48,8 +52,6 @@
         </button>
     </form>
 </div>
-
-<p><a href="/">Главная</a> | <a href="/history">История</a> | <a href="/logout">Выйти</a></p>
 
 </body>
 </html>

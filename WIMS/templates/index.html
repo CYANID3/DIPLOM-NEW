@@ -6,6 +6,14 @@
 <body>
 
 <h3>Вы вошли как: {{.Username}}</h3>
+<p>
+    <a href="/">Главная</a> | 
+    <a href="/history">История</a> | 
+    <a href="/profile">Профиль</a> | 
+    {{if eq .Role "admin"}}<a href="/admin">Админка</a> | {{end}}
+    <a href="/logout">Выйти</a>
+</p>
+
 <h1>Warehouse Inventory Management System</h1>
 
 <h2>Добавить товар</h2>
@@ -31,9 +39,9 @@
 <tr>
     <td>{{.ID}}</td>
     <td>{{.Name}}</td>
-    <td>{{printf "%.2f" .Price}}</td>
+    <td>{{.Price}}</td>
     <td>{{.Quantity}}</td>
-    <td>{{printf "%.2f" .Total}}</td>
+    <td>{{.Total}}</td>
     <td>
         <form action="/sell" method="post">
             <input type="hidden" name="id" value="{{.ID}}">
@@ -50,8 +58,6 @@
 </tr>
 {{end}}
 </table>
-
-<p><a href="/history">История</a> | <a href="/profile">Профиль</a> | <a href="/logout">Выйти</a></p>
 
 </body>
 </html>
