@@ -8,7 +8,7 @@ import (
 
 var historyTmpl = template.Must(template.ParseGlob("templates/*.html"))
 
-// Страница истории действий
+// HistoryPage
 func HistoryPage(w http.ResponseWriter, r *http.Request) {
 	username, _ := GetSession(r)
 	if username == "" {

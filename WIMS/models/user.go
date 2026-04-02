@@ -77,6 +77,22 @@ func UpdateUser(username, firstName, lastName, middleName, position, email, role
 	return err
 }
 
+// Удаление пользователя
+func DeleteUser(username string) error {
+	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
+	return err
+}
+
+// Новая функция для обновления пароля
+func UpdateUserPassword(username, newPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	_, err = database.DB.Exec("UPDATE users SET password=? WHERE username=?", string(hash), username)
+	return err
+}
+
 // Получение всех пользователей
 func GetAllUsers() ([]User, error) {
 	rows, err := database.DB.Query(
@@ -94,10 +110,4 @@ func GetAllUsers() ([]User, error) {
 		users = append(users, u)
 	}
 	return users, nil
-}
-
-// Удаление пользователя
-func DeleteUser(username string) error {
-	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
-	return err
 }

@@ -22,10 +22,10 @@
     <tr>
         <td>{{.ID}}</td>
         <td>{{.Action}}</td>
-        <td>{{if .UserFullName}}{{.UserFullName}}{{else}}{{.Username}}{{end}}</td>
+        <td>{{.Username}}</td>
         <td>{{.Target}}</td>
         <td>{{.Quantity}}</td>
-        <td>{{printf "%.2f" .TotalPrice}}</td>
+        <td>{{printf "%.2f" .Total}}</td>
         <td>{{.Timestamp}}</td>
     </tr>
     {{end}}

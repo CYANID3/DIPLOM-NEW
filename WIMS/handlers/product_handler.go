@@ -9,7 +9,7 @@ import (
 
 var tmpl = template.Must(template.ParseGlob("templates/*.html"))
 
-// Главная страница с товарами
+// IndexPage
 func IndexPage(w http.ResponseWriter, r *http.Request) {
 	products, _ := models.GetAllProducts()
 	username, _ := GetSession(r)
@@ -20,7 +20,7 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "index.html", data)
 }
 
-// Добавление товара
+// AddProductHandler
 func AddProductHandler(w http.ResponseWriter, r *http.Request) {
 	username, _ := GetSession(r)
 	if username == "" {
@@ -36,7 +36,7 @@ func AddProductHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Удаление товара
+// DeleteProductHandler
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	username, _ := GetSession(r)
 	if username == "" {
@@ -49,7 +49,7 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Продажа товара
+// SellProductHandler
 func SellProductHandler(w http.ResponseWriter, r *http.Request) {
 	username, _ := GetSession(r)
 	if username == "" {

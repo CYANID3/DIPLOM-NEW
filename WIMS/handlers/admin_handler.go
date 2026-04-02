@@ -8,7 +8,7 @@ import (
 
 var adminTmpl = template.Must(template.ParseGlob("templates/*.html"))
 
-// Страница админки
+// AdminPage - отображение админ-панели
 func AdminPage(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -16,12 +16,7 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := models.GetAllUsers()
-	if err != nil {
-		http.Error(w, "Не удалось получить список пользователей", http.StatusInternalServerError)
-		return
-	}
-
+	users, _ := models.GetAllUsers()
 	data := map[string]interface{}{
 		"Users":    users,
 		"Username": username,
@@ -29,7 +24,7 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 	adminTmpl.ExecuteTemplate(w, "admin.html", data)
 }
 
-// Создание пользователя
+// CreateUserHandler
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -37,28 +32,29 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		firstName := r.FormValue("first_name")
 		lastName := r.FormValue("last_name")
 		middleName := r.FormValue("middle_name")
 		position := r.FormValue("position")
-		login := r.FormValue("username")
 		password := r.FormValue("password")
-		roleNew := r.FormValue("role")
+		userRole := r.FormValue("role")
+		usernameInput := r.FormValue("username")
 
-		err := models.CreateUser(login, password, roleNew, firstName, lastName, middleName, position, "")
+		if password == "" {
+			password = "12345" // дефолтный пароль
+		}
+
+		err := models.CreateUser(usernameInput, password, userRole, firstName, lastName, middleName, position, "")
 		if err != nil {
 			http.Error(w, "Не удалось создать пользователя", http.StatusInternalServerError)
 			return
 		}
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
-		return
 	}
-
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
 
-// Удаление пользователя
+// DeleteUserHandler
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -66,17 +62,18 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		delUsername := r.FormValue("username")
+		if delUsername == username {
+			http.Error(w, "Нельзя удалить себя", http.StatusForbidden)
+			return
+		}
 		models.DeleteUser(delUsername)
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
-		return
 	}
-
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }
 
-// Редактирование пользователя
+// EditUserHandler
 func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -84,19 +81,22 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "POST" {
-		editUsername := r.FormValue("username")
+	if r.Method == http.MethodPost {
+		oldUsername := r.FormValue("old_username")
 		firstName := r.FormValue("first_name")
 		lastName := r.FormValue("last_name")
 		middleName := r.FormValue("middle_name")
 		position := r.FormValue("position")
-		email := r.FormValue("email")
-		roleNew := r.FormValue("role")
+		newRole := r.FormValue("role")
+		password := r.FormValue("password")
 
-		models.UpdateUser(editUsername, firstName, lastName, middleName, position, email, roleNew)
+		// Если указан новый пароль, обновляем через models
+		if password != "" {
+			models.UpdateUserPassword(oldUsername, password)
+		}
+
+		// Обновляем остальные данные
+		models.UpdateUser(oldUsername, firstName, lastName, middleName, position, "", newRole)
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
-		return
 	}
-
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
 }

@@ -31,9 +31,9 @@
 <tr>
     <td>{{.ID}}</td>
     <td>{{.Name}}</td>
-    <td>{{.Price}}</td>
+    <td>{{printf "%.2f" .Price}}</td>
     <td>{{.Quantity}}</td>
-    <td>{{.Total}}</td>
+    <td>{{printf "%.2f" .Total}}</td>
     <td>
         <form action="/sell" method="post">
             <input type="hidden" name="id" value="{{.ID}}">

@@ -17,6 +17,21 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := models.GetUserByUsername(username)
+	if user.Username == "" {
+		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		return
+	}
+
+	// Если роль не задана, присвоить user
+	if role == "" {
+		role = "user"
+	}
+
+	// Админ перенаправляется на админ-панель
+	if role == "admin" {
+		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		return
+	}
 
 	data := struct {
 		User models.User
@@ -26,18 +41,22 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		Role: role,
 	}
 
-	profileTmpl.ExecuteTemplate(w, "profile_view.html", data)
+	profileTmpl.ExecuteTemplate(w, "profile.html", data)
 }
 
 // Редактирование профиля
 func EditProfilePage(w http.ResponseWriter, r *http.Request) {
-	username, role := GetSession(r)
+	username, _ := GetSession(r)
 	if username == "" {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	user := models.GetUserByUsername(username)
+	if user.Username == "" {
+		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		return
+	}
 
 	if r.Method == "POST" {
 		firstName := r.FormValue("first_name")
@@ -45,14 +64,8 @@ func EditProfilePage(w http.ResponseWriter, r *http.Request) {
 		middleName := r.FormValue("middle_name")
 		position := r.FormValue("position")
 		email := r.FormValue("email")
-		newRole := r.FormValue("role")
 
-		// Только админ может менять роль
-		if role != "admin" {
-			newRole = user.Role
-		}
-
-		err := models.UpdateUser(username, firstName, lastName, middleName, position, email, newRole)
+		err := models.UpdateProfile(username, firstName, lastName, middleName, position, email)
 		if err != nil {
 			http.Error(w, "Не удалось обновить профиль", http.StatusInternalServerError)
 			return
@@ -64,11 +77,9 @@ func EditProfilePage(w http.ResponseWriter, r *http.Request) {
 
 	data := struct {
 		User models.User
-		Role string
 	}{
 		User: *user,
-		Role: role,
 	}
 
-	profileTmpl.ExecuteTemplate(w, "profile_edit.html", data)
+	profileTmpl.ExecuteTemplate(w, "profile.html", data)
 }

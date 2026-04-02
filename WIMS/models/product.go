@@ -23,7 +23,9 @@ func GetAllProducts() ([]Product, error) {
 	var products []Product
 	for rows.Next() {
 		var p Product
-		rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity)
+		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity); err != nil {
+			return nil, err
+		}
 		p.Total = p.Price * float64(p.Quantity)
 		products = append(products, p)
 	}
@@ -50,7 +52,9 @@ func CreateProduct(name string, price float64, quantity int, username string) er
 // Удаление товара с записью в историю
 func DeleteProduct(id int, username string) error {
 	var name string
-	database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name)
+	if err := database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name); err != nil {
+		return err
+	}
 
 	_, err := database.DB.Exec("DELETE FROM products WHERE id=?", id)
 	if err != nil {
@@ -67,14 +71,26 @@ func DeleteProduct(id int, username string) error {
 // Продажа товара с записью в историю
 func SellProduct(id int, qty int, username string) error {
 	var name string
-	database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name)
+	var currentQty int
+	if err := database.DB.QueryRow("SELECT name, quantity FROM products WHERE id=?", id).Scan(&name, &currentQty); err != nil {
+		return err
+	}
 
-	_, err := database.DB.Exec(
-		"UPDATE products SET quantity = quantity - ? WHERE id = ? AND quantity >= ?",
-		qty, id, qty,
+	if currentQty < qty {
+		return nil // недостаточно товара
+	}
+
+	res, err := database.DB.Exec(
+		"UPDATE products SET quantity = quantity - ? WHERE id = ?",
+		qty, id,
 	)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil || rowsAffected == 0 {
+		return nil
 	}
 
 	_, err = database.DB.Exec(

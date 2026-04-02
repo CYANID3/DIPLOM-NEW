@@ -11,59 +11,53 @@ var DB *sql.DB
 
 func InitDB() {
 	var err error
-
-	DB, err = sql.Open("sqlite", "wims.db") // <- вместо "sqlite3" используем "sqlite"
+	DB, err = sql.Open("sqlite", "wims.db")
 	if err != nil {
-		log.Fatal("Ошибка при открытии базы:", err)
+		log.Fatal("Не удалось открыть базу данных:", err)
 	}
 
+	// Проверка соединения
+	if err := DB.Ping(); err != nil {
+		log.Fatal("Не удалось подключиться к базе данных:", err)
+	}
+
+	// Создание таблиц, если их нет
 	createTables()
 }
 
 func createTables() {
-	userTable := `
-	CREATE TABLE IF NOT EXISTS users (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		username TEXT UNIQUE,
-		password TEXT,
-		role TEXT DEFAULT 'user',
-		first_name TEXT,
-		last_name TEXT,
-		position TEXT,
-		email TEXT
-	);`
+	queries := []string{
+		`CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			username TEXT UNIQUE,
+			password TEXT,
+			role TEXT,
+			first_name TEXT,
+			last_name TEXT,
+			middle_name TEXT,
+			position TEXT,
+			email TEXT
+		);`,
+		`CREATE TABLE IF NOT EXISTS products (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT,
+			price REAL,
+			quantity INTEGER
+		);`,
+		`CREATE TABLE IF NOT EXISTS history (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			action TEXT,
+			username TEXT,
+			target TEXT,
+			quantity INTEGER,
+			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+	}
 
-	productTable := `
-	CREATE TABLE IF NOT EXISTS products (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT,
-		price REAL,
-		quantity INTEGER
-	);`
-
-	historyTable := `
-	CREATE TABLE IF NOT EXISTS history (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		action TEXT,
-		username TEXT,
-		target TEXT,
-		quantity INTEGER,
-		timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	salesTable := `
-	CREATE TABLE IF NOT EXISTS sales (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		product_id INTEGER,
-		quantity INTEGER,
-		username TEXT,
-		timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	for _, query := range []string{userTable, productTable, historyTable, salesTable} {
-		_, err := DB.Exec(query)
+	for _, q := range queries {
+		_, err := DB.Exec(q)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Ошибка при создании таблицы:", err)
 		}
 	}
 }
