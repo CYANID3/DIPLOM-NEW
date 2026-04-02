@@ -6,7 +6,7 @@ import (
 	"wims/models"
 )
 
-var adminTmpl = template.Must(template.ParseGlob("templates/*.html"))
+var adminTmpl = template.Must(template.ParseFiles("templates/admin.html"))
 
 // AdminPage - отображение админ-панели
 func AdminPage(w http.ResponseWriter, r *http.Request) {
@@ -16,7 +16,12 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, _ := models.GetAllUsers()
+	users, err := models.GetAllUsers()
+	if err != nil {
+		http.Error(w, "Ошибка при получении пользователей", http.StatusInternalServerError)
+		return
+	}
+
 	data := map[string]interface{}{
 		"Users":    users,
 		"Username": username,
@@ -24,7 +29,7 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 	adminTmpl.ExecuteTemplate(w, "admin.html", data)
 }
 
-// CreateUserHandler
+// CreateUserHandler - создание нового пользователя
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -41,6 +46,9 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		userRole := r.FormValue("role")
 		usernameInput := r.FormValue("username")
 
+		if userRole == "" {
+			userRole = "user"
+		}
 		if password == "" {
 			password = "12345" // дефолтный пароль
 		}
@@ -54,7 +62,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DeleteUserHandler
+// DeleteUserHandler - удаление пользователя
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -68,12 +76,16 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Нельзя удалить себя", http.StatusForbidden)
 			return
 		}
-		models.DeleteUser(delUsername)
+		err := models.DeleteUser(delUsername)
+		if err != nil {
+			http.Error(w, "Ошибка при удалении пользователя", http.StatusInternalServerError)
+			return
+		}
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	}
 }
 
-// EditUserHandler
+// EditUserHandler - редактирование пользователя
 func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, role := GetSession(r)
 	if username == "" || role != "admin" {
@@ -87,16 +99,30 @@ func EditUserHandler(w http.ResponseWriter, r *http.Request) {
 		lastName := r.FormValue("last_name")
 		middleName := r.FormValue("middle_name")
 		position := r.FormValue("position")
+		email := r.FormValue("email")
 		newRole := r.FormValue("role")
 		password := r.FormValue("password")
 
-		// Если указан новый пароль, обновляем через models
-		if password != "" {
-			models.UpdateUserPassword(oldUsername, password)
+		if newRole == "" {
+			newRole = "user"
 		}
 
-		// Обновляем остальные данные
-		models.UpdateUser(oldUsername, firstName, lastName, middleName, position, "", newRole)
+		// Обновление пароля, если введён
+		if password != "" {
+			err := models.UpdateUserPassword(oldUsername, password)
+			if err != nil {
+				http.Error(w, "Не удалось обновить пароль", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// Обновление остальных данных
+		err := models.UpdateUser(oldUsername, firstName, lastName, middleName, position, email, newRole)
+		if err != nil {
+			http.Error(w, "Не удалось обновить данные пользователя", http.StatusInternalServerError)
+			return
+		}
+
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 	}
 }

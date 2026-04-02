@@ -18,7 +18,7 @@ type User struct {
 	Email      string
 }
 
-// Создание пользователя (для админа)
+// Создание пользователя
 func CreateUser(username, password, role, firstName, lastName, middleName, position, email string) error {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
@@ -30,7 +30,7 @@ func CreateUser(username, password, role, firstName, lastName, middleName, posit
 	return err
 }
 
-// Проверка логина и пароля
+// Проверка логина
 func CheckUser(username, password string) (bool, *User) {
 	var u User
 	err := database.DB.QueryRow(
@@ -54,12 +54,15 @@ func GetUserByUsername(username string) *User {
 		username,
 	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
 	if err != nil {
-		return &User{}
+		return &User{Role: "user"}
+	}
+	if u.Role == "" {
+		u.Role = "user"
 	}
 	return &u
 }
 
-// Обновление профиля (для себя)
+// Обновление профиля
 func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
 	_, err := database.DB.Exec(
 		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=? WHERE username=?",
@@ -77,19 +80,10 @@ func UpdateUser(username, firstName, lastName, middleName, position, email, role
 	return err
 }
 
-// Удаление пользователя
-func DeleteUser(username string) error {
-	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
-	return err
-}
-
-// Новая функция для обновления пароля
-func UpdateUserPassword(username, newPassword string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	_, err = database.DB.Exec("UPDATE users SET password=? WHERE username=?", string(hash), username)
+// Обновление пароля
+func UpdateUserPassword(username, password string) error {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	_, err := database.DB.Exec("UPDATE users SET password=? WHERE username=?", string(hash), username)
 	return err
 }
 
@@ -107,7 +101,16 @@ func GetAllUsers() ([]User, error) {
 	for rows.Next() {
 		var u User
 		rows.Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+		if u.Role == "" {
+			u.Role = "user"
+		}
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+// Удаление пользователя
+func DeleteUser(username string) error {
+	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
+	return err
 }
