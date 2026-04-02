@@ -6,14 +6,6 @@
 <body>
 
 <h3>Вы вошли как: {{.Username}}</h3>
-<p>
-    <a href="/">Главная</a> | 
-    <a href="/history">История</a> | 
-    <a href="/profile">Профиль</a> | 
-    {{if eq .Role "admin"}}<a href="/admin">Админка</a> | {{end}}
-    <a href="/logout">Выйти</a>
-</p>
-
 <h1>Warehouse Inventory Management System</h1>
 
 <h2>Добавить товар</h2>
@@ -25,13 +17,13 @@
 </form>
 
 <h2>Список товаров</h2>
-<table border="1">
+<table id="products-table" border="1" data-sort-asc="true">
 <tr>
-    <th>ID</th>
-    <th>Название</th>
-    <th>Цена</th>
-    <th>Остаток</th>
-    <th>Итоговая стоимость</th>
+    <th onclick="sortTable('products-table', 0)">ID</th>
+    <th onclick="sortTable('products-table', 1)">Название</th>
+    <th onclick="sortTable('products-table', 2)">Цена</th>
+    <th onclick="sortTable('products-table', 3)">Остаток</th>
+    <th onclick="sortTable('products-table', 4)">Итоговая стоимость</th>
     <th>Продать</th>
     <th>Удалить</th>
 </tr>
@@ -58,6 +50,30 @@
 </tr>
 {{end}}
 </table>
+
+<p><a href="/history">История</a> | <a href="/profile">Профиль</a> | <a href="/logout">Выйти</a></p>
+
+<script>
+function sortTable(tableId, colIndex) {
+    const table = document.getElementById(tableId);
+    let rows = Array.from(table.rows).slice(1);
+    const asc = table.getAttribute("data-sort-asc") !== "true";
+
+    rows.sort((a, b) => {
+        let aVal = a.cells[colIndex].innerText;
+        let bVal = b.cells[colIndex].innerText;
+
+        let aNum = parseFloat(aVal);
+        let bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
+
+        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
+
+    rows.forEach(r => table.appendChild(r));
+    table.setAttribute("data-sort-asc", asc);
+}
+</script>
 
 </body>
 </html>

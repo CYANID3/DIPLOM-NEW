@@ -6,25 +6,19 @@ import (
 	"wims/models"
 )
 
-var historyTmpl = template.Must(template.ParseGlob("templates/*.html"))
+var historyTmpl = template.Must(template.ParseFiles("templates/history.html"))
 
-// HistoryPage
 func HistoryPage(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
-	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	history, err := models.GetAllHistory()
+	history, err := models.GetHistory()
 	if err != nil {
-		http.Error(w, "Не удалось получить историю", http.StatusInternalServerError)
+		w.Write([]byte("Не удалось получить историю"))
 		return
 	}
 
 	data := map[string]interface{}{
 		"History":  history,
-		"Username": username,
+		"Username": "Текущий пользователь", // позже сюда можно подставить сессию
 	}
-	historyTmpl.ExecuteTemplate(w, "history.html", data)
+
+	historyTmpl.Execute(w, data)
 }

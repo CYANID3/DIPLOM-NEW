@@ -124,3 +124,22 @@ func DeleteUser(username string) error {
 	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
 	return err
 }
+
+func GetDisplayName(username string) string {
+	var firstName, lastName string
+
+	err := database.DB.QueryRow(
+		"SELECT first_name, last_name FROM users WHERE username = ?",
+		username,
+	).Scan(&firstName, &lastName)
+
+	if err != nil {
+		return username
+	}
+
+	if firstName != "" || lastName != "" {
+		return firstName + " " + lastName
+	}
+
+	return username
+}

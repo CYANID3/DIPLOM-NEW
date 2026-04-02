@@ -1,47 +1,46 @@
 package models
 
-import (
-	"wims/database"
-)
+import "wims/database"
 
-type History struct {
-	ID        int
-	Action    string
-	Username  string
-	Target    string
-	Quantity  int
-	Total     float64 // стоимость операции
-	Timestamp string
+type HistoryItem struct {
+	ID           int
+	Action       string
+	Username     string // это будет либо логин, либо ФИО
+	UserFullName string
+	Target       string
+	Quantity     int
+	Total        float64
+	Timestamp    string
 }
 
-// Получение всей истории операций с подсчетом Total для sell
-func GetAllHistory() ([]History, error) {
-	rows, err := database.DB.Query(
-		"SELECT id, action, username, target, quantity, timestamp FROM history ORDER BY timestamp DESC",
-	)
+func GetHistory() ([]HistoryItem, error) {
+	rows, err := database.DB.Query(`
+		SELECT h.id, h.action, h.username, u.first_name, u.last_name, h.target, h.quantity, p.price, h.timestamp
+		FROM history h
+		LEFT JOIN users u ON h.username = u.username
+		LEFT JOIN products p ON p.name = h.target
+		ORDER BY h.id DESC
+	`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var history []History
+	var history []HistoryItem
 	for rows.Next() {
-		var h History
-		rows.Scan(&h.ID, &h.Action, &h.Username, &h.Target, &h.Quantity, &h.Timestamp)
-
+		var h HistoryItem
+		var firstName, lastName string
 		var price float64
-		err := database.DB.QueryRow("SELECT price FROM products WHERE name=?", h.Target).Scan(&price)
-		if err != nil {
-			price = 0
+
+		if err := rows.Scan(&h.ID, &h.Action, &h.Username, &firstName, &lastName, &h.Target, &h.Quantity, &price, &h.Timestamp); err != nil {
+			return nil, err
 		}
 
-		// Для sell и add считаем Total
-		if h.Action == "sell" || h.Action == "add" {
-			h.Total = price * float64(h.Quantity)
-		} else {
-			h.Total = 0
+		if firstName != "" || lastName != "" {
+			h.Username = firstName + " " + lastName
 		}
 
+		h.Total = price * float64(h.Quantity)
 		history = append(history, h)
 	}
 	return history, nil
