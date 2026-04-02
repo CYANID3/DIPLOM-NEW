@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Регистрация</title>
+</head>
+<body>
+
+<h1>Регистрация</h1>
+
+{{if .Error}}
+<p style="color:red">{{.Error}}</p>
+{{end}}
+
+<form action="/register" method="post">
+    <label>Логин:</label>
+    <input type="text" name="username" required><br><br>
+
+    <label>Пароль:</label>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Зарегистрироваться</button>
+</form>
+
+<p>Уже есть аккаунт? <a href="/login">Войти</a></p>
+
+</body>
+</html>

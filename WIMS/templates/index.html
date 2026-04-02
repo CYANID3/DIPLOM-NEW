@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WIMS</title>
+</head>
+<body>
+
+<h3>Вы вошли как: {{.Username}}</h3>
+<h1>Warehouse Inventory Management System</h1>
+
+<h2>Добавить товар</h2>
+<form action="/add" method="post">
+    Название: <input name="name" required>
+    Цена: <input name="price" type="number" step="0.01" required>
+    Кол-во: <input name="quantity" type="number" required>
+    <button type="submit">Добавить</button>
+</form>
+
+<h2>Список товаров</h2>
+<table border="1">
+<tr>
+    <th>ID</th>
+    <th>Название</th>
+    <th>Цена</th>
+    <th>Остаток</th>
+    <th>Итоговая стоимость</th>
+    <th>Продать</th>
+    <th>Удалить</th>
+</tr>
+{{range .Products}}
+<tr>
+    <td>{{.ID}}</td>
+    <td>{{.Name}}</td>
+    <td>{{.Price}}</td>
+    <td>{{.Quantity}}</td>
+    <td>{{.Total}}</td>
+    <td>
+        <form action="/sell" method="post">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <input name="quantity" type="number" placeholder="кол-во" required>
+            <button type="submit">Продать</button>
+        </form>
+    </td>
+    <td>
+        <form action="/delete" method="post">
+            <input type="hidden" name="id" value="{{.ID}}">
+            <button type="submit">Удалить</button>
+        </form>
+    </td>
+</tr>
+{{end}}
+</table>
+
+<p><a href="/history">История</a> | <a href="/profile">Профиль</a> | <a href="/logout">Выйти</a></p>
+
+</body>
+</html>

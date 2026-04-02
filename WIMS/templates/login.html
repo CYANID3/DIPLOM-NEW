@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Вход</title>
+</head>
+<body>
+
+<h1>Вход</h1>
+
+{{if .Error}}
+<p style="color:red">{{.Error}}</p>
+{{end}}
+
+<form action="/login" method="post">
+    <label>Логин:</label>
+    <input type="text" name="username" required><br><br>
+
+    <label>Пароль:</label>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Войти</button>
+</form>
+
+<p>Нет аккаунта? <a href="/register">Регистрация</a></p>
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>История действий</title>
+</head>
+<body>
+
+<h3>Вы вошли как: {{.Username}}</h3>
+<h1>История действий</h1>
+
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Действие</th>
+        <th>Пользователь</th>
+        <th>Цель</th>
+        <th>Количество</th>
+        <th>Сумма</th>
+        <th>Время</th>
+    </tr>
+    {{range .History}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Action}}</td>
+        <td>{{if .UserFullName}}{{.UserFullName}}{{else}}{{.Username}}{{end}}</td>
+        <td>{{.Target}}</td>
+        <td>{{.Quantity}}</td>
+        <td>{{printf "%.2f" .TotalPrice}}</td>
+        <td>{{.Timestamp}}</td>
+    </tr>
+    {{end}}
+</table>
+
+<p><a href="/">Главная</a> | <a href="/logout">Выйти</a></p>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Профиль</title>
+</head>
+<body>
+
+<h3>Вы вошли как: {{.Username}}</h3>
+<h1>Профиль пользователя</h1>
+
+<!-- Отображение профиля -->
+<div id="profile-view">
+    <p><strong>Логин:</strong> {{.User.Username}}</p>
+    <p><strong>ФИО:</strong> {{.User.FirstName}} {{.User.LastName}} {{.User.MiddleName}}</p>
+    <p><strong>Должность:</strong> {{.User.Position}}</p>
+    <p><strong>Email:</strong> {{.User.Email}}</p>
+    <p><strong>Роль:</strong> {{.User.Role}}</p>
+    <button onclick="document.getElementById('profile-edit').style.display='block'; document.getElementById('profile-view').style.display='none';">
+        Редактировать профиль
+    </button>
+</div>
+
+<!-- Форма редактирования -->
+<div id="profile-edit" style="display:none;">
+    <form action="/profile" method="post">
+        <label>Имя:</label>
+        <input type="text" name="first_name" value="{{.User.FirstName}}" required><br><br>
+
+        <label>Фамилия:</label>
+        <input type="text" name="last_name" value="{{.User.LastName}}" required><br><br>
+
+        <label>Отчество:</label>
+        <input type="text" name="middle_name" value="{{.User.MiddleName}}"><br><br>
+
+        <label>Должность:</label>
+        <input type="text" name="position" value="{{.User.Position}}"><br><br>
+
+        <label>Email:</label>
+        <input type="email" name="email" value="{{.User.Email}}"><br><br>
+
+        <!-- Логин и роль только для просмотра -->
+        <p><strong>Логин:</strong> {{.User.Username}}</p>
+        <p><strong>Роль:</strong> {{.User.Role}}</p>
+
+        <button type="submit">Сохранить</button>
+        <button type="button" onclick="document.getElementById('profile-view').style.display='block'; document.getElementById('profile-edit').style.display='none';">
+            Отмена
+        </button>
+    </form>
+</div>
+
+<p><a href="/">Главная</a> | <a href="/history">История</a> | <a href="/logout">Выйти</a></p>
+
+</body>
+</html>
