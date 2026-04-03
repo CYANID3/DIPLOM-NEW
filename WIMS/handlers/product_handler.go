@@ -23,16 +23,16 @@ func IndexPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errorMsg := r.URL.Query().Get("error")
+
 	data := map[string]interface{}{
 		"Products": products,
 		"Username": display,
 		"Role":     role,
+		"Error":    errorMsg,
 	}
 
-	err = tmpl.ExecuteTemplate(w, "index.html", data)
-	if err != nil {
-		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-	}
+	tmpl.ExecuteTemplate(w, "index.html", data)
 }
 
 func AddProductHandler(w http.ResponseWriter, r *http.Request) {
@@ -115,19 +115,19 @@ func SellProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
-		http.Error(w, "Неверный ID", http.StatusBadRequest)
+		http.Redirect(w, r, "/?error=Неверный+ID", http.StatusSeeOther)
 		return
 	}
 
 	qty, err := strconv.Atoi(r.FormValue("quantity"))
 	if err != nil {
-		http.Error(w, "Неверное количество", http.StatusBadRequest)
+		http.Redirect(w, r, "/?error=Неверное+количество", http.StatusSeeOther)
 		return
 	}
 
 	err = models.SellProduct(id, qty, username)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Redirect(w, r, "/?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
 

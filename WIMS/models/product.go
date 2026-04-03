@@ -92,8 +92,12 @@ func DeleteProduct(id int, username string) error {
 	defer tx.Rollback()
 
 	var name, barcode string
+	var quantity int
 
-	err = tx.QueryRow("SELECT name, barcode FROM products WHERE id=?", id).Scan(&name, &barcode)
+	err = tx.QueryRow(
+		"SELECT name, barcode, quantity FROM products WHERE id=?",
+		id,
+	).Scan(&name, &barcode, &quantity)
 	if err != nil {
 		return err
 	}
@@ -105,7 +109,7 @@ func DeleteProduct(id int, username string) error {
 
 	_, err = tx.Exec(
 		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
-		"delete", username, name, barcode, 0,
+		"delete", username, name, barcode, quantity,
 	)
 	if err != nil {
 		return err

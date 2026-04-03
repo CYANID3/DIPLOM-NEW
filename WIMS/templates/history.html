@@ -66,7 +66,7 @@
 <thead>
 <tr>
 <th onclick="sortHistory(0)">ID</th>
-<th onclick="sortHistory(1)">Действие</th>
+<th>Действие</th>
 <th onclick="sortHistory(2)">Пользователь</th>
 <th onclick="sortHistory(3)">Штрихкод</th>
 <th onclick="sortHistory(4)">Товар</th>
@@ -80,13 +80,26 @@
 {{range .History}}
 <tr>
 <td>{{.ID}}</td>
-<td>{{.Action}}</td>
+
+<td>
+{{if eq .Action "add"}}
+<span class="badge text-bg-success">Добавление</span>
+{{else if eq .Action "sell"}}
+<span class="badge text-bg-primary">Продажа</span>
+{{else if eq .Action "delete"}}
+<span class="badge text-bg-danger">Удаление</span>
+{{else}}
+<span class="badge text-bg-secondary">{{.Action}}</span>
+{{end}}
+</td>
+
 <td>{{.UserFullName}}</td>
 <td>{{.Barcode}}</td>
 <td>{{.Target}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
 <td>{{.Timestamp}}</td>
+
 </tr>
 {{end}}
 </tbody>
@@ -99,6 +112,7 @@
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// ===== ПОИСК =====
 const historySearch = document.getElementById("historySearch");
 
 historySearch.addEventListener("keyup", function () {
@@ -111,6 +125,7 @@ historySearch.addEventListener("keyup", function () {
     });
 });
 
+// ===== СОРТИРОВКА =====
 let sortDirHistory = true;
 
 function sortHistory(col) {
