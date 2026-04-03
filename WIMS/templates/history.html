@@ -63,11 +63,11 @@
 
 <td>
 {{if eq .Action "add"}}
-<span class="badge text-bg-success">Добавление</span>
+<span class="badge text-bg-success">Добавлено</span>
 {{else if eq .Action "sell"}}
-<span class="badge text-bg-primary">Продажа</span>
+<span class="badge text-bg-primary">Продано</span>
 {{else if eq .Action "delete"}}
-<span class="badge text-bg-danger">Удаление</span>
+<span class="badge text-bg-danger">Удалено</span>
 {{else}}
 <span class="badge text-bg-secondary">{{.Action}}</span>
 {{end}}
