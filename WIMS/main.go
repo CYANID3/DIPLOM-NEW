@@ -68,6 +68,7 @@ func main() {
 	mux.HandleFunc("/admin", handlers.AdminPage)
 	mux.HandleFunc("/admin/create", handlers.CreateUserHandler)
 	mux.HandleFunc("/admin/delete", handlers.DeleteUserHandler)
+	mux.HandleFunc("/admin/edit", handlers.AdminEditUserPage)
 
 	// 404 handler
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -11,15 +11,8 @@
 
 <body class="bg-body">
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
-
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="nav">
 
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
@@ -28,41 +21,77 @@
 </div>
 
 <div class="ms-auto d-flex gap-2">
-
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-
-<div class="dropdown">
-<button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-{{.Username}}
-</button>
-
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
+<span>{{.Username}}</span>
 </div>
 
-</div>
-
-</div>
 </div>
 </nav>
 
 <div class="container mt-4">
 
+<!-- ДОБАВЛЕНИЕ (ПЕРЕНЕСЕНО ВВЕРХ) -->
+<div class="card p-3 mb-4">
+<h5>Добавить пользователя</h5>
+
+<form action="/admin/create" method="post" class="row g-2">
+
+<div class="col-md-3">
+<input class="form-control" name="first_name" placeholder="Имя" required>
+</div>
+
+<div class="col-md-3">
+<input class="form-control" name="last_name" placeholder="Фамилия" required>
+</div>
+
+<div class="col-md-2">
+<input class="form-control" name="middle_name" placeholder="Отчество">
+</div>
+
+<div class="col-md-2">
+<input class="form-control" name="position" placeholder="Должность">
+</div>
+
+<div class="col-md-2">
+<select class="form-select" name="role">
+<option value="user">user</option>
+<option value="manager">manager</option>
+<option value="admin">admin</option>
+</select>
+</div>
+
+<div class="col-md-4">
+<input class="form-control" name="username" placeholder="Логин" required>
+</div>
+
+<div class="col-md-4">
+<input class="form-control" type="password" name="password" placeholder="Пароль" required>
+</div>
+
+<div class="col-md-4">
+<input class="form-control" name="email" placeholder="Email">
+</div>
+
+<div class="col-md-12">
+<button class="btn btn-primary w-100">Создать</button>
+</div>
+
+</form>
+</div>
+
 <!-- ПОИСК -->
 <input id="userSearch" class="form-control mb-3" placeholder="Поиск пользователя">
 
 <!-- СПИСОК -->
-<div class="card p-3 mb-4">
+<div class="card p-3">
 <h5>Пользователи</h5>
 
 <table id="usersTable" class="table table-striped">
 <thead>
 <tr>
-<th onclick="sortUsers(0)">ФИО</th>
-<th onclick="sortUsers(1)">Логин</th>
-<th onclick="sortUsers(2)">Роль</th>
+<th>ФИО</th>
+<th>Логин</th>
+<th>Роль</th>
 <th>Действия</th>
 </tr>
 </thead>
@@ -70,6 +99,7 @@
 <tbody>
 {{range .Users}}
 <tr>
+
 <td>{{.FirstName}} {{.LastName}}</td>
 <td>{{.Username}}</td>
 
@@ -83,71 +113,31 @@
 {{end}}
 </td>
 
-<td>
+<td class="d-flex gap-2">
+
+<a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">
+Редактировать
+</a>
+
 <form action="/admin/delete" method="post">
 <input type="hidden" name="username" value="{{.Username}}">
 <button class="btn btn-danger btn-sm">Удалить</button>
 </form>
+
 </td>
 
+</tr>
+
+{{else}}
+<tr>
+<td colspan="4" class="text-center text-muted py-4">
+👤 Пользователей пока нет
+</td>
 </tr>
 {{end}}
 </tbody>
 
 </table>
-</div>
-
-<!-- ДОБАВЛЕНИЕ -->
-<div class="card p-3">
-<h5>Добавить пользователя</h5>
-
-<form action="/admin/create" method="post" autocomplete="on">
-
-<div class="row">
-<div class="col-md-3">
-<input class="form-control mb-2" name="first_name" placeholder="Имя" required>
-</div>
-
-<div class="col-md-3">
-<input class="form-control mb-2" name="last_name" placeholder="Фамилия" required>
-</div>
-
-<div class="col-md-2">
-<input class="form-control mb-2" name="middle_name" placeholder="Отчество">
-</div>
-
-<div class="col-md-2">
-<input class="form-control mb-2" name="position" placeholder="Должность">
-</div>
-
-<div class="col-md-2">
-<select class="form-select mb-2" name="role" required>
-<option value="user">user</option>
-<option value="manager">manager</option>
-<option value="admin">admin</option>
-</select>
-</div>
-</div>
-
-<div class="row">
-<div class="col-md-3">
-<input class="form-control mb-2" name="username" placeholder="Логин" required>
-</div>
-
-<div class="col-md-3">
-<input class="form-control mb-2" type="password" name="password" placeholder="Пароль" required>
-</div>
-
-<div class="col-md-3">
-<input class="form-control mb-2" name="email" placeholder="Email">
-</div>
-
-<div class="col-md-3">
-<button class="btn btn-primary w-100">Создать</button>
-</div>
-</div>
-
-</form>
 </div>
 
 </div>
@@ -166,23 +156,6 @@ userSearch.addEventListener("keyup", function () {
         row.style.display = text.includes(filter) ? "" : "none";
     });
 });
-
-let sortDirUsers = true;
-
-function sortUsers(col) {
-    const table = document.getElementById("usersTable");
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-    rows.sort((a, b) => {
-        let A = a.cells[col].innerText;
-        let B = b.cells[col].innerText;
-
-        return sortDirUsers ? A.localeCompare(B) : B.localeCompare(A);
-    });
-
-    rows.forEach(row => table.querySelector("tbody").appendChild(row));
-    sortDirUsers = !sortDirUsers;
-}
 </script>
 
 </body>
