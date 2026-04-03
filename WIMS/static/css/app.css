@@ -1,103 +1,378 @@
-/* ===== LIGHT (по умолчанию) ===== */
+/* ==============================================
+   app.css — кастомная тема поверх Bootstrap
+   Покрывает: index, history, profile, admin,
+              admin_edit, login, register, 404
+   ============================================== */
+
+/* ===== ПЕРЕМЕННЫЕ: СВЕТЛАЯ ТЕМА ===== */
 :root {
-    --bs-body-bg: #f5f6fa;
-    --bs-body-color: #212529;
+    --app-bg:                #f5f6fa;
+    --app-color:             #212529;
 
-    --bs-card-bg: #ffffff;
-    --bs-border-color: #dee2e6;
+    --app-card-bg:           #ffffff;
+    --app-border:            #dee2e6;
 
-    --bs-table-bg: #ffffff;
-    --bs-table-color: #212529;
+    --app-input-bg:          #ffffff;
+    --app-input-color:       #212529;
+    --app-input-focus-border:#86b7fe;
+    --app-input-focus-shadow:0 0 0 0.25rem rgba(13,110,253,0.25);
+    --app-input-disabled-bg: #e9ecef;
 
-    --bs-dropdown-bg: #ffffff;
-    --bs-dropdown-color: #212529;
+    --app-table-bg:          #ffffff;
+    --app-table-color:       #212529;
+    --app-table-stripe:      rgba(0,0,0,0.04);
+    --app-table-border:      #dee2e6;
 
-    --bs-input-bg: #ffffff;
-    --bs-input-color: #212529;
+    --app-dropdown-bg:       #ffffff;
+    --app-dropdown-color:    #212529;
+    --app-dropdown-hover-bg: #f1f3f5;
+    --app-dropdown-hover-color: #212529;
+    --app-dropdown-active-bg:#0d6efd;
+
+    --app-navbar-bg:         #ffffff;
+    --app-nav-color:         #212529;
+    --app-nav-hover-color:   #000000;
+
+    --app-link-color:        #0d6efd;
+    --app-link-hover:        #0a58ca;
+
+    --app-muted:             #6c757d;
+    --app-placeholder:       #6c757d;
+
+    --app-alert-danger-bg:   #f8d7da;
+    --app-alert-danger-color:#842029;
+    --app-alert-danger-border:#f5c2c7;
 }
 
-/* ===== DARK ===== */
+/* ===== ПЕРЕМЕННЫЕ: ТЁМНАЯ ТЕМА ===== */
 [data-theme="dark"] {
-    --bs-body-bg: #121212;
-    --bs-body-color: #e9ecef;
+    --app-bg:                #121212;
+    --app-color:             #e9ecef;
 
-    --bs-card-bg: #1e1e1e;
-    --bs-border-color: #343a40;
+    --app-card-bg:           #1e1e1e;
+    --app-border:            #343a40;
 
-    --bs-table-bg: #1e1e1e;
-    --bs-table-color: #e9ecef;
+    --app-input-bg:          #2b2b2b;
+    --app-input-color:       #e9ecef;
+    --app-input-focus-border:#5a9cf8;
+    --app-input-focus-shadow:0 0 0 0.25rem rgba(90,156,248,0.25);
+    --app-input-disabled-bg: #252525;
 
-    --bs-dropdown-bg: #1e1e1e;
-    --bs-dropdown-color: #e9ecef;
+    --app-table-bg:          #1e1e1e;
+    --app-table-color:       #e9ecef;
+    --app-table-stripe:      rgba(255,255,255,0.05);
+    --app-table-border:      #343a40;
 
-    --bs-input-bg: #1e1e1e;
-    --bs-input-color: #e9ecef;
+    --app-dropdown-bg:       #2b2b2b;
+    --app-dropdown-color:    #e9ecef;
+    --app-dropdown-hover-bg: #3a3a3a;
+    --app-dropdown-hover-color: #ffffff;
+    --app-dropdown-active-bg:#0d6efd;
+
+    --app-navbar-bg:         #1e1e1e;
+    --app-nav-color:         #e9ecef;
+    --app-nav-hover-color:   #ffffff;
+
+    --app-link-color:        #9ecbff;
+    --app-link-hover:        #cfe2ff;
+
+    --app-muted:             #adb5bd;
+    --app-placeholder:       #adb5bd;
+
+    --app-alert-danger-bg:   rgba(220,53,69,0.15);
+    --app-alert-danger-color:#f5a7ae;
+    --app-alert-danger-border:rgba(220,53,69,0.35);
+
+    color-scheme: dark;
+}
+
+/* ===== ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ ТЕМЫ ===== */
+body, body * {
+    transition:
+        background-color 0.2s ease,
+        border-color     0.2s ease,
+        color            0.15s ease;
 }
 
 /* ===== BODY ===== */
-body {
-    background-color: var(--bs-body-bg) !important;
-    color: var(--bs-body-color) !important;
+/* bg-body стоит на <body> во всех страницах */
+html,
+body,
+body.bg-body {
+    background-color: var(--app-bg)    !important;
+    color:            var(--app-color) !important;
+}
+
+/* ===== ЗАГОЛОВКИ ===== */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--app-color);
+}
+
+/* ===== ССЫЛКИ ===== */
+/* /register → /login ссылки на login/register страницах */
+a {
+    color: var(--app-link-color);
+}
+a:hover {
+    color: var(--app-link-hover);
 }
 
 /* ===== CARD ===== */
+/* card p-3 (index, history, admin) и card p-4 (profile, admin_edit) */
 .card {
-    background-color: var(--bs-card-bg) !important;
-    color: var(--bs-body-color) !important;
-    border-color: var(--bs-border-color) !important;
-}
-
-/* ===== TABLE ===== */
-.table {
-    background-color: var(--bs-table-bg) !important;
-    color: var(--bs-table-color) !important;
-}
-
-.table th, .table td {
-    color: var(--bs-table-color) !important;
-}
-
-.table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: rgba(255,255,255,0.03) !important;
-}
-
-/* ===== INPUT ===== */
-.form-control {
-    background-color: var(--bs-input-bg) !important;
-    color: var(--bs-input-color) !important;
-    border-color: var(--bs-border-color) !important;
-}
-
-/* ===== SELECT ===== */
-.form-select {
-    background-color: var(--bs-input-bg) !important;
-    color: var(--bs-input-color) !important;
-}
-
-/* ===== DROPDOWN ===== */
-.dropdown-menu {
-    background-color: var(--bs-dropdown-bg) !important;
-    color: var(--bs-dropdown-color) !important;
-}
-
-.dropdown-item {
-    color: var(--bs-dropdown-color) !important;
-}
-.dropdown-item.text-danger {
-    color: #dc3545 !important;
+    background-color: var(--app-card-bg) !important;
+    color:            var(--app-color)   !important;
+    border-color:     var(--app-border)  !important;
 }
 
 /* ===== NAVBAR ===== */
+/* border-bottom на navbar — нужен кастомный цвет в тёмной теме */
 .navbar {
-    background-color: var(--bs-card-bg) !important;
+    background-color: var(--app-navbar-bg) !important;
+}
+.navbar.border-bottom {
+    border-color: var(--app-border) !important;
 }
 
-/* ===== LINKS ===== */
-a, .nav-link {
-    color: var(--bs-body-color);
+/* nav-link — Главная / История / Профиль */
+.navbar .nav-link {
+    color: var(--app-nav-color) !important;
+}
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: var(--app-nav-hover-color) !important;
 }
 
-/* ===== BUTTON FIX (outline) ===== */
-.btn-outline-primary {
-    color: var(--bs-body-color);
+/* Админ-панель — text-danger всегда красный */
+.navbar .nav-link.text-danger,
+.navbar .nav-link.text-danger:hover,
+.navbar .nav-link.text-danger:focus {
+    color: #dc3545 !important;
+}
+
+/* Кнопка-гамбургер на мобиле */
+.navbar-toggler {
+    border-color: var(--app-border);
+}
+[data-theme="dark"] .navbar-toggler-icon {
+    filter: invert(1);
+}
+
+/* ===== КНОПКА ТЕМЫ 🌙 ===== */
+/* btn btn-sm btn-outline-secondary в navbar */
+.navbar .btn-outline-secondary {
+    color:            var(--app-nav-color);
+    border-color:     var(--app-border);
+    background-color: transparent;
+}
+.navbar .btn-outline-secondary:hover {
+    background-color: var(--app-dropdown-hover-bg);
+    color:            var(--app-nav-hover-color);
+    border-color:     var(--app-border);
+}
+
+/* ===== КНОПКА USERNAME В NAVBAR ===== */
+/* btn btn-sm btn-outline-primary (history, profile, admin, admin_edit) */
+.navbar .btn-outline-primary {
+    color:            var(--app-nav-color);
+    border-color:     var(--app-border);
+    background-color: transparent;
+}
+.navbar .btn-outline-primary:hover,
+.navbar .btn-outline-primary:focus,
+.navbar .btn-outline-primary[aria-expanded="true"] {
+    background-color: var(--app-dropdown-hover-bg);
+    color:            var(--app-nav-hover-color);
+    border-color:     var(--app-border);
+    box-shadow:       none;
+}
+/* btn btn-sm btn-success (index.html) — Bootstrap-зелёный, не перекрываем */
+
+/* ===== DROPDOWN ===== */
+/* dropdown-menu dropdown-menu-end — в navbar всех страниц */
+.dropdown-menu {
+    background-color: var(--app-dropdown-bg) !important;
+    border-color:     var(--app-border)      !important;
+}
+
+.dropdown-item {
+    color: var(--app-dropdown-color) !important;
+}
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--app-dropdown-hover-bg)    !important;
+    color:            var(--app-dropdown-hover-color) !important;
+}
+.dropdown-item:active {
+    background-color: var(--app-dropdown-active-bg) !important;
+    color:            #ffffff                       !important;
+}
+
+/* "Выход" — text-danger, красный в обоих темах */
+.dropdown-item.text-danger,
+.dropdown-item.text-danger:hover,
+.dropdown-item.text-danger:focus {
+    color: #dc3545 !important;
+}
+.dropdown-item.text-danger:hover {
+    background-color: rgba(220,53,69,0.1) !important;
+}
+
+/* ===== TABLE ===== */
+/* table table-striped — index.html (товары) и history.html (история) */
+.table {
+    --bs-table-bg:            var(--app-table-bg);
+    --bs-table-color:         var(--app-table-color);
+    --bs-table-border-color:  var(--app-table-border);
+    --bs-table-striped-bg:    var(--app-table-stripe);
+    --bs-table-striped-color: var(--app-table-color);
+    color:       var(--app-table-color);
+    border-color:var(--app-table-border);
+}
+
+.table th,
+.table td {
+    color:        var(--app-table-color);
+    border-color: var(--app-table-border);
+}
+
+/* Пустые строки: "Товаров пока нет", "История пуста", "Пользователей нет" */
+.table tbody .text-muted {
+    color: var(--app-muted) !important;
+}
+
+/* ===== BADGE ===== */
+/* text-bg-success/primary/danger/secondary/warning — history.html и admin.html */
+/* Bootstrap 5 text-bg-* работают в светлой теме, но secondary в тёмной теряет контраст */
+[data-theme="dark"] .text-bg-secondary {
+    background-color: #495057 !important;
+    color:            #ffffff !important;
+}
+
+/* ===== FORM-CONTROL ===== */
+/* используется везде: поля товара, поиск, профиль, логин, регистрация, админка */
+.form-control {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
+}
+.form-control:focus {
+    background-color: var(--app-input-bg)            !important;
+    color:            var(--app-input-color)         !important;
+    border-color:     var(--app-input-focus-border)  !important;
+    box-shadow:       var(--app-input-focus-shadow)  !important;
+    outline:          none;
+}
+
+/* disabled — admin_edit.html: поле логина задизейблено */
+.form-control:disabled,
+.form-control[readonly] {
+    background-color: var(--app-input-disabled-bg) !important;
+    color:            var(--app-muted)             !important;
+    opacity:          0.8;
+    cursor:           not-allowed;
+}
+
+/* is-invalid — profile.html и admin_edit.html: несовпадение паролей */
+.form-control.is-invalid {
+    border-color: #dc3545 !important;
+}
+.form-control.is-invalid:focus {
+    border-color: #dc3545                              !important;
+    box-shadow:   0 0 0 0.25rem rgba(220,53,69,0.25)  !important;
+}
+
+/* form-control-sm — поле кол-ва в форме "Продать" в index.html */
+.form-control-sm {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
+}
+
+/* ===== FORM-SELECT ===== */
+/* admin.html: select роли (user/manager/admin) при создании и редактировании */
+.form-select {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
+}
+.form-select:focus {
+    border-color: var(--app-input-focus-border) !important;
+    box-shadow:   var(--app-input-focus-shadow) !important;
+}
+/* В тёмной теме стрелка Bootstrap по умолчанию тёмная — делаем светлой */
+[data-theme="dark"] .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* ===== PLACEHOLDER ===== */
+::placeholder {
+    color:   var(--app-placeholder);
+    opacity: 1;
+}
+[data-theme="dark"] ::placeholder {
+    color:   var(--app-placeholder) !important;
+    opacity: 1;
+}
+
+/* ===== INPUT-GROUP ===== */
+/* input-group mb-2 — поля паролей в login, register, profile, admin_edit */
+/* Кнопка 👁 должна визуально продолжать инпут */
+.input-group .btn-outline-secondary {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
+}
+.input-group .btn-outline-secondary:hover {
+    background-color: var(--app-dropdown-hover-bg)    !important;
+    color:            var(--app-dropdown-hover-color) !important;
+    border-color:     var(--app-border)               !important;
+}
+.input-group .btn-outline-secondary:focus {
+    box-shadow:   var(--app-input-focus-shadow) !important;
+    border-color: var(--app-input-focus-border) !important;
+    outline:      none;
+}
+
+/* ===== ALERT ===== */
+/* alert alert-danger — login.html и register.html (неверный логин/пароль) */
+.alert-danger {
+    background-color: var(--app-alert-danger-bg)     !important;
+    color:            var(--app-alert-danger-color)  !important;
+    border-color:     var(--app-alert-danger-border) !important;
+}
+
+/* ===== TOAST ===== */
+/* toast text-bg-danger / text-bg-success — profile.html, admin_edit.html */
+[data-theme="dark"] .toast.text-bg-danger {
+    background-color: rgba(220,53,69,0.9) !important;
+    color:            #ffffff             !important;
+    border-color:     rgba(220,53,69,0.5) !important;
+}
+[data-theme="dark"] .toast.text-bg-success {
+    background-color: rgba(25,135,84,0.9) !important;
+    color:            #ffffff             !important;
+    border-color:     rgba(25,135,84,0.5) !important;
+}
+
+/* ===== ПОИСКОВЫЕ ИНПУТЫ ===== */
+/* #searchInput (index.html), #historySearch (history.html), #userSearch (admin.html) */
+/* Наследуют .form-control, но явно дублируем на случай перебития Bootstrap */
+#searchInput,
+#historySearch,
+#userSearch {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
+}
+
+/* ===== УТИЛИТЫ ===== */
+.text-muted {
+    color: var(--app-muted) !important;
+}
+.nav-link.nav-admin {
+    color: #198754 !important;
+}
+.nav-link.nav-admin:hover {
+    color: #157347 !important;
 }

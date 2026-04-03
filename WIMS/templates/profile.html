@@ -26,7 +26,7 @@
 <a class="nav-link" href="/profile">Профиль</a>
 
 {{if eq .Role "admin"}}
-<a class="nav-link text-danger" href="/admin">Админ-панель</a>
+<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
 </div>
 
@@ -34,7 +34,7 @@
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 
 <div class="dropdown">
-<button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
 {{.Username}}
 </button>
 
@@ -48,8 +48,8 @@
 </div>
 </div>
 </nav>
-
-<div class="container mt-4">
+<div class="wrapper w-100 pt-4">
+<div class="container">
 
 <div class="card p-4">
 
@@ -97,7 +97,7 @@
 </div>
 
 </div>
-
+</div>
 <!-- TOAST -->
 {{if .Error}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">

@@ -1,11 +1,6 @@
 (function () {
-    const saved = localStorage.getItem("theme");
-
-    if (saved) {
-        document.documentElement.setAttribute("data-theme", saved);
-    } else {
-        document.documentElement.setAttribute("data-theme", "light");
-    }
+    const saved = localStorage.getItem("theme") || "light";
+    document.documentElement.setAttribute("data-theme", saved);
 })();
 
 function toggleTheme() {
