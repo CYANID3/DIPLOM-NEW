@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"strings"
 	"wims/database"
 )
 
@@ -41,22 +42,33 @@ func GetHistory() ([]HistoryItem, error) {
 		var first, last sql.NullString
 		var price sql.NullFloat64
 
-		rows.Scan(&h.ID, &h.Action, &h.Username,
+		err := rows.Scan(
+			&h.ID, &h.Action, &h.Username,
 			&first, &last,
 			&h.Target, &h.Barcode,
-			&h.Quantity, &price, &h.Timestamp)
+			&h.Quantity, &price, &h.Timestamp,
+		)
+		if err != nil {
+			return nil, err
+		}
 
+		// формируем имя
 		if first.Valid || last.Valid {
-			h.UserFullName = first.String + " " + last.String
+			h.UserFullName = strings.TrimSpace(first.String + " " + last.String)
 		} else {
 			h.UserFullName = h.Username
 		}
 
+		// считаем сумму
 		if price.Valid {
 			h.Total = price.Float64 * float64(h.Quantity)
 		}
 
 		result = append(result, h)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return result, nil

@@ -34,6 +34,10 @@ func GetAllProducts() ([]Product, error) {
 		products = append(products, p)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return products, nil
 }
 
@@ -42,16 +46,22 @@ func CreateProduct(name, barcode string, price float64, quantity int, username s
 		return errors.New("invalid quantity")
 	}
 
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var id int
-	err := database.DB.QueryRow("SELECT id FROM products WHERE name = ?", name).Scan(&id)
+	err = tx.QueryRow("SELECT id FROM products WHERE name = ?", name).Scan(&id)
 
 	if err == nil {
-		_, err = database.DB.Exec(
+		_, err = tx.Exec(
 			"UPDATE products SET quantity = quantity + ?, price = ?, barcode = ? WHERE name = ?",
 			quantity, price, barcode, name,
 		)
 	} else if err == sql.ErrNoRows {
-		_, err = database.DB.Exec(
+		_, err = tx.Exec(
 			"INSERT INTO products(name, barcode, price, quantity) VALUES(?, ?, ?, ?)",
 			name, barcode, price, quantity,
 		)
@@ -59,40 +69,66 @@ func CreateProduct(name, barcode string, price float64, quantity int, username s
 		return err
 	}
 
-	_, err = database.DB.Exec(
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
 		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
 		"add", username, name, barcode, quantity,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return tx.Commit()
 }
 
 func DeleteProduct(id int, username string) error {
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var name, barcode string
 
-	err := database.DB.QueryRow("SELECT name, barcode FROM products WHERE id=?", id).Scan(&name, &barcode)
+	err = tx.QueryRow("SELECT name, barcode FROM products WHERE id=?", id).Scan(&name, &barcode)
 	if err != nil {
 		return err
 	}
 
-	_, err = database.DB.Exec("DELETE FROM products WHERE id=?", id)
+	_, err = tx.Exec("DELETE FROM products WHERE id=?", id)
 	if err != nil {
 		return err
 	}
 
-	_, err = database.DB.Exec(
+	_, err = tx.Exec(
 		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
 		"delete", username, name, barcode, 0,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return tx.Commit()
 }
 
 func SellProduct(id int, qty int, username string) error {
+	if qty <= 0 {
+		return errors.New("invalid quantity")
+	}
+
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	var name, barcode string
 	var stock int
 
-	err := database.DB.QueryRow("SELECT name, barcode, quantity FROM products WHERE id=?", id).
+	err = tx.QueryRow("SELECT name, barcode, quantity FROM products WHERE id=?", id).
 		Scan(&name, &barcode, &stock)
 	if err != nil {
 		return err
@@ -102,15 +138,18 @@ func SellProduct(id int, qty int, username string) error {
 		return errors.New("not enough stock")
 	}
 
-	_, err = database.DB.Exec("UPDATE products SET quantity = quantity - ? WHERE id=?", qty, id)
+	_, err = tx.Exec("UPDATE products SET quantity = quantity - ? WHERE id=?", qty, id)
 	if err != nil {
 		return err
 	}
 
-	_, err = database.DB.Exec(
+	_, err = tx.Exec(
 		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
 		"sell", username, name, barcode, qty,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return tx.Commit()
 }

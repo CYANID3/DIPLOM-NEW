@@ -12,13 +12,13 @@ func HistoryPage(w http.ResponseWriter, r *http.Request) {
 	username, role, display := GetSession(r)
 
 	if username == "" {
-		http.Redirect(w, r, "/login", 303)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	history, err := models.GetHistory()
 	if err != nil {
-		http.Error(w, "Ошибка истории", 500)
+		http.Error(w, "Ошибка истории", http.StatusInternalServerError)
 		return
 	}
 
@@ -28,5 +28,8 @@ func HistoryPage(w http.ResponseWriter, r *http.Request) {
 		"Role":     role,
 	}
 
-	historyTmpl.Execute(w, data)
+	err = historyTmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
+	}
 }

@@ -33,6 +33,18 @@ func main() {
 	mux.HandleFunc("/admin/create", handlers.CreateUserHandler)
 	mux.HandleFunc("/admin/delete", handlers.DeleteUserHandler)
 
+	// обёртка для 404
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, pattern := mux.Handler(r)
+
+		if pattern == "" {
+			handlers.NotFoundPage(w, r)
+			return
+		}
+
+		mux.ServeHTTP(w, r)
+	})
+
 	log.Println("Server :8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }

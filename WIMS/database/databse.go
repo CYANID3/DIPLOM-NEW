@@ -17,6 +17,12 @@ func InitDB() {
 		log.Fatal(err)
 	}
 
+	// включаем foreign keys (важно для SQLite)
+	_, err = DB.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if err := DB.Ping(); err != nil {
 		log.Fatal(err)
 	}

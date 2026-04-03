@@ -53,7 +53,7 @@
 <!-- ПОИСК -->
 <input id="userSearch" class="form-control mb-3" placeholder="Поиск пользователя">
 
-<!-- СПИСОК ПОЛЬЗОВАТЕЛЕЙ -->
+<!-- СПИСОК -->
 <div class="card p-3 mb-4">
 <h5>Пользователи</h5>
 
@@ -71,17 +71,16 @@
 {{range .Users}}
 <tr>
 <td>{{.FirstName}} {{.LastName}}</td>
-
 <td>{{.Username}}</td>
 
 <td>
-    {{if eq .Role "admin"}}
-        <span class="badge text-bg-danger">admin</span>
-    {{else if eq .Role "manager"}}
-        <span class="badge text-bg-warning">manager</span>
-    {{else}}
-        <span class="badge text-bg-primary">user</span>
-    {{end}}
+{{if eq .Role "admin"}}
+<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}
+<span class="badge text-bg-warning">manager</span>
+{{else}}
+<span class="badge text-bg-primary">user</span>
+{{end}}
 </td>
 
 <td>
@@ -102,7 +101,7 @@
 <div class="card p-3">
 <h5>Добавить пользователя</h5>
 
-<form action="/admin/create" method="post">
+<form action="/admin/create" method="post" autocomplete="on">
 
 <div class="row">
 <div class="col-md-3">
@@ -122,7 +121,7 @@
 </div>
 
 <div class="col-md-2">
-<select class="form-select mb-2" name="role">
+<select class="form-select mb-2" name="role" required>
 <option value="user">user</option>
 <option value="manager">manager</option>
 <option value="admin">admin</option>
@@ -131,15 +130,19 @@
 </div>
 
 <div class="row">
-<div class="col-md-4">
+<div class="col-md-3">
 <input class="form-control mb-2" name="username" placeholder="Логин" required>
 </div>
 
-<div class="col-md-4">
+<div class="col-md-3">
 <input class="form-control mb-2" type="password" name="password" placeholder="Пароль" required>
 </div>
 
-<div class="col-md-4">
+<div class="col-md-3">
+<input class="form-control mb-2" name="email" placeholder="Email">
+</div>
+
+<div class="col-md-3">
 <button class="btn btn-primary w-100">Создать</button>
 </div>
 </div>
@@ -152,7 +155,6 @@
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// ===== ПОИСК =====
 const userSearch = document.getElementById("userSearch");
 
 userSearch.addEventListener("keyup", function () {
@@ -165,7 +167,6 @@ userSearch.addEventListener("keyup", function () {
     });
 });
 
-// ===== СОРТИРОВКА =====
 let sortDirUsers = true;
 
 function sortUsers(col) {

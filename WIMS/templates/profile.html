@@ -40,12 +40,14 @@
 </div>
 {{end}}
 
-<form method="post">
+<form method="post" autocomplete="on">
 
 <h5>Данные</h5>
 
 <input class="form-control mb-2" name="first_name" value="{{.User.FirstName}}" placeholder="Имя">
 <input class="form-control mb-2" name="last_name" value="{{.User.LastName}}" placeholder="Фамилия">
+<input class="form-control mb-2" name="middle_name" value="{{.User.MiddleName}}" placeholder="Отчество">
+<input class="form-control mb-2" name="position" value="{{.User.Position}}" placeholder="Должность">
 <input class="form-control mb-3" name="email" value="{{.User.Email}}" placeholder="Email">
 
 <h5>Смена пароля</h5>

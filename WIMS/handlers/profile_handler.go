@@ -3,27 +3,16 @@ package handlers
 import (
 	"html/template"
 	"net/http"
-	"wims/database"
 	"wims/models"
 )
 
 var profileTmpl = template.Must(template.ParseFiles("templates/profile.html"))
 
-func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
-	_, err := database.DB.Exec(
-		`UPDATE users 
-		 SET first_name=?, last_name=?, middle_name=?, position=?, email=? 
-		 WHERE username=?`,
-		firstName, lastName, middleName, position, email, username,
-	)
-	return err
-}
-
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	username, role, display := GetSession(r)
 
 	if username == "" {
-		http.Redirect(w, r, "/login", 303)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -33,7 +22,7 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 
 		// обновление профиля
-		models.UpdateProfile(
+		err := models.UpdateProfile(
 			username,
 			r.FormValue("first_name"),
 			r.FormValue("last_name"),
@@ -42,6 +31,11 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 			r.FormValue("email"),
 		)
 
+		if err != nil {
+			http.Error(w, "Ошибка обновления профиля", http.StatusInternalServerError)
+			return
+		}
+
 		// смена пароля
 		oldPass := r.FormValue("old_password")
 		pass1 := r.FormValue("password1")
@@ -49,7 +43,11 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 
 		if oldPass != "" || pass1 != "" || pass2 != "" {
 
-			ok, _ := models.CheckPassword(username, oldPass)
+			ok, err := models.CheckPassword(username, oldPass)
+			if err != nil {
+				http.Error(w, "Ошибка проверки пароля", http.StatusInternalServerError)
+				return
+			}
 
 			if !ok {
 				message = "Неверный текущий пароль"
@@ -58,7 +56,11 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 			} else if len(pass1) < 4 {
 				message = "Пароль слишком короткий"
 			} else {
-				models.UpdatePassword(username, pass1)
+				err := models.UpdatePassword(username, pass1)
+				if err != nil {
+					http.Error(w, "Ошибка смены пароля", http.StatusInternalServerError)
+					return
+				}
 				message = "Пароль изменён"
 			}
 		}
@@ -73,5 +75,8 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		"Message":  message,
 	}
 
-	profileTmpl.Execute(w, data)
+	err := profileTmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
+	}
 }

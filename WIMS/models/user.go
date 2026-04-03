@@ -1,18 +1,22 @@
 package models
 
 import (
+	"errors"
 	"wims/database"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID        int
-	Username  string
-	Password  string
-	Role      string
-	FirstName string
-	LastName  string
+	ID         int
+	Username   string
+	Password   string
+	Role       string
+	FirstName  string
+	LastName   string
+	MiddleName string
+	Position   string
+	Email      string
 }
 
 func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
@@ -31,15 +35,19 @@ func HashPassword(password string) (string, error) {
 }
 
 func CreateUser(username, password, role, firstName, lastName, middleName, position, email string) error {
+	if username == "" || password == "" {
+		return errors.New("empty username or password")
+	}
+
 	hash, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
 
 	_, err = database.DB.Exec(
-		`INSERT INTO users(username, password, role, first_name, last_name)
-		 VALUES(?,?,?,?,?)`,
-		username, hash, role, firstName, lastName,
+		`INSERT INTO users(username, password, role, first_name, last_name, middle_name, position, email)
+		 VALUES(?,?,?,?,?,?,?,?)`,
+		username, hash, role, firstName, lastName, middleName, position, email,
 	)
 
 	return err
@@ -94,26 +102,51 @@ func UpdatePassword(username, password string) error {
 func GetUserByUsername(username string) *User {
 	var u User
 
-	database.DB.QueryRow(
-		"SELECT id, username, role, first_name, last_name FROM users WHERE username=?",
+	err := database.DB.QueryRow(
+		`SELECT id, username, role, first_name, last_name, middle_name, position, email 
+		 FROM users WHERE username=?`,
 		username,
-	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName)
+	).Scan(
+		&u.ID, &u.Username, &u.Role,
+		&u.FirstName, &u.LastName,
+		&u.MiddleName, &u.Position, &u.Email,
+	)
+
+	if err != nil {
+		return nil
+	}
 
 	return &u
 }
 
 func GetAllUsers() ([]User, error) {
-	rows, _ := database.DB.Query("SELECT username, role, first_name, last_name FROM users")
+	rows, err := database.DB.Query(
+		"SELECT username, role, first_name, last_name FROM users",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
 	var users []User
+
 	for rows.Next() {
 		var u User
-		rows.Scan(&u.Username, &u.Role, &u.FirstName, &u.LastName)
+		err := rows.Scan(&u.Username, &u.Role, &u.FirstName, &u.LastName)
+		if err != nil {
+			return nil, err
+		}
 		users = append(users, u)
 	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return users, nil
 }
 
-func DeleteUser(username string) {
-	database.DB.Exec("DELETE FROM users WHERE username=?", username)
+func DeleteUser(username string) error {
+	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
+	return err
 }
