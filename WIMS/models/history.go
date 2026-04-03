@@ -1,11 +1,14 @@
 package models
 
-import "wims/database"
+import (
+	"database/sql"
+	"wims/database"
+)
 
 type HistoryItem struct {
 	ID           int
 	Action       string
-	Username     string // это будет либо логин, либо ФИО
+	Username     string
 	UserFullName string
 	Target       string
 	Quantity     int
@@ -15,7 +18,16 @@ type HistoryItem struct {
 
 func GetHistory() ([]HistoryItem, error) {
 	rows, err := database.DB.Query(`
-		SELECT h.id, h.action, h.username, u.first_name, u.last_name, h.target, h.quantity, p.price, h.timestamp
+		SELECT 
+			h.id,
+			h.action,
+			h.username,
+			u.first_name,
+			u.last_name,
+			h.target,
+			h.quantity,
+			p.price,
+			h.timestamp
 		FROM history h
 		LEFT JOIN users u ON h.username = u.username
 		LEFT JOIN products p ON p.name = h.target
@@ -27,21 +39,41 @@ func GetHistory() ([]HistoryItem, error) {
 	defer rows.Close()
 
 	var history []HistoryItem
+
 	for rows.Next() {
 		var h HistoryItem
-		var firstName, lastName string
-		var price float64
+		var firstName, lastName sql.NullString
+		var price sql.NullFloat64
 
-		if err := rows.Scan(&h.ID, &h.Action, &h.Username, &firstName, &lastName, &h.Target, &h.Quantity, &price, &h.Timestamp); err != nil {
+		err := rows.Scan(
+			&h.ID,
+			&h.Action,
+			&h.Username,
+			&firstName,
+			&lastName,
+			&h.Target,
+			&h.Quantity,
+			&price,
+			&h.Timestamp,
+		)
+		if err != nil {
 			return nil, err
 		}
 
-		if firstName != "" || lastName != "" {
-			h.Username = firstName + " " + lastName
+		// Формируем имя
+		if firstName.Valid || lastName.Valid {
+			h.UserFullName = firstName.String + " " + lastName.String
+		} else {
+			h.UserFullName = h.Username
 		}
 
-		h.Total = price * float64(h.Quantity)
+		// Считаем сумму
+		if price.Valid {
+			h.Total = price.Float64 * float64(h.Quantity)
+		}
+
 		history = append(history, h)
 	}
+
 	return history, nil
 }

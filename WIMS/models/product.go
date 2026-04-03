@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql"
+	"errors"
 	"wims/database"
 )
 
@@ -21,6 +23,7 @@ func GetAllProducts() ([]Product, error) {
 	defer rows.Close()
 
 	var products []Product
+
 	for rows.Next() {
 		var p Product
 		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity); err != nil {
@@ -29,20 +32,24 @@ func GetAllProducts() ([]Product, error) {
 		p.Total = p.Price * float64(p.Quantity)
 		products = append(products, p)
 	}
+
 	return products, nil
 }
 
 // Создание или обновление товара
 func CreateProduct(name string, price float64, quantity int, username string) error {
-	var id int
+	if quantity <= 0 {
+		return errors.New("quantity must be > 0")
+	}
 
+	var id int
 	err := database.DB.QueryRow(
 		"SELECT id FROM products WHERE name = ?",
 		name,
 	).Scan(&id)
 
 	if err == nil {
-		// существует -> обновляем
+		// обновление
 		_, err = database.DB.Exec(
 			"UPDATE products SET quantity = quantity + ?, price = ? WHERE name = ?",
 			quantity, price, name,
@@ -50,8 +57,8 @@ func CreateProduct(name string, price float64, quantity int, username string) er
 		if err != nil {
 			return err
 		}
-	} else {
-		// нет -> создаём
+	} else if err == sql.ErrNoRows {
+		// создание
 		_, err = database.DB.Exec(
 			"INSERT INTO products(name, price, quantity) VALUES(?, ?, ?)",
 			name, price, quantity,
@@ -59,14 +66,16 @@ func CreateProduct(name string, price float64, quantity int, username string) er
 		if err != nil {
 			return err
 		}
+	} else {
+		return err
 	}
 
-	displayName := GetDisplayName(username)
-
+	// ВАЖНО: сохраняем username (логин), а не ФИО
 	_, err = database.DB.Exec(
 		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"add", displayName, name, quantity,
+		"add", username, name, quantity,
 	)
+
 	return err
 }
 
@@ -74,35 +83,45 @@ func CreateProduct(name string, price float64, quantity int, username string) er
 func DeleteProduct(id int, username string) error {
 	var name string
 
-	if err := database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name); err != nil {
-		return err
-	}
-
-	_, err := database.DB.Exec("DELETE FROM products WHERE id=?", id)
+	err := database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name)
 	if err != nil {
 		return err
 	}
 
-	displayName := GetDisplayName(username)
+	_, err = database.DB.Exec("DELETE FROM products WHERE id=?", id)
+	if err != nil {
+		return err
+	}
 
+	// ВАЖНО: сохраняем username
 	_, err = database.DB.Exec(
 		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"delete", displayName, name, 0,
+		"delete", username, name, 0,
 	)
+
 	return err
 }
 
 // Продажа товара
 func SellProduct(id int, qty int, username string) error {
+	if qty <= 0 {
+		return errors.New("quantity must be > 0")
+	}
+
 	var name string
 	var currentQty int
 
-	if err := database.DB.QueryRow("SELECT name, quantity FROM products WHERE id=?", id).Scan(&name, &currentQty); err != nil {
+	err := database.DB.QueryRow(
+		"SELECT name, quantity FROM products WHERE id=?",
+		id,
+	).Scan(&name, &currentQty)
+
+	if err != nil {
 		return err
 	}
 
 	if currentQty < qty {
-		return nil
+		return errors.New("not enough stock")
 	}
 
 	res, err := database.DB.Exec(
@@ -114,15 +133,19 @@ func SellProduct(id int, qty int, username string) error {
 	}
 
 	rowsAffected, err := res.RowsAffected()
-	if err != nil || rowsAffected == 0 {
-		return nil
+	if err != nil {
+		return err
 	}
 
-	displayName := GetDisplayName(username)
+	if rowsAffected == 0 {
+		return errors.New("update failed")
+	}
 
+	// ВАЖНО: сохраняем username
 	_, err = database.DB.Exec(
 		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"sell", displayName, name, qty,
+		"sell", username, name, qty,
 	)
+
 	return err
 }

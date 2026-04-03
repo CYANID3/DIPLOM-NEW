@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"log"
 
-	_ "modernc.org/sqlite" // <- чистый Go драйвер, CGO не нужен
+	_ "modernc.org/sqlite"
 )
 
 var DB *sql.DB
 
 func InitDB() {
 	var err error
+
 	DB, err = sql.Open("sqlite", "wims.db")
 	if err != nil {
 		log.Fatal("Не удалось открыть базу данных:", err)
@@ -21,7 +22,12 @@ func InitDB() {
 		log.Fatal("Не удалось подключиться к базе данных:", err)
 	}
 
-	// Создание таблиц, если их нет
+	// Включаем foreign keys (SQLite по умолчанию выключен)
+	_, err = DB.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		log.Fatal("Не удалось включить foreign keys:", err)
+	}
+
 	createTables()
 }
 
@@ -38,12 +44,14 @@ func createTables() {
 			position TEXT,
 			email TEXT
 		);`,
+
 		`CREATE TABLE IF NOT EXISTS products (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			name TEXT,
+			name TEXT UNIQUE,
 			price REAL,
 			quantity INTEGER
 		);`,
+
 		`CREATE TABLE IF NOT EXISTS history (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			action TEXT,

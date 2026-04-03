@@ -1,85 +1,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Админ-панель</title>
+<title>Админка</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
-<h1>Админ-панель</h1>
-<p><a href="/">Главная</a> | <a href="/history">История</a> | <a href="/logout">Выход</a></p>
+<div class="container mt-4">
 
-<h2>Список пользователей</h2>
-<table border="1">
+<div class="mb-3">
+<a class="btn btn-outline-primary btn-sm" href="/">Главная</a>
+<a class="btn btn-outline-primary btn-sm" href="/history">История</a>
+<a class="btn btn-outline-danger btn-sm" href="/logout">Выход</a>
+</div>
+
+<div class="card p-3 mb-3">
+<h5>Пользователи</h5>
+
+<table class="table table-striped">
 <tr>
-    <th>ФИО</th>
-    <th>Логин</th>
-    <th>Должность</th>
-    <th>Роль</th>
-    <th>Действия</th>
+<th>ФИО</th>
+<th>Логин</th>
+<th>Роль</th>
+<th>Действие</th>
 </tr>
+
 {{range .Users}}
 <tr>
-    <td>{{.FirstName}} {{.LastName}} {{.MiddleName}}</td>
-    <td>{{.Username}}</td>
-    <td>{{.Position}}</td>
-    <td>{{.Role}}</td>
-    <td>
-        <form action="/admin/delete" method="post" style="display:inline;">
-            <input type="hidden" name="username" value="{{.Username}}">
-            <button type="submit">Удалить</button>
-        </form>
-        <button onclick="showEdit('{{.Username}}')">Редактировать</button>
-    </td>
-</tr>
-<tr id="edit-{{.Username}}" style="display:none;">
-    <td colspan="5">
-        <form action="/admin/edit" method="post">
-    <input type="hidden" name="old_username" value="{{.Username}}">
-    Имя: <input type="text" name="first_name" value="{{.FirstName}}" required>
-    Фамилия: <input type="text" name="last_name" value="{{.LastName}}" required>
-    Отчество: <input type="text" name="middle_name" value="{{.MiddleName}}">
-    Должность: <input type="text" name="position" value="{{.Position}}">
-    Логин: <input type="text" name="username" value="{{.Username}}" required>
-    Пароль: <input type="password" name="password" placeholder="Оставьте пустым, если не менять">
-    Роль: 
-    <select name="role">
-        <option value="user" {{if eq .Role "user"}}selected{{end}}>Пользователь</option>
-        <option value="manager" {{if eq .Role "manager"}}selected{{end}}>Менеджер</option>
-        <option value="admin" {{if eq .Role "admin"}}selected{{end}}>Админ</option>
-    </select>
-    <button type="submit">Сохранить</button>
-    <button type="button" onclick="hideEdit('{{.Username}}')">Отмена</button>
+<td>{{.FirstName}} {{.LastName}}</td>
+<td>{{.Username}}</td>
+<td>{{.Role}}</td>
+<td>
+<form action="/admin/delete" method="post">
+<input type="hidden" name="username" value="{{.Username}}">
+<button class="btn btn-danger btn-sm">Удалить</button>
 </form>
-    </td>
+</td>
 </tr>
 {{end}}
-</table>
 
-<h2>Добавить пользователя</h2>
+</table>
+</div>
+
+<div class="card p-3">
+<h5>Добавить пользователя</h5>
+
 <form action="/admin/create" method="post">
-    Имя: <input type="text" name="first_name" required>
-    Фамилия: <input type="text" name="last_name" required>
-    Отчество: <input type="text" name="middle_name">
-    Должность: <input type="text" name="position">
-    Логин: <input type="text" name="username" required>
-    Пароль: <input type="password" name="password" required>
-    Роль: 
-    <select name="role">
-        <option value="user">Пользователь</option>
-        <option value="manager">Менеджер</option>
-        <option value="admin">Админ</option>
-    </select>
-    <button type="submit">Добавить</button>
+<input class="form-control mb-2" name="first_name" placeholder="Имя">
+<input class="form-control mb-2" name="last_name" placeholder="Фамилия">
+<input class="form-control mb-2" name="username" placeholder="Логин">
+<input class="form-control mb-2" type="password" name="password" placeholder="Пароль">
+
+<select class="form-control mb-2" name="role">
+<option value="user">user</option>
+<option value="manager">manager</option>
+<option value="admin">admin</option>
+</select>
+
+<button class="btn btn-primary">Добавить</button>
 </form>
 
-<script>
-function showEdit(username) {
-    document.getElementById('edit-' + username).style.display = 'table-row';
-}
-function hideEdit(username) {
-    document.getElementById('edit-' + username).style.display = 'none';
-}
-</script>
+</div>
 
+</div>
 </body>
 </html>

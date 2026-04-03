@@ -8,15 +8,19 @@ import (
 
 var profileTmpl = template.Must(template.ParseFiles("templates/profile.html"))
 
-// ProfilePage - отображение и редактирование профиля
+// Профиль
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
+	username, role := GetSession(r)
 	if username == "" {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
 	user := models.GetUserByUsername(username)
+	if user == nil {
+		http.Error(w, "Пользователь не найден", http.StatusInternalServerError)
+		return
+	}
 
 	if r.Method == http.MethodPost {
 		firstName := r.FormValue("first_name")
@@ -25,15 +29,23 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		position := r.FormValue("position")
 		email := r.FormValue("email")
 
-		models.UpdateProfile(username, firstName, lastName, middleName, position, email)
-		// Обновляем данные пользователя
+		err := models.UpdateProfile(username, firstName, lastName, middleName, position, email)
+		if err != nil {
+			http.Error(w, "Ошибка обновления профиля", http.StatusInternalServerError)
+			return
+		}
+
 		user = models.GetUserByUsername(username)
 	}
 
 	data := map[string]interface{}{
 		"Username": username,
 		"User":     user,
+		"Role":     role,
 	}
 
-	profileTmpl.Execute(w, data)
+	err := profileTmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
+	}
 }

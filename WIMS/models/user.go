@@ -6,7 +6,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// User структура пользователя
 type User struct {
 	ID         int
 	Username   string
@@ -20,31 +19,38 @@ type User struct {
 }
 
 // Хэширование пароля
-func HashPassword(password string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(hash)
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }
 
 // Создание пользователя
 func CreateUser(username, password, role, firstName, lastName, middleName, position, email string) error {
-	hashed := HashPassword(password)
+	hashed, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
 
-	// По умолчанию роль "user", если пустая
 	if role == "" {
 		role = "user"
 	}
 
-	_, err := database.DB.Exec(
+	_, err = database.DB.Exec(
 		`INSERT INTO users(username, password, role, first_name, last_name, middle_name, position, email)
 		 VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
 		username, hashed, role, firstName, lastName, middleName, position, email,
 	)
+
 	return err
 }
 
 // Проверка логина и пароля
 func CheckUser(username, password string) (bool, *User) {
 	var u User
+
 	err := database.DB.QueryRow(
 		"SELECT id, password, role, first_name, last_name, middle_name, position, email FROM users WHERE username = ?",
 		username,
@@ -55,23 +61,30 @@ func CheckUser(username, password string) (bool, *User) {
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	return err == nil, &u
+	if err != nil {
+		return false, nil
+	}
+
+	return true, &u
 }
 
-// Получение пользователя по username
+// Получение пользователя
 func GetUserByUsername(username string) *User {
 	var u User
+
 	err := database.DB.QueryRow(
 		"SELECT id, username, role, first_name, last_name, middle_name, position, email FROM users WHERE username = ?",
 		username,
 	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+
 	if err != nil {
-		return &User{Role: "user"} // по умолчанию роль user
+		return nil
 	}
+
 	return &u
 }
 
-// Обновление профиля (сам пользователь)
+// Обновление профиля
 func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
 	_, err := database.DB.Exec(
 		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=? WHERE username=?",
@@ -82,10 +95,10 @@ func UpdateProfile(username, firstName, lastName, middleName, position, email st
 
 // Обновление пользователя (админ)
 func UpdateUser(username, firstName, lastName, middleName, position, email, role string) error {
-	// по умолчанию роль user
 	if role == "" {
 		role = "user"
 	}
+
 	_, err := database.DB.Exec(
 		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=?, role=? WHERE username=?",
 		firstName, lastName, middleName, position, email, role, username,
@@ -93,10 +106,14 @@ func UpdateUser(username, firstName, lastName, middleName, position, email, role
 	return err
 }
 
-// Обновление пароля пользователя (админ)
+// Обновление пароля
 func UpdateUserPassword(username, password string) error {
-	hashed := HashPassword(password)
-	_, err := database.DB.Exec("UPDATE users SET password=? WHERE username=?", hashed, username)
+	hashed, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	_, err = database.DB.Exec("UPDATE users SET password=? WHERE username=?", hashed, username)
 	return err
 }
 
@@ -111,11 +128,16 @@ func GetAllUsers() ([]User, error) {
 	defer rows.Close()
 
 	var users []User
+
 	for rows.Next() {
 		var u User
-		rows.Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+		err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+		if err != nil {
+			return nil, err
+		}
 		users = append(users, u)
 	}
+
 	return users, nil
 }
 
@@ -125,6 +147,7 @@ func DeleteUser(username string) error {
 	return err
 }
 
+// Отображаемое имя
 func GetDisplayName(username string) string {
 	var firstName, lastName string
 

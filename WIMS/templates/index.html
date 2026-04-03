@@ -1,79 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WIMS</title>
+<title>WIMS</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-light">
 
-<h3>Вы вошли как: {{.Username}}</h3>
-<h1>Warehouse Inventory Management System</h1>
+<div class="container mt-4">
 
-<h2>Добавить товар</h2>
-<form action="/add" method="post">
-    Название: <input name="name" required>
-    Цена: <input name="price" type="number" step="0.01" required>
-    Кол-во: <input name="quantity" type="number" required>
-    <button type="submit">Добавить</button>
+<h5>Вы: {{.Username}}</h5>
+
+<div class="mb-3">
+<a class="btn btn-outline-primary btn-sm" href="/">Главная</a>
+<a class="btn btn-outline-primary btn-sm" href="/history">История</a>
+<a class="btn btn-outline-primary btn-sm" href="/profile">Профиль</a>
+<a class="btn btn-outline-danger btn-sm" href="/logout">Выход</a>
+</div>
+
+<div class="card p-3 mb-3">
+<h5>Добавить товар</h5>
+<form action="/add" method="post" class="row g-2">
+<input class="form-control" name="name" placeholder="Название" required>
+<input class="form-control" name="price" type="number" step="0.01" placeholder="Цена" required>
+<input class="form-control" name="quantity" type="number" placeholder="Количество" required>
+<button class="btn btn-primary">Добавить</button>
 </form>
+</div>
 
-<h2>Список товаров</h2>
-<table id="products-table" border="1" data-sort-asc="true">
+<div class="card p-3">
+<h5>Товары</h5>
+
+<table class="table table-striped">
 <tr>
-    <th onclick="sortTable('products-table', 0)">ID</th>
-    <th onclick="sortTable('products-table', 1)">Название</th>
-    <th onclick="sortTable('products-table', 2)">Цена</th>
-    <th onclick="sortTable('products-table', 3)">Остаток</th>
-    <th onclick="sortTable('products-table', 4)">Итоговая стоимость</th>
-    <th>Продать</th>
-    <th>Удалить</th>
+<th>ID</th>
+<th>Название</th>
+<th>Цена</th>
+<th>Остаток</th>
+<th>Сумма</th>
+<th>Продать</th>
+<th>Удалить</th>
 </tr>
+
 {{range .Products}}
 <tr>
-    <td>{{.ID}}</td>
-    <td>{{.Name}}</td>
-    <td>{{.Price}}</td>
-    <td>{{.Quantity}}</td>
-    <td>{{.Total}}</td>
-    <td>
-        <form action="/sell" method="post">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <input name="quantity" type="number" placeholder="кол-во" required>
-            <button type="submit">Продать</button>
-        </form>
-    </td>
-    <td>
-        <form action="/delete" method="post">
-            <input type="hidden" name="id" value="{{.ID}}">
-            <button type="submit">Удалить</button>
-        </form>
-    </td>
+<td>{{.ID}}</td>
+<td>{{.Name}}</td>
+<td>{{.Price}}</td>
+<td>{{.Quantity}}</td>
+<td>{{.Total}}</td>
+<td>
+<form action="/sell" method="post" class="d-flex gap-1">
+<input type="hidden" name="id" value="{{.ID}}">
+<input class="form-control form-control-sm" name="quantity" type="number" required>
+<button class="btn btn-success btn-sm">OK</button>
+</form>
+</td>
+<td>
+<form action="/delete" method="post">
+<input type="hidden" name="id" value="{{.ID}}">
+<button class="btn btn-danger btn-sm">X</button>
+</form>
+</td>
 </tr>
 {{end}}
+
 </table>
+</div>
 
-<p><a href="/history">История</a> | <a href="/profile">Профиль</a> | <a href="/logout">Выйти</a></p>
-
-<script>
-function sortTable(tableId, colIndex) {
-    const table = document.getElementById(tableId);
-    let rows = Array.from(table.rows).slice(1);
-    const asc = table.getAttribute("data-sort-asc") !== "true";
-
-    rows.sort((a, b) => {
-        let aVal = a.cells[colIndex].innerText;
-        let bVal = b.cells[colIndex].innerText;
-
-        let aNum = parseFloat(aVal);
-        let bNum = parseFloat(bVal);
-        if (!isNaN(aNum) && !isNaN(bNum)) return asc ? aNum - bNum : bNum - aNum;
-
-        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-    });
-
-    rows.forEach(r => table.appendChild(r));
-    table.setAttribute("data-sort-asc", asc);
-}
-</script>
-
+</div>
 </body>
 </html>
