@@ -7,6 +7,27 @@
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 
+<style>
+/* распределение колонок */
+#usersTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* ширины колонок */
+#usersTable th:nth-child(1) { width: 40%; }
+#usersTable th:nth-child(2) { width: 20%; }
+#usersTable th:nth-child(3) { width: 15%; }
+#usersTable th:nth-child(4) { width: 25%; }
+
+/* чтобы текст не ломал таблицу */
+#usersTable td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>
+
 </head>
 
 <body class="bg-body">
@@ -14,23 +35,44 @@
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
 
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="nav">
+
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
 <a class="nav-link" href="/history">История</a>
 <a class="nav-link" href="/profile">Профиль</a>
+
+{{if eq .Role "admin"}}
+<a class="nav-link text-danger" href="/admin">Админ-панель</a>
+{{end}}
 </div>
 
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<span>{{.Username}}</span>
+
+<div class="dropdown">
+<button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+{{.Username}}
+</button>
+
+<ul class="dropdown-menu dropdown-menu-end">
+<li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
+</ul>
 </div>
 
+</div>
+</div>
 </div>
 </nav>
 
 <div class="container mt-4">
 
-<!-- ДОБАВЛЕНИЕ (ПЕРЕНЕСЕНО ВВЕРХ) -->
+<!-- ДОБАВЛЕНИЕ -->
 <div class="card p-3 mb-4">
 <h5>Добавить пользователя</h5>
 
@@ -92,7 +134,7 @@
 <th>ФИО</th>
 <th>Логин</th>
 <th>Роль</th>
-<th>Действия</th>
+<th class="text-end">Действия</th>
 </tr>
 </thead>
 
@@ -113,7 +155,8 @@
 {{end}}
 </td>
 
-<td class="d-flex gap-2">
+<td class="text-end">
+<div class="d-flex justify-content-end gap-2">
 
 <a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">
 Редактировать
@@ -124,6 +167,7 @@
 <button class="btn btn-danger btn-sm">Удалить</button>
 </form>
 
+</div>
 </td>
 
 </tr>

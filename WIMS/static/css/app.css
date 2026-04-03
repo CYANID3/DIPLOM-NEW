@@ -83,6 +83,9 @@ body {
 .dropdown-item {
     color: var(--bs-dropdown-color) !important;
 }
+.dropdown-item.text-danger {
+    color: #dc3545 !important;
+}
 
 /* ===== NAVBAR ===== */
 .navbar {
@@ -91,7 +94,7 @@ body {
 
 /* ===== LINKS ===== */
 a, .nav-link {
-    color: var(--bs-body-color) !important;
+    color: var(--bs-body-color);
 }
 
 /* ===== BUTTON FIX (outline) ===== */
