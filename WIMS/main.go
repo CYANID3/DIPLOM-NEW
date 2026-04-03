@@ -5,10 +5,46 @@ import (
 	"net/http"
 	"wims/database"
 	"wims/handlers"
+	"wims/models"
 )
+
+func createDefaultAdmin() {
+	var count int
+
+	err := database.DB.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	if err != nil {
+		log.Println("Ошибка проверки пользователей:", err)
+		return
+	}
+
+	if count > 0 {
+		log.Println("Пользователи уже существуют, admin не создаётся")
+		return
+	}
+
+	err = models.CreateUser(
+		"admin",
+		"admin",
+		"admin",
+		"Admin",
+		"User",
+		"",
+		"",
+		"",
+	)
+
+	if err != nil {
+		log.Println("Ошибка создания admin:", err)
+		return
+	}
+
+	log.Println("Создан пользователь admin / admin")
+}
 
 func main() {
 	database.InitDB()
+
+	createDefaultAdmin()
 
 	mux := http.NewServeMux()
 
@@ -33,7 +69,7 @@ func main() {
 	mux.HandleFunc("/admin/create", handlers.CreateUserHandler)
 	mux.HandleFunc("/admin/delete", handlers.DeleteUserHandler)
 
-	// обёртка для 404
+	// 404 handler
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, pattern := mux.Handler(r)
 

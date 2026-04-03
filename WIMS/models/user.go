@@ -66,7 +66,11 @@ func CheckUser(username, password string) (bool, *User) {
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	return err == nil, &u
+	if err != nil {
+		return false, nil
+	}
+
+	return true, &u
 }
 
 func CheckPassword(username, password string) (bool, error) {

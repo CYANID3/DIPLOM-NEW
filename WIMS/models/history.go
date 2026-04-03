@@ -41,27 +41,33 @@ func GetHistory() ([]HistoryItem, error) {
 		var h HistoryItem
 		var first, last sql.NullString
 		var price sql.NullFloat64
+		var timestamp sql.NullString // ← ВАЖНО
 
 		err := rows.Scan(
 			&h.ID, &h.Action, &h.Username,
 			&first, &last,
 			&h.Target, &h.Barcode,
-			&h.Quantity, &price, &h.Timestamp,
+			&h.Quantity, &price, &timestamp,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		// формируем имя
+		// имя
 		if first.Valid || last.Valid {
 			h.UserFullName = strings.TrimSpace(first.String + " " + last.String)
 		} else {
 			h.UserFullName = h.Username
 		}
 
-		// считаем сумму
+		// сумма
 		if price.Valid {
 			h.Total = price.Float64 * float64(h.Quantity)
+		}
+
+		// timestamp
+		if timestamp.Valid {
+			h.Timestamp = timestamp.String
 		}
 
 		result = append(result, h)

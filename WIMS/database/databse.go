@@ -17,7 +17,7 @@ func InitDB() {
 		log.Fatal(err)
 	}
 
-	// включаем foreign keys (важно для SQLite)
+	// включаем foreign keys
 	_, err = DB.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		log.Fatal(err)
@@ -69,4 +69,6 @@ func createTables() {
 			log.Fatal(err)
 		}
 	}
+
+	log.Println("База данных и таблицы инициализированы")
 }

@@ -10,13 +10,18 @@ import (
 var tmpl = template.Must(template.ParseGlob("templates/*.html"))
 
 func IndexPage(w http.ResponseWriter, r *http.Request) {
+	username, role, display := GetSession(r)
+
+	if username == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	products, err := models.GetAllProducts()
 	if err != nil {
 		http.Error(w, "Ошибка загрузки", http.StatusInternalServerError)
 		return
 	}
-
-	_, role, display := GetSession(r)
 
 	data := map[string]interface{}{
 		"Products": products,
