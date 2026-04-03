@@ -2,32 +2,18 @@
 <html>
 <head>
 <title>Админка</title>
-
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 
 <style>
-/* распределение колонок */
-#usersTable {
-    table-layout: fixed;
-    width: 100%;
-}
-
-/* ширины колонок */
+#usersTable { table-layout: fixed; width: 100%; }
 #usersTable th:nth-child(1) { width: 40%; }
 #usersTable th:nth-child(2) { width: 20%; }
 #usersTable th:nth-child(3) { width: 15%; }
 #usersTable th:nth-child(4) { width: 25%; }
-
-/* чтобы текст не ломал таблицу */
-#usersTable td {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+#usersTable td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
-
 </head>
 
 <body class="bg-body">
@@ -40,12 +26,10 @@
 </button>
 
 <div class="collapse navbar-collapse" id="nav">
-
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
 <a class="nav-link" href="/history">История</a>
 <a class="nav-link" href="/profile">Профиль</a>
-
 {{if eq .Role "admin"}}
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
@@ -53,47 +37,39 @@
 
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-
 <div class="dropdown">
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
 {{.Username}}
 </button>
-
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>
+</div>
+</div>
 
 </div>
-</div>
-</div>
 </nav>
+
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-<!-- ДОБАВЛЕНИЕ -->
 <div class="card p-3 mb-4">
 <h5>Добавить пользователя</h5>
-
 <form action="/admin/create" method="post" class="row g-2">
-
 <div class="col-md-3">
 <input class="form-control" name="first_name" placeholder="Имя" required>
 </div>
-
 <div class="col-md-3">
 <input class="form-control" name="last_name" placeholder="Фамилия" required>
 </div>
-
 <div class="col-md-2">
 <input class="form-control" name="middle_name" placeholder="Отчество">
 </div>
-
 <div class="col-md-2">
 <input class="form-control" name="position" placeholder="Должность">
 </div>
-
 <div class="col-md-2">
 <select class="form-select" name="role">
 <option value="user">user</option>
@@ -101,33 +77,25 @@
 <option value="admin">admin</option>
 </select>
 </div>
-
 <div class="col-md-4">
 <input class="form-control" name="username" placeholder="Логин" required>
 </div>
-
 <div class="col-md-4">
 <input class="form-control" type="password" name="password" placeholder="Пароль" required>
 </div>
-
 <div class="col-md-4">
 <input class="form-control" name="email" placeholder="Email">
 </div>
-
 <div class="col-md-12">
 <button class="btn btn-primary w-100">Создать</button>
 </div>
-
 </form>
 </div>
 
-<!-- ПОИСК -->
 <input id="userSearch" class="form-control mb-3" placeholder="Поиск пользователя">
 
-<!-- СПИСОК -->
 <div class="card p-3">
 <h5>Пользователи</h5>
-
 <table id="usersTable" class="table table-striped">
 <thead>
 <tr>
@@ -137,14 +105,11 @@
 <th class="text-end">Действия</th>
 </tr>
 </thead>
-
 <tbody>
 {{range .Users}}
 <tr>
-
 <td>{{.FirstName}} {{.LastName}}</td>
 <td>{{.Username}}</td>
-
 <td>
 {{if eq .Role "admin"}}
 <span class="badge text-bg-danger">admin</span>
@@ -154,52 +119,60 @@
 <span class="badge text-bg-primary">user</span>
 {{end}}
 </td>
-
 <td class="text-end">
 <div class="d-flex justify-content-end gap-2">
-
-<a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">
-Редактировать
-</a>
-
+<a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">Редактировать</a>
 <form action="/admin/delete" method="post">
 <input type="hidden" name="username" value="{{.Username}}">
 <button class="btn btn-danger btn-sm">Удалить</button>
 </form>
-
 </div>
 </td>
-
 </tr>
-
 {{else}}
 <tr>
-<td colspan="4" class="text-center text-muted py-4">
-👤 Пользователей пока нет
-</td>
+<td colspan="4" class="text-center text-muted py-4">👤 Пользователей пока нет</td>
 </tr>
 {{end}}
 </tbody>
-
 </table>
 </div>
 
 </div>
 </div>
 
-<script src="/static/js/bootstrap.bundle.min.js"></script>
+<!-- TOAST -->
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
+</div>
+</div>
+{{end}}
 
+{{if .Success}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="successToast" class="toast text-bg-success" role="alert">
+<div class="toast-body">{{.Success}}</div>
+</div>
+</div>
+{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
 <script>
 const userSearch = document.getElementById("userSearch");
-
 userSearch.addEventListener("keyup", function () {
     const filter = userSearch.value.toLowerCase();
-    const rows = document.querySelectorAll("#usersTable tbody tr");
-
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
+    document.querySelectorAll("#usersTable tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
     });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const err = document.getElementById("errorToast");
+    const ok  = document.getElementById("successToast");
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
 

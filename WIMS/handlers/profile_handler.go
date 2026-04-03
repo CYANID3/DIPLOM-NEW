@@ -19,9 +19,6 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 
 	user := models.GetUserByUsername(username)
 
-	errorMsg := r.URL.Query().Get("error")
-	successMsg := r.URL.Query().Get("success")
-
 	if r.Method == http.MethodPost {
 
 		// обновление профиля
@@ -46,19 +43,18 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		if oldPass != "" || pass1 != "" || pass2 != "" {
 
 			ok, _ := models.CheckPassword(username, oldPass)
-
 			if !ok {
 				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Неверный текущий пароль"), http.StatusSeeOther)
 				return
 			}
 
 			if pass1 != pass2 {
-				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароли не совпадают"), http.StatusSeeOther)
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароли не совпадают")+"&password_error=1", http.StatusSeeOther)
 				return
 			}
 
 			if len(pass1) < 4 {
-				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароль слишком короткий"), http.StatusSeeOther)
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароль слишком короткий (минимум 4 символа)"), http.StatusSeeOther)
 				return
 			}
 
@@ -69,16 +65,17 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		http.Redirect(w, r, "/profile?success="+url.QueryEscape("Сохранено"), http.StatusSeeOther)
+		http.Redirect(w, r, "/profile?success="+url.QueryEscape("Изменения сохранены"), http.StatusSeeOther)
 		return
 	}
 
 	data := map[string]interface{}{
-		"Username": display,
-		"Role":     role,
-		"User":     user,
-		"Error":    errorMsg,
-		"Success":  successMsg,
+		"Username":      display,
+		"Role":          role,
+		"User":          user,
+		"Error":         r.URL.Query().Get("error"),
+		"Success":       r.URL.Query().Get("success"),
+		"PasswordError": r.URL.Query().Get("password_error") == "1",
 	}
 
 	err := profileTmpl.Execute(w, data)

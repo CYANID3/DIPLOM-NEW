@@ -2,11 +2,9 @@
 <html>
 <head>
 <title>История</title>
-
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
-
 </head>
 
 <body class="bg-body">
@@ -19,12 +17,10 @@
 </button>
 
 <div class="collapse navbar-collapse" id="nav">
-
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
 <a class="nav-link" href="/history">История</a>
 <a class="nav-link" href="/profile">Профиль</a>
-
 {{if eq .Role "admin"}}
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
@@ -32,33 +28,28 @@
 
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-
 <div class="dropdown">
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
 {{.Username}}
 </button>
-
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>
+</div>
+</div>
 
 </div>
-</div>
-</div>
 </nav>
+
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-<!-- ПОИСК -->
-<input id="historySearch" class="form-control mb-3"
-       placeholder="Поиск по штрихкоду или названию">
+<input id="historySearch" class="form-control mb-3" placeholder="Поиск по штрихкоду или названию">
 
-<!-- ИСТОРИЯ -->
 <div class="card p-3">
 <h5>История действий</h5>
-
 <table id="historyTable" class="table table-striped">
 <thead>
 <tr>
@@ -67,17 +58,16 @@
 <th>Пользователь</th>
 <th>Штрихкод</th>
 <th>Товар</th>
+<th>Цена</th>
 <th>Кол-во</th>
 <th>Сумма</th>
 <th>Время</th>
 </tr>
 </thead>
-
 <tbody>
 {{range .History}}
 <tr>
 <td>{{.ID}}</td>
-
 <td>
 {{if eq .Action "add"}}
 <span class="badge text-bg-success">Добавлено</span>
@@ -89,24 +79,20 @@
 <span class="badge text-bg-secondary">{{.Action}}</span>
 {{end}}
 </td>
-
 <td>{{.UserFullName}}</td>
 <td>{{.Barcode}}</td>
 <td>{{.Target}}</td>
+<td>{{printf "%.2f" .Price}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
 <td>{{.Timestamp}}</td>
 </tr>
-
 {{else}}
 <tr>
-<td colspan="8" class="text-center text-muted py-4">
-📜 История пока пуста
-</td>
+<td colspan="9" class="text-center text-muted py-4">📜 История пока пуста</td>
 </tr>
 {{end}}
 </tbody>
-
 </table>
 </div>
 
@@ -114,24 +100,14 @@
 </div>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
-
 <script>
-// ===== ПОИСК ПО КОЛОНКАМ =====
 const historySearch = document.getElementById("historySearch");
-
 historySearch.addEventListener("keyup", function () {
     const filter = historySearch.value.toLowerCase();
-    const rows = document.querySelectorAll("#historyTable tbody tr");
-
-    rows.forEach(row => {
+    document.querySelectorAll("#historyTable tbody tr").forEach(row => {
         const barcode = row.cells[3]?.innerText.toLowerCase() || "";
-        const name = row.cells[4]?.innerText.toLowerCase() || "";
-
-        if (barcode.includes(filter) || name.includes(filter)) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
+        const name    = row.cells[4]?.innerText.toLowerCase() || "";
+        row.style.display = (barcode.includes(filter) || name.includes(filter)) ? "" : "none";
     });
 });
 </script>

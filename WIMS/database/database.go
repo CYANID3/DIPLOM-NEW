@@ -17,7 +17,6 @@ func InitDB() {
 		log.Fatal(err)
 	}
 
-	// включаем foreign keys
 	_, err = DB.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		log.Fatal(err)
@@ -28,6 +27,7 @@ func InitDB() {
 	}
 
 	createTables()
+	migrate()
 }
 
 func createTables() {
@@ -59,6 +59,7 @@ func createTables() {
 			target TEXT,
 			barcode TEXT,
 			quantity INTEGER,
+			price REAL DEFAULT 0,
 			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`,
 	}
@@ -71,4 +72,15 @@ func createTables() {
 	}
 
 	log.Println("База данных и таблицы инициализированы")
+}
+
+// migrate добавляет колонку price в history если её ещё нет
+// (для существующих баз данных)
+func migrate() {
+	_, err := DB.Exec(`ALTER TABLE history ADD COLUMN price REAL DEFAULT 0`)
+	if err != nil {
+		// колонка уже есть — норм
+		return
+	}
+	log.Println("Миграция: добавлена колонка price в history")
 }

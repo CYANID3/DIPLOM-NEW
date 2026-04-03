@@ -2,11 +2,9 @@
 <html>
 <head>
 <title>WIMS</title>
-
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
-
 </head>
 
 <body class="bg-body">
@@ -19,12 +17,10 @@
 </button>
 
 <div class="collapse navbar-collapse" id="nav">
-
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
 <a class="nav-link" href="/history">История</a>
 <a class="nav-link" href="/profile">Профиль</a>
-
 {{if eq .Role "admin"}}
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
@@ -32,45 +28,39 @@
 
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-
 <div class="dropdown">
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
 {{.Username}}
 </button>
-
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>
+</div>
+</div>
 
 </div>
-</div>
-</div>
 </nav>
+
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
 <div class="card p-3 mb-3">
 <h5>Добавить товар</h5>
-
 <form action="/add" method="post" class="row g-2">
 <div class="col-md-3">
 <input class="form-control" name="name" placeholder="Название" required>
 </div>
-
 <div class="col-md-3">
 <input class="form-control" name="barcode" placeholder="Штрихкод">
 </div>
-
 <div class="col-md-2">
 <input class="form-control" name="price" type="number" step="0.01" placeholder="Цена" required>
 </div>
-
 <div class="col-md-2">
 <input class="form-control" name="quantity" type="number" placeholder="Количество" required>
 </div>
-
 <div class="col-md-2">
 <button class="btn btn-primary w-100">Добавить</button>
 </div>
@@ -81,7 +71,6 @@
 
 <div class="card p-3">
 <h5>Товары</h5>
-
 <table id="productsTable" class="table table-striped">
 <thead>
 <tr>
@@ -95,7 +84,6 @@
 <th>Удалить</th>
 </tr>
 </thead>
-
 <tbody>
 {{range .Products}}
 <tr>
@@ -105,15 +93,13 @@
 <td>{{printf "%.2f" .Price}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
-
 <td>
 <form action="/sell" method="post" class="d-flex gap-1">
 <input type="hidden" name="id" value="{{.ID}}">
-<input class="form-control form-control-sm" name="quantity" type="number" required>
+<input class="form-control form-control-sm" name="quantity" type="number" min="1" max="{{.Quantity}}" required>
 <button class="btn btn-success btn-sm">OK</button>
 </form>
 </td>
-
 <td>
 <form action="/delete" method="post">
 <input type="hidden" name="id" value="{{.ID}}">
@@ -121,33 +107,50 @@
 </form>
 </td>
 </tr>
-
 {{else}}
 <tr>
-<td colspan="8" class="text-center text-muted py-4">
-📦 Товаров пока нет
-</td>
+<td colspan="8" class="text-center text-muted py-4">📦 Товаров пока нет</td>
 </tr>
 {{end}}
 </tbody>
 </table>
+</div>
 
 </div>
 </div>
+
+<!-- TOAST -->
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
 </div>
+</div>
+{{end}}
+
+{{if .Success}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="successToast" class="toast text-bg-success" role="alert">
+<div class="toast-body">{{.Success}}</div>
+</div>
+</div>
+{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
-
 <script>
 const searchInput = document.getElementById("searchInput");
 searchInput.addEventListener("keyup", function () {
     const filter = searchInput.value.toLowerCase();
-    const rows = document.querySelectorAll("#productsTable tbody tr");
-
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
+    document.querySelectorAll("#productsTable tbody tr").forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
     });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const err = document.getElementById("errorToast");
+    const ok  = document.getElementById("successToast");
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
 

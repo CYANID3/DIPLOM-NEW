@@ -74,8 +74,8 @@ func CreateProduct(name, barcode string, price float64, quantity int, username s
 	}
 
 	_, err = tx.Exec(
-		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
-		"add", username, name, barcode, quantity,
+		"INSERT INTO history(action, username, target, barcode, quantity, price) VALUES(?, ?, ?, ?, ?, ?)",
+		"add", username, name, barcode, quantity, price,
 	)
 	if err != nil {
 		return err
@@ -93,11 +93,12 @@ func DeleteProduct(id int, username string) error {
 
 	var name, barcode string
 	var quantity int
+	var price float64
 
 	err = tx.QueryRow(
-		"SELECT name, barcode, quantity FROM products WHERE id=?",
+		"SELECT name, barcode, quantity, price FROM products WHERE id=?",
 		id,
-	).Scan(&name, &barcode, &quantity)
+	).Scan(&name, &barcode, &quantity, &price)
 	if err != nil {
 		return err
 	}
@@ -108,8 +109,8 @@ func DeleteProduct(id int, username string) error {
 	}
 
 	_, err = tx.Exec(
-		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
-		"delete", username, name, barcode, quantity,
+		"INSERT INTO history(action, username, target, barcode, quantity, price) VALUES(?, ?, ?, ?, ?, ?)",
+		"delete", username, name, barcode, quantity, price,
 	)
 	if err != nil {
 		return err
@@ -120,7 +121,7 @@ func DeleteProduct(id int, username string) error {
 
 func SellProduct(id int, qty int, username string) error {
 	if qty <= 0 {
-		return errors.New("invalid quantity")
+		return errors.New("Количество должно быть больше нуля")
 	}
 
 	tx, err := database.DB.Begin()
@@ -131,15 +132,16 @@ func SellProduct(id int, qty int, username string) error {
 
 	var name, barcode string
 	var stock int
+	var price float64
 
-	err = tx.QueryRow("SELECT name, barcode, quantity FROM products WHERE id=?", id).
-		Scan(&name, &barcode, &stock)
+	err = tx.QueryRow("SELECT name, barcode, quantity, price FROM products WHERE id=?", id).
+		Scan(&name, &barcode, &stock, &price)
 	if err != nil {
 		return err
 	}
 
 	if stock < qty {
-		return errors.New("not enough stock")
+		return errors.New("Недостаточно товара на складе")
 	}
 
 	_, err = tx.Exec("UPDATE products SET quantity = quantity - ? WHERE id=?", qty, id)
@@ -148,8 +150,8 @@ func SellProduct(id int, qty int, username string) error {
 	}
 
 	_, err = tx.Exec(
-		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
-		"sell", username, name, barcode, qty,
+		"INSERT INTO history(action, username, target, barcode, quantity, price) VALUES(?, ?, ?, ?, ?, ?)",
+		"sell", username, name, barcode, qty, price,
 	)
 	if err != nil {
 		return err

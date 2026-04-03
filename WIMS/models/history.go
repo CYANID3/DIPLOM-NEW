@@ -14,20 +14,20 @@ type HistoryItem struct {
 	Target       string
 	Barcode      string
 	Quantity     int
+	Price        float64
 	Total        float64
 	Timestamp    string
 }
 
 func GetHistory() ([]HistoryItem, error) {
 	rows, err := database.DB.Query(`
-		SELECT 
+		SELECT
 			h.id, h.action, h.username,
 			u.first_name, u.last_name,
 			h.target, h.barcode,
-			h.quantity, p.price, h.timestamp
+			h.quantity, h.price, h.timestamp
 		FROM history h
 		LEFT JOIN users u ON h.username = u.username
-		LEFT JOIN products p ON p.name = h.target
 		ORDER BY h.id DESC
 	`)
 	if err != nil {
@@ -41,7 +41,7 @@ func GetHistory() ([]HistoryItem, error) {
 		var h HistoryItem
 		var first, last sql.NullString
 		var price sql.NullFloat64
-		var timestamp sql.NullString // ← ВАЖНО
+		var timestamp sql.NullString
 
 		err := rows.Scan(
 			&h.ID, &h.Action, &h.Username,
@@ -53,19 +53,17 @@ func GetHistory() ([]HistoryItem, error) {
 			return nil, err
 		}
 
-		// имя
 		if first.Valid || last.Valid {
 			h.UserFullName = strings.TrimSpace(first.String + " " + last.String)
 		} else {
 			h.UserFullName = h.Username
 		}
 
-		// сумма
 		if price.Valid {
+			h.Price = price.Float64
 			h.Total = price.Float64 * float64(h.Quantity)
 		}
 
-		// timestamp
 		if timestamp.Valid {
 			h.Timestamp = timestamp.String
 		}

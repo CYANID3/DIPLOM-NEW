@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"net/url"
 	"wims/models"
 )
 
@@ -26,6 +27,8 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 		"Username": display,
 		"Role":     role,
 		"Users":    users,
+		"Error":    r.URL.Query().Get("error"),
+		"Success":  r.URL.Query().Get("success"),
 	}
 
 	err = adminTmpl.Execute(w, data)
@@ -47,23 +50,28 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	newUsername := r.FormValue("username")
+	if newUsername == "" {
+		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Логин не может быть пустым"), http.StatusSeeOther)
+		return
+	}
+
 	err := models.CreateUser(
-		r.FormValue("username"),
+		newUsername,
 		r.FormValue("password"),
 		r.FormValue("role"),
 		r.FormValue("first_name"),
 		r.FormValue("last_name"),
 		r.FormValue("middle_name"),
 		r.FormValue("position"),
-		"",
+		r.FormValue("email"),
 	)
-
 	if err != nil {
-		http.Error(w, "Ошибка создания пользователя", http.StatusInternalServerError)
+		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Пользователь уже существует или ошибка создания"), http.StatusSeeOther)
 		return
 	}
 
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin?success="+url.QueryEscape("Пользователь создан"), http.StatusSeeOther)
 }
 
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -79,18 +87,18 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	del := r.FormValue("username")
+	target := r.FormValue("username")
 
-	if del == username {
-		http.Error(w, "Нельзя удалить себя", http.StatusForbidden)
+	if target == username {
+		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Нельзя удалить самого себя"), http.StatusSeeOther)
 		return
 	}
 
-	err := models.DeleteUser(del)
+	err := models.DeleteUser(target)
 	if err != nil {
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Ошибка удаления пользователя"), http.StatusSeeOther)
 		return
 	}
 
-	http.Redirect(w, r, "/admin", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin?success="+url.QueryEscape("Пользователь удалён"), http.StatusSeeOther)
 }
