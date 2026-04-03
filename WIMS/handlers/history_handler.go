@@ -9,25 +9,24 @@ import (
 var historyTmpl = template.Must(template.ParseFiles("templates/history.html"))
 
 func HistoryPage(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
+	username, role, display := GetSession(r)
+
 	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login", 303)
 		return
 	}
 
 	history, err := models.GetHistory()
 	if err != nil {
-		http.Error(w, "Не удалось получить историю", http.StatusInternalServerError)
+		http.Error(w, "Ошибка истории", 500)
 		return
 	}
 
 	data := map[string]interface{}{
 		"History":  history,
-		"Username": username,
+		"Username": display,
+		"Role":     role,
 	}
 
-	err = historyTmpl.Execute(w, data)
-	if err != nil {
-		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-	}
+	historyTmpl.Execute(w, data)
 }

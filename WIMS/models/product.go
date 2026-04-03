@@ -9,14 +9,14 @@ import (
 type Product struct {
 	ID       int
 	Name     string
+	Barcode  string
 	Price    float64
 	Quantity int
 	Total    float64
 }
 
-// Получение всех продуктов
 func GetAllProducts() ([]Product, error) {
-	rows, err := database.DB.Query("SELECT id, name, price, quantity FROM products")
+	rows, err := database.DB.Query("SELECT id, name, barcode, price, quantity FROM products")
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,8 @@ func GetAllProducts() ([]Product, error) {
 
 	for rows.Next() {
 		var p Product
-		if err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity); err != nil {
+		err := rows.Scan(&p.ID, &p.Name, &p.Barcode, &p.Price, &p.Quantity)
+		if err != nil {
 			return nil, err
 		}
 		p.Total = p.Price * float64(p.Quantity)
@@ -36,54 +37,40 @@ func GetAllProducts() ([]Product, error) {
 	return products, nil
 }
 
-// Создание или обновление товара
-func CreateProduct(name string, price float64, quantity int, username string) error {
+func CreateProduct(name, barcode string, price float64, quantity int, username string) error {
 	if quantity <= 0 {
-		return errors.New("quantity must be > 0")
+		return errors.New("invalid quantity")
 	}
 
 	var id int
-	err := database.DB.QueryRow(
-		"SELECT id FROM products WHERE name = ?",
-		name,
-	).Scan(&id)
+	err := database.DB.QueryRow("SELECT id FROM products WHERE name = ?", name).Scan(&id)
 
 	if err == nil {
-		// обновление
 		_, err = database.DB.Exec(
-			"UPDATE products SET quantity = quantity + ?, price = ? WHERE name = ?",
-			quantity, price, name,
+			"UPDATE products SET quantity = quantity + ?, price = ?, barcode = ? WHERE name = ?",
+			quantity, price, barcode, name,
 		)
-		if err != nil {
-			return err
-		}
 	} else if err == sql.ErrNoRows {
-		// создание
 		_, err = database.DB.Exec(
-			"INSERT INTO products(name, price, quantity) VALUES(?, ?, ?)",
-			name, price, quantity,
+			"INSERT INTO products(name, barcode, price, quantity) VALUES(?, ?, ?, ?)",
+			name, barcode, price, quantity,
 		)
-		if err != nil {
-			return err
-		}
 	} else {
 		return err
 	}
 
-	// ВАЖНО: сохраняем username (логин), а не ФИО
 	_, err = database.DB.Exec(
-		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"add", username, name, quantity,
+		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
+		"add", username, name, barcode, quantity,
 	)
 
 	return err
 }
 
-// Удаление товара
 func DeleteProduct(id int, username string) error {
-	var name string
+	var name, barcode string
 
-	err := database.DB.QueryRow("SELECT name FROM products WHERE id=?", id).Scan(&name)
+	err := database.DB.QueryRow("SELECT name, barcode FROM products WHERE id=?", id).Scan(&name, &barcode)
 	if err != nil {
 		return err
 	}
@@ -93,58 +80,36 @@ func DeleteProduct(id int, username string) error {
 		return err
 	}
 
-	// ВАЖНО: сохраняем username
 	_, err = database.DB.Exec(
-		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"delete", username, name, 0,
+		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
+		"delete", username, name, barcode, 0,
 	)
 
 	return err
 }
 
-// Продажа товара
 func SellProduct(id int, qty int, username string) error {
-	if qty <= 0 {
-		return errors.New("quantity must be > 0")
-	}
+	var name, barcode string
+	var stock int
 
-	var name string
-	var currentQty int
-
-	err := database.DB.QueryRow(
-		"SELECT name, quantity FROM products WHERE id=?",
-		id,
-	).Scan(&name, &currentQty)
-
+	err := database.DB.QueryRow("SELECT name, barcode, quantity FROM products WHERE id=?", id).
+		Scan(&name, &barcode, &stock)
 	if err != nil {
 		return err
 	}
 
-	if currentQty < qty {
+	if stock < qty {
 		return errors.New("not enough stock")
 	}
 
-	res, err := database.DB.Exec(
-		"UPDATE products SET quantity = quantity - ? WHERE id = ?",
-		qty, id,
-	)
+	_, err = database.DB.Exec("UPDATE products SET quantity = quantity - ? WHERE id=?", qty, id)
 	if err != nil {
 		return err
 	}
 
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return errors.New("update failed")
-	}
-
-	// ВАЖНО: сохраняем username
 	_, err = database.DB.Exec(
-		"INSERT INTO history(action, username, target, quantity) VALUES(?, ?, ?, ?)",
-		"sell", username, name, qty,
+		"INSERT INTO history(action, username, target, barcode, quantity) VALUES(?, ?, ?, ?, ?)",
+		"sell", username, name, barcode, qty,
 	)
 
 	return err

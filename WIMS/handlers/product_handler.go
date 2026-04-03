@@ -9,121 +9,68 @@ import (
 
 var tmpl = template.Must(template.ParseGlob("templates/*.html"))
 
-// Главная страница
 func IndexPage(w http.ResponseWriter, r *http.Request) {
 	products, err := models.GetAllProducts()
 	if err != nil {
-		http.Error(w, "Ошибка загрузки товаров", http.StatusInternalServerError)
+		http.Error(w, "Ошибка загрузки", 500)
 		return
 	}
 
-	username, _ := GetSession(r)
+	_, role, display := GetSession(r)
 
 	data := map[string]interface{}{
 		"Products": products,
-		"Username": username,
+		"Username": display,
+		"Role":     role,
 	}
 
-	err = tmpl.ExecuteTemplate(w, "index.html", data)
-	if err != nil {
-		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-	}
+	tmpl.ExecuteTemplate(w, "index.html", data)
 }
 
-// Добавление товара
 func AddProductHandler(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
-	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+	username, _, _ := GetSession(r)
 
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	if username == "" {
+		http.Redirect(w, r, "/login", 303)
 		return
 	}
 
 	name := r.FormValue("name")
+	barcode := r.FormValue("barcode")
+	price, _ := strconv.ParseFloat(r.FormValue("price"), 64)
+	qty, _ := strconv.Atoi(r.FormValue("quantity"))
 
-	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-	if err != nil || price <= 0 {
-		http.Error(w, "Некорректная цена", http.StatusBadRequest)
-		return
-	}
+	models.CreateProduct(name, barcode, price, qty, username)
 
-	qty, err := strconv.Atoi(r.FormValue("quantity"))
-	if err != nil || qty <= 0 {
-		http.Error(w, "Некорректное количество", http.StatusBadRequest)
-		return
-	}
-
-	err = models.CreateProduct(name, price, qty, username)
-	if err != nil {
-		http.Error(w, "Ошибка добавления товара", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", 303)
 }
 
-// Удаление товара
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
+	username, _, _ := GetSession(r)
+
 	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login", 303)
 		return
 	}
 
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	models.DeleteProduct(id, username)
 
-	id, err := strconv.Atoi(r.FormValue("id"))
-	if err != nil {
-		http.Error(w, "Некорректный ID", http.StatusBadRequest)
-		return
-	}
-
-	err = models.DeleteProduct(id, username)
-	if err != nil {
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", 303)
 }
 
-// Продажа товара
 func SellProductHandler(w http.ResponseWriter, r *http.Request) {
-	username, _ := GetSession(r)
+	username, _, _ := GetSession(r)
+
 	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login", 303)
 		return
 	}
 
-	if r.Method != http.MethodPost {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	id, _ := strconv.Atoi(r.FormValue("id"))
+	qty, _ := strconv.Atoi(r.FormValue("quantity"))
 
-	id, err := strconv.Atoi(r.FormValue("id"))
-	if err != nil {
-		http.Error(w, "Некорректный ID", http.StatusBadRequest)
-		return
-	}
+	models.SellProduct(id, qty, username)
 
-	qty, err := strconv.Atoi(r.FormValue("quantity"))
-	if err != nil || qty <= 0 {
-		http.Error(w, "Некорректное количество", http.StatusBadRequest)
-		return
-	}
-
-	err = models.SellProduct(id, qty, username)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/", 303)
 }

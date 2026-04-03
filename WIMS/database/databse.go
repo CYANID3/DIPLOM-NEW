@@ -14,18 +14,11 @@ func InitDB() {
 
 	DB, err = sql.Open("sqlite", "wims.db")
 	if err != nil {
-		log.Fatal("Не удалось открыть базу данных:", err)
+		log.Fatal(err)
 	}
 
-	// Проверка соединения
 	if err := DB.Ping(); err != nil {
-		log.Fatal("Не удалось подключиться к базе данных:", err)
-	}
-
-	// Включаем foreign keys (SQLite по умолчанию выключен)
-	_, err = DB.Exec("PRAGMA foreign_keys = ON")
-	if err != nil {
-		log.Fatal("Не удалось включить foreign keys:", err)
+		log.Fatal(err)
 	}
 
 	createTables()
@@ -48,6 +41,7 @@ func createTables() {
 		`CREATE TABLE IF NOT EXISTS products (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT UNIQUE,
+			barcode TEXT,
 			price REAL,
 			quantity INTEGER
 		);`,
@@ -57,6 +51,7 @@ func createTables() {
 			action TEXT,
 			username TEXT,
 			target TEXT,
+			barcode TEXT,
 			quantity INTEGER,
 			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 		);`,
@@ -65,7 +60,7 @@ func createTables() {
 	for _, q := range queries {
 		_, err := DB.Exec(q)
 		if err != nil {
-			log.Fatal("Ошибка при создании таблицы:", err)
+			log.Fatal(err)
 		}
 	}
 }

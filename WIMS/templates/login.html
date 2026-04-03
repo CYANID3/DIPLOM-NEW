@@ -2,9 +2,12 @@
 <html>
 <head>
 <title>Вход</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body class="bg-light">
+
+<body class="bg-body">
 
 <div class="container mt-5" style="max-width:400px">
 
@@ -15,15 +18,39 @@
 {{end}}
 
 <div class="card p-3">
+
 <form method="post">
+
 <input class="form-control mb-2" name="username" placeholder="Логин" required>
-<input class="form-control mb-2" type="password" name="password" placeholder="Пароль" required>
+
+<div class="input-group mb-2">
+<input id="loginPass" class="form-control" type="password" name="password" placeholder="Пароль" required>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPass', this)">👁</button>
+</div>
+
 <button class="btn btn-primary w-100">Войти</button>
+
 </form>
+
 </div>
 
 <a href="/register">Регистрация</a>
 
 </div>
+
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🙈";
+    } else {
+        input.type = "password";
+        btn.innerText = "👁";
+    }
+}
+</script>
+
 </body>
 </html>

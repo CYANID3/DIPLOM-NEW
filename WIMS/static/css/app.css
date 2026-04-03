@@ -1,0 +1,100 @@
+/* ===== LIGHT (по умолчанию) ===== */
+:root {
+    --bs-body-bg: #f5f6fa;
+    --bs-body-color: #212529;
+
+    --bs-card-bg: #ffffff;
+    --bs-border-color: #dee2e6;
+
+    --bs-table-bg: #ffffff;
+    --bs-table-color: #212529;
+
+    --bs-dropdown-bg: #ffffff;
+    --bs-dropdown-color: #212529;
+
+    --bs-input-bg: #ffffff;
+    --bs-input-color: #212529;
+}
+
+/* ===== DARK ===== */
+[data-theme="dark"] {
+    --bs-body-bg: #121212;
+    --bs-body-color: #e9ecef;
+
+    --bs-card-bg: #1e1e1e;
+    --bs-border-color: #343a40;
+
+    --bs-table-bg: #1e1e1e;
+    --bs-table-color: #e9ecef;
+
+    --bs-dropdown-bg: #1e1e1e;
+    --bs-dropdown-color: #e9ecef;
+
+    --bs-input-bg: #1e1e1e;
+    --bs-input-color: #e9ecef;
+}
+
+/* ===== BODY ===== */
+body {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* ===== CARD ===== */
+.card {
+    background-color: var(--bs-card-bg) !important;
+    color: var(--bs-body-color) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+/* ===== TABLE ===== */
+.table {
+    background-color: var(--bs-table-bg) !important;
+    color: var(--bs-table-color) !important;
+}
+
+.table th, .table td {
+    color: var(--bs-table-color) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(255,255,255,0.03) !important;
+}
+
+/* ===== INPUT ===== */
+.form-control {
+    background-color: var(--bs-input-bg) !important;
+    color: var(--bs-input-color) !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+/* ===== SELECT ===== */
+.form-select {
+    background-color: var(--bs-input-bg) !important;
+    color: var(--bs-input-color) !important;
+}
+
+/* ===== DROPDOWN ===== */
+.dropdown-menu {
+    background-color: var(--bs-dropdown-bg) !important;
+    color: var(--bs-dropdown-color) !important;
+}
+
+.dropdown-item {
+    color: var(--bs-dropdown-color) !important;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    background-color: var(--bs-card-bg) !important;
+}
+
+/* ===== LINKS ===== */
+a, .nav-link {
+    color: var(--bs-body-color) !important;
+}
+
+/* ===== BUTTON FIX (outline) ===== */
+.btn-outline-primary {
+    color: var(--bs-body-color);
+}

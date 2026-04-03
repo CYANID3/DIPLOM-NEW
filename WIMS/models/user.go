@@ -7,162 +7,113 @@ import (
 )
 
 type User struct {
-	ID         int
-	Username   string
-	Password   string
-	Role       string
-	FirstName  string
-	LastName   string
-	MiddleName string
-	Position   string
-	Email      string
+	ID        int
+	Username  string
+	Password  string
+	Role      string
+	FirstName string
+	LastName  string
 }
 
-// Хэширование пароля
+func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
+	_, err := database.DB.Exec(
+		`UPDATE users 
+		 SET first_name=?, last_name=?, middle_name=?, position=?, email=? 
+		 WHERE username=?`,
+		firstName, lastName, middleName, position, email, username,
+	)
+	return err
+}
+
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hash), nil
+	return string(hash), err
 }
 
-// Создание пользователя
 func CreateUser(username, password, role, firstName, lastName, middleName, position, email string) error {
-	hashed, err := HashPassword(password)
+	hash, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
 
-	if role == "" {
-		role = "user"
-	}
-
 	_, err = database.DB.Exec(
-		`INSERT INTO users(username, password, role, first_name, last_name, middle_name, position, email)
-		 VALUES(?, ?, ?, ?, ?, ?, ?, ?)`,
-		username, hashed, role, firstName, lastName, middleName, position, email,
+		`INSERT INTO users(username, password, role, first_name, last_name)
+		 VALUES(?,?,?,?,?)`,
+		username, hash, role, firstName, lastName,
 	)
 
 	return err
 }
 
-// Проверка логина и пароля
 func CheckUser(username, password string) (bool, *User) {
 	var u User
 
 	err := database.DB.QueryRow(
-		"SELECT id, password, role, first_name, last_name, middle_name, position, email FROM users WHERE username = ?",
+		"SELECT id, password, role FROM users WHERE username=?",
 		username,
-	).Scan(&u.ID, &u.Password, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+	).Scan(&u.ID, &u.Password, &u.Role)
 
 	if err != nil {
 		return false, nil
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	if err != nil {
-		return false, nil
-	}
-
-	return true, &u
+	return err == nil, &u
 }
 
-// Получение пользователя
-func GetUserByUsername(username string) *User {
-	var u User
+func CheckPassword(username, password string) (bool, error) {
+	var hash string
 
 	err := database.DB.QueryRow(
-		"SELECT id, username, role, first_name, last_name, middle_name, position, email FROM users WHERE username = ?",
+		"SELECT password FROM users WHERE username=?",
 		username,
-	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
+	).Scan(&hash)
 
 	if err != nil {
-		return nil
+		return false, err
 	}
 
-	return &u
+	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil, nil
 }
 
-// Обновление профиля
-func UpdateProfile(username, firstName, lastName, middleName, position, email string) error {
-	_, err := database.DB.Exec(
-		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=? WHERE username=?",
-		firstName, lastName, middleName, position, email, username,
-	)
-	return err
-}
-
-// Обновление пользователя (админ)
-func UpdateUser(username, firstName, lastName, middleName, position, email, role string) error {
-	if role == "" {
-		role = "user"
-	}
-
-	_, err := database.DB.Exec(
-		"UPDATE users SET first_name=?, last_name=?, middle_name=?, position=?, email=?, role=? WHERE username=?",
-		firstName, lastName, middleName, position, email, role, username,
-	)
-	return err
-}
-
-// Обновление пароля
-func UpdateUserPassword(username, password string) error {
-	hashed, err := HashPassword(password)
+func UpdatePassword(username, password string) error {
+	hash, err := HashPassword(password)
 	if err != nil {
 		return err
 	}
 
-	_, err = database.DB.Exec("UPDATE users SET password=? WHERE username=?", hashed, username)
+	_, err = database.DB.Exec(
+		"UPDATE users SET password=? WHERE username=?",
+		hash, username,
+	)
+
 	return err
 }
 
-// Получение всех пользователей
+func GetUserByUsername(username string) *User {
+	var u User
+
+	database.DB.QueryRow(
+		"SELECT id, username, role, first_name, last_name FROM users WHERE username=?",
+		username,
+	).Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName)
+
+	return &u
+}
+
 func GetAllUsers() ([]User, error) {
-	rows, err := database.DB.Query(
-		"SELECT id, username, role, first_name, last_name, middle_name, position, email FROM users ORDER BY id",
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+	rows, _ := database.DB.Query("SELECT username, role, first_name, last_name FROM users")
 
 	var users []User
-
 	for rows.Next() {
 		var u User
-		err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.FirstName, &u.LastName, &u.MiddleName, &u.Position, &u.Email)
-		if err != nil {
-			return nil, err
-		}
+		rows.Scan(&u.Username, &u.Role, &u.FirstName, &u.LastName)
 		users = append(users, u)
 	}
-
 	return users, nil
 }
 
-// Удаление пользователя
-func DeleteUser(username string) error {
-	_, err := database.DB.Exec("DELETE FROM users WHERE username=?", username)
-	return err
-}
-
-// Отображаемое имя
-func GetDisplayName(username string) string {
-	var firstName, lastName string
-
-	err := database.DB.QueryRow(
-		"SELECT first_name, last_name FROM users WHERE username = ?",
-		username,
-	).Scan(&firstName, &lastName)
-
-	if err != nil {
-		return username
-	}
-
-	if firstName != "" || lastName != "" {
-		return firstName + " " + lastName
-	}
-
-	return username
+func DeleteUser(username string) {
+	database.DB.Exec("DELETE FROM users WHERE username=?", username)
 }

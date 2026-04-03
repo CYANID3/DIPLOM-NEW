@@ -11,6 +11,7 @@ type HistoryItem struct {
 	Username     string
 	UserFullName string
 	Target       string
+	Barcode      string
 	Quantity     int
 	Total        float64
 	Timestamp    string
@@ -19,15 +20,10 @@ type HistoryItem struct {
 func GetHistory() ([]HistoryItem, error) {
 	rows, err := database.DB.Query(`
 		SELECT 
-			h.id,
-			h.action,
-			h.username,
-			u.first_name,
-			u.last_name,
-			h.target,
-			h.quantity,
-			p.price,
-			h.timestamp
+			h.id, h.action, h.username,
+			u.first_name, u.last_name,
+			h.target, h.barcode,
+			h.quantity, p.price, h.timestamp
 		FROM history h
 		LEFT JOIN users u ON h.username = u.username
 		LEFT JOIN products p ON p.name = h.target
@@ -38,42 +34,30 @@ func GetHistory() ([]HistoryItem, error) {
 	}
 	defer rows.Close()
 
-	var history []HistoryItem
+	var result []HistoryItem
 
 	for rows.Next() {
 		var h HistoryItem
-		var firstName, lastName sql.NullString
+		var first, last sql.NullString
 		var price sql.NullFloat64
 
-		err := rows.Scan(
-			&h.ID,
-			&h.Action,
-			&h.Username,
-			&firstName,
-			&lastName,
-			&h.Target,
-			&h.Quantity,
-			&price,
-			&h.Timestamp,
-		)
-		if err != nil {
-			return nil, err
-		}
+		rows.Scan(&h.ID, &h.Action, &h.Username,
+			&first, &last,
+			&h.Target, &h.Barcode,
+			&h.Quantity, &price, &h.Timestamp)
 
-		// Формируем имя
-		if firstName.Valid || lastName.Valid {
-			h.UserFullName = firstName.String + " " + lastName.String
+		if first.Valid || last.Valid {
+			h.UserFullName = first.String + " " + last.String
 		} else {
 			h.UserFullName = h.Username
 		}
 
-		// Считаем сумму
 		if price.Valid {
 			h.Total = price.Float64 * float64(h.Quantity)
 		}
 
-		history = append(history, h)
+		result = append(result, h)
 	}
 
-	return history, nil
+	return result, nil
 }

@@ -9,96 +9,80 @@ import (
 
 var AuthTmpl = template.Must(template.ParseGlob("templates/*.html"))
 
-// Получение сессии
-func GetSession(r *http.Request) (string, string) {
+func GetSession(r *http.Request) (string, string, string) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
-		return "", ""
+		return "", "", ""
 	}
 
 	username := cookie.Value
 	user := models.GetUserByUsername(username)
-	if user == nil {
-		return "", ""
+
+	display := username
+	if user.FirstName != "" {
+		display = user.FirstName
 	}
 
-	return username, user.Role
+	return username, user.Role, display
 }
 
-// Установка сессии
 func SetSession(w http.ResponseWriter, username string) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    username,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Path:     "/",
+		Name:    "session",
+		Value:   username,
+		Expires: time.Now().Add(24 * time.Hour),
 	})
 }
 
-// Очистка сессии
 func ClearSession(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    "",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Path:     "/",
+		Name:   "session",
+		Value:  "",
+		MaxAge: -1,
 	})
 }
 
-// LoginPage
 func LoginPage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		username := r.FormValue("username")
-		password := r.FormValue("password")
+		u := r.FormValue("username")
+		p := r.FormValue("password")
 
-		ok, _ := models.CheckUser(username, password)
+		ok, _ := models.CheckUser(u, p)
+
 		if ok {
-			SetSession(w, username)
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			SetSession(w, u)
+			http.Redirect(w, r, "/", 303)
 			return
 		}
 
-		AuthTmpl.ExecuteTemplate(w, "login.html", map[string]string{
-			"Error": "Неверный логин или пароль",
-		})
+		AuthTmpl.ExecuteTemplate(w, "login.html", map[string]string{"Error": "Ошибка"})
 		return
 	}
 
 	AuthTmpl.ExecuteTemplate(w, "login.html", nil)
 }
 
-// RegisterPage
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		username := r.FormValue("username")
-		password := r.FormValue("password")
+		err := models.CreateUser(
+			r.FormValue("username"),
+			r.FormValue("password"),
+			"user", "", "", "", "", "",
+		)
 
-		if username == "" || password == "" {
-			AuthTmpl.ExecuteTemplate(w, "register.html", map[string]string{
-				"Error": "Заполните все поля",
-			})
-			return
-		}
-
-		err := models.CreateUser(username, password, "user", "", "", "", "", "")
 		if err != nil {
-			AuthTmpl.ExecuteTemplate(w, "register.html", map[string]string{
-				"Error": "Пользователь уже существует",
-			})
+			AuthTmpl.ExecuteTemplate(w, "register.html", map[string]string{"Error": "Ошибка"})
 			return
 		}
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login", 303)
 		return
 	}
 
 	AuthTmpl.ExecuteTemplate(w, "register.html", nil)
 }
 
-// Logout
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	ClearSession(w)
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/login", 303)
 }
