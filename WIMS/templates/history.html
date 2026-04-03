@@ -11,68 +11,39 @@
 
 <body class="bg-body">
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
-
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="nav">
 
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
 <a class="nav-link" href="/history">История</a>
 <a class="nav-link" href="/profile">Профиль</a>
-
-{{if eq .Role "admin"}}
-<a class="nav-link text-danger" href="/admin">Админка</a>
-{{end}}
-
 </div>
 
 <div class="ms-auto d-flex gap-2">
-
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-
-<div class="dropdown">
-<button class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-{{.Username}}
-</button>
-
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
+<span>{{.Username}}</span>
 </div>
 
-</div>
-
-</div>
 </div>
 </nav>
 
 <div class="container mt-4">
 
-<!-- ПОИСК -->
-<input id="historySearch" class="form-control mb-3" placeholder="Поиск по названию или штрихкоду">
-
-<!-- ИСТОРИЯ -->
 <div class="card p-3">
 <h5>История действий</h5>
 
-<table id="historyTable" class="table table-striped">
+<table class="table table-striped">
 <thead>
 <tr>
-<th onclick="sortHistory(0)">ID</th>
+<th>ID</th>
 <th>Действие</th>
-<th onclick="sortHistory(2)">Пользователь</th>
-<th onclick="sortHistory(3)">Штрихкод</th>
-<th onclick="sortHistory(4)">Товар</th>
-<th onclick="sortHistory(5)">Кол-во</th>
-<th onclick="sortHistory(6)">Сумма</th>
-<th onclick="sortHistory(7)">Время</th>
+<th>Пользователь</th>
+<th>Штрихкод</th>
+<th>Товар</th>
+<th>Кол-во</th>
+<th>Сумма</th>
+<th>Время</th>
 </tr>
 </thead>
 
@@ -99,57 +70,22 @@
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
 <td>{{.Timestamp}}</td>
+</tr>
 
+{{else}}
+<tr>
+<td colspan="8" class="text-center text-muted py-4">
+📜 История пока пуста
+</td>
 </tr>
 {{end}}
 </tbody>
-
 </table>
-</div>
 
+</div>
 </div>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
-
-<script>
-// ===== ПОИСК =====
-const historySearch = document.getElementById("historySearch");
-
-historySearch.addEventListener("keyup", function () {
-    const filter = historySearch.value.toLowerCase();
-    const rows = document.querySelectorAll("#historyTable tbody tr");
-
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
-    });
-});
-
-// ===== СОРТИРОВКА =====
-let sortDirHistory = true;
-
-function sortHistory(col) {
-    const table = document.getElementById("historyTable");
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-    rows.sort((a, b) => {
-        let A = a.cells[col].innerText;
-        let B = b.cells[col].innerText;
-
-        let numA = parseFloat(A);
-        let numB = parseFloat(B);
-
-        if (!isNaN(numA) && !isNaN(numB)) {
-            return sortDirHistory ? numA - numB : numB - numA;
-        }
-
-        return sortDirHistory ? A.localeCompare(B) : B.localeCompare(A);
-    });
-
-    rows.forEach(row => table.querySelector("tbody").appendChild(row));
-    sortDirHistory = !sortDirHistory;
-}
-</script>
 
 </body>
 </html>

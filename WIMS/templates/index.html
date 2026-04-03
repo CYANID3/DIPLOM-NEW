@@ -11,7 +11,6 @@
 
 <body class="bg-body">
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
 
@@ -29,11 +28,9 @@
 {{if eq .Role "admin"}}
 <a class="nav-link text-danger" href="/admin">Админка</a>
 {{end}}
-
 </div>
 
 <div class="ms-auto d-flex gap-2">
-
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 
 <div class="dropdown">
@@ -48,19 +45,16 @@
 </div>
 
 </div>
-
 </div>
 </div>
 </nav>
 
 <div class="container mt-4">
 
-<!-- ДОБАВИТЬ ТОВАР -->
 <div class="card p-3 mb-3">
 <h5>Добавить товар</h5>
 
 <form action="/add" method="post" class="row g-2">
-
 <div class="col-md-3">
 <input class="form-control" name="name" placeholder="Название" required>
 </div>
@@ -80,26 +74,23 @@
 <div class="col-md-2">
 <button class="btn btn-primary w-100">Добавить</button>
 </div>
-
 </form>
 </div>
 
-<!-- ПОИСК -->
-<input id="searchInput" class="form-control mb-3" placeholder="Поиск по названию или штрихкоду">
+<input id="searchInput" class="form-control mb-3" placeholder="Поиск">
 
-<!-- ТОВАРЫ -->
 <div class="card p-3">
 <h5>Товары</h5>
 
 <table id="productsTable" class="table table-striped">
 <thead>
 <tr>
-<th onclick="sortTable(0)">ID</th>
-<th onclick="sortTable(1)">Штрихкод</th>
-<th onclick="sortTable(2)">Название</th>
-<th onclick="sortTable(3)">Цена</th>
-<th onclick="sortTable(4)">Остаток</th>
-<th onclick="sortTable(5)">Сумма</th>
+<th>ID</th>
+<th>Штрихкод</th>
+<th>Название</th>
+<th>Цена</th>
+<th>Остаток</th>
+<th>Сумма</th>
 <th>Продать</th>
 <th>Удалить</th>
 </tr>
@@ -129,36 +120,25 @@
 <button class="btn btn-danger btn-sm">X</button>
 </form>
 </td>
+</tr>
 
+{{else}}
+<tr>
+<td colspan="8" class="text-center text-muted py-4">
+📦 Товаров пока нет
+</td>
 </tr>
 {{end}}
 </tbody>
-
 </table>
-</div>
 
 </div>
-
-<!-- TOAST ERROR -->
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-  <div id="errorToast" class="toast text-bg-danger border-0">
-    <div class="d-flex">
-      <div class="toast-body">
-        {{.Error}}
-      </div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
 </div>
-{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// ===== ПОИСК =====
 const searchInput = document.getElementById("searchInput");
-
 searchInput.addEventListener("keyup", function () {
     const filter = searchInput.value.toLowerCase();
     const rows = document.querySelectorAll("#productsTable tbody tr");
@@ -167,40 +147,6 @@ searchInput.addEventListener("keyup", function () {
         const text = row.innerText.toLowerCase();
         row.style.display = text.includes(filter) ? "" : "none";
     });
-});
-
-// ===== СОРТИРОВКА =====
-let sortDir = true;
-
-function sortTable(col) {
-    const table = document.getElementById("productsTable");
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-
-    rows.sort((a, b) => {
-        let A = a.cells[col].innerText;
-        let B = b.cells[col].innerText;
-
-        let numA = parseFloat(A);
-        let numB = parseFloat(B);
-
-        if (!isNaN(numA) && !isNaN(numB)) {
-            return sortDir ? numA - numB : numB - numA;
-        }
-
-        return sortDir ? A.localeCompare(B) : B.localeCompare(A);
-    });
-
-    rows.forEach(row => table.querySelector("tbody").appendChild(row));
-    sortDir = !sortDir;
-}
-
-// ===== TOAST =====
-document.addEventListener("DOMContentLoaded", function () {
-    const toastEl = document.getElementById("errorToast");
-    if (toastEl) {
-        const toast = new bootstrap.Toast(toastEl);
-        toast.show();
-    }
 });
 </script>
 
