@@ -33,14 +33,7 @@
 
 <h3>Профиль</h3>
 
-{{if .Message}}
-<div class="alert alert-info alert-dismissible fade show">
-    {{.Message}}
-    <button class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{{end}}
-
-<form method="post" autocomplete="on">
+<form method="post">
 
 <h5>Данные</h5>
 
@@ -58,12 +51,20 @@
 </div>
 
 <div class="input-group mb-2">
-<input id="pass1" class="form-control" type="password" name="password1" placeholder="Новый пароль">
+<input id="pass1"
+       class="form-control {{if .Error}}is-invalid{{end}}"
+       type="password"
+       name="password1"
+       placeholder="Новый пароль">
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1', this)">👁</button>
 </div>
 
 <div class="input-group mb-3">
-<input id="pass2" class="form-control" type="password" name="password2" placeholder="Повторите пароль">
+<input id="pass2"
+       class="form-control {{if .Error}}is-invalid{{end}}"
+       type="password"
+       name="password2"
+       placeholder="Повторите пароль">
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2', this)">👁</button>
 </div>
 
@@ -74,6 +75,23 @@
 </div>
 
 </div>
+
+<!-- TOAST -->
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="errorToast" class="toast text-bg-danger">
+    <div class="toast-body">{{.Error}}</div>
+  </div>
+</div>
+{{end}}
+
+{{if .Success}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="successToast" class="toast text-bg-success">
+    <div class="toast-body">{{.Success}}</div>
+  </div>
+</div>
+{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 
@@ -89,6 +107,14 @@ function togglePassword(id, btn) {
         btn.innerText = "👁";
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const err = document.getElementById("errorToast");
+    const ok = document.getElementById("successToast");
+
+    if (err) new bootstrap.Toast(err).show();
+    if (ok) new bootstrap.Toast(ok).show();
+});
 </script>
 
 </body>

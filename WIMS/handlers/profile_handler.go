@@ -3,6 +3,7 @@ package handlers
 import (
 	"html/template"
 	"net/http"
+	"net/url"
 	"wims/models"
 )
 
@@ -17,7 +18,9 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := models.GetUserByUsername(username)
-	message := ""
+
+	errorMsg := r.URL.Query().Get("error")
+	successMsg := r.URL.Query().Get("success")
 
 	if r.Method == http.MethodPost {
 
@@ -30,9 +33,8 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 			r.FormValue("position"),
 			r.FormValue("email"),
 		)
-
 		if err != nil {
-			http.Error(w, "Ошибка обновления профиля", http.StatusInternalServerError)
+			http.Redirect(w, r, "/profile?error="+url.QueryEscape("Ошибка обновления профиля"), http.StatusSeeOther)
 			return
 		}
 
@@ -43,36 +45,40 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 
 		if oldPass != "" || pass1 != "" || pass2 != "" {
 
-			ok, err := models.CheckPassword(username, oldPass)
-			if err != nil {
-				http.Error(w, "Ошибка проверки пароля", http.StatusInternalServerError)
+			ok, _ := models.CheckPassword(username, oldPass)
+
+			if !ok {
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Неверный текущий пароль"), http.StatusSeeOther)
 				return
 			}
 
-			if !ok {
-				message = "Неверный текущий пароль"
-			} else if pass1 != pass2 {
-				message = "Пароли не совпадают"
-			} else if len(pass1) < 4 {
-				message = "Пароль слишком короткий"
-			} else {
-				err := models.UpdatePassword(username, pass1)
-				if err != nil {
-					http.Error(w, "Ошибка смены пароля", http.StatusInternalServerError)
-					return
-				}
-				message = "Пароль изменён"
+			if pass1 != pass2 {
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароли не совпадают"), http.StatusSeeOther)
+				return
+			}
+
+			if len(pass1) < 4 {
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Пароль слишком короткий"), http.StatusSeeOther)
+				return
+			}
+
+			err := models.UpdatePassword(username, pass1)
+			if err != nil {
+				http.Redirect(w, r, "/profile?error="+url.QueryEscape("Ошибка смены пароля"), http.StatusSeeOther)
+				return
 			}
 		}
 
-		user = models.GetUserByUsername(username)
+		http.Redirect(w, r, "/profile?success="+url.QueryEscape("Сохранено"), http.StatusSeeOther)
+		return
 	}
 
 	data := map[string]interface{}{
 		"Username": display,
 		"Role":     role,
 		"User":     user,
-		"Message":  message,
+		"Error":    errorMsg,
+		"Success":  successMsg,
 	}
 
 	err := profileTmpl.Execute(w, data)
