@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"strings"
+	"time"
 	"wims/database"
 )
 
@@ -17,6 +18,27 @@ type HistoryItem struct {
 	Price        float64
 	Total        float64
 	Timestamp    string
+	TimestampRaw string // для сортировки на клиенте (ISO)
+}
+
+// форматы которые может вернуть SQLite
+var tsFormats = []string{
+	"2006-01-02T15:04:05Z",
+	"2006-01-02T15:04:05",
+	"2006-01-02 15:04:05",
+	"2006-01-02T15:04:05Z07:00",
+}
+
+func formatTimestamp(raw string) (display, iso string) {
+	raw = strings.TrimSpace(raw)
+	for _, layout := range tsFormats {
+		t, err := time.Parse(layout, raw)
+		if err == nil {
+			return t.Format("02.01.2006 15:04"), t.UTC().Format("2006-01-02T15:04:05Z")
+		}
+	}
+	// не распарсилось — вернуть как есть
+	return raw, raw
 }
 
 func GetHistory() ([]HistoryItem, error) {
@@ -40,8 +62,8 @@ func GetHistory() ([]HistoryItem, error) {
 	for rows.Next() {
 		var h HistoryItem
 		var first, last sql.NullString
-		var price sql.NullFloat64
-		var timestamp sql.NullString
+		var price      sql.NullFloat64
+		var timestamp  sql.NullString
 
 		err := rows.Scan(
 			&h.ID, &h.Action, &h.Username,
@@ -69,7 +91,7 @@ func GetHistory() ([]HistoryItem, error) {
 		}
 
 		if timestamp.Valid {
-			h.Timestamp = timestamp.String
+			h.Timestamp, h.TimestampRaw = formatTimestamp(timestamp.String)
 		}
 
 		result = append(result, h)

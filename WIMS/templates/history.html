@@ -53,15 +53,15 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <table id="historyTable" class="table table-striped">
 <thead>
 <tr>
-<th class="sortable" data-col="0">ID</th>
+<th class="sortable" data-col="0" data-type="num">ID</th>
 <th>Действие</th>
-<th class="sortable" data-col="2">Пользователь</th>
-<th class="sortable" data-col="3">Штрихкод</th>
-<th class="sortable" data-col="4">Товар</th>
-<th class="sortable" data-col="5">Цена</th>
-<th class="sortable" data-col="6">Кол-во</th>
-<th class="sortable" data-col="7">Сумма</th>
-<th class="sortable" data-col="8">Время</th>
+<th class="sortable" data-col="2" data-type="str">Пользователь</th>
+<th class="sortable" data-col="3" data-type="str">Штрихкод</th>
+<th class="sortable" data-col="4" data-type="str">Товар</th>
+<th class="sortable" data-col="5" data-type="num">Цена</th>
+<th class="sortable" data-col="6" data-type="num">Кол-во</th>
+<th class="sortable" data-col="7" data-type="num">Сумма</th>
+<th class="sortable" data-col="8" data-type="date">Время</th>
 </tr>
 </thead>
 <tbody>
@@ -85,7 +85,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{printf "%.2f" .Price}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
-<td>{{.Timestamp}}</td>
+<td data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
 <tr>
@@ -115,22 +115,41 @@ document.getElementById("historySearch").addEventListener("keyup", function () {
 document.querySelectorAll("#historyTable th.sortable").forEach(th => {
     th.addEventListener("click", function () {
         const col   = parseInt(this.dataset.col);
+        const type  = this.dataset.type; // num | str | date
         const tbody = document.querySelector("#historyTable tbody");
         const rows  = Array.from(tbody.querySelectorAll("tr"));
         const asc   = !this.classList.contains("sort-asc");
 
-        document.querySelectorAll("#historyTable th.sortable").forEach(t => t.classList.remove("sort-asc","sort-desc"));
+        document.querySelectorAll("#historyTable th.sortable").forEach(t =>
+            t.classList.remove("sort-asc", "sort-desc")
+        );
         this.classList.add(asc ? "sort-asc" : "sort-desc");
 
         rows.sort((a, b) => {
-            const av = a.cells[col]?.innerText.trim() || "";
-            const bv = b.cells[col]?.innerText.trim() || "";
-            // числовая сортировка для числовых колонок
-            const an = parseFloat(av);
-            const bn = parseFloat(bv);
-            if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            const cellA = a.cells[col];
+            const cellB = b.cells[col];
+
+            if (type === "date") {
+                // используем data-raw (ISO строка) для точного сравнения
+                const av = cellA?.dataset.raw || "";
+                const bv = cellB?.dataset.raw || "";
+                return asc
+                    ? av.localeCompare(bv)
+                    : bv.localeCompare(av);
+            }
+
+            const av = cellA?.innerText.trim() || "";
+            const bv = cellB?.innerText.trim() || "";
+
+            if (type === "num") {
+                const an = parseFloat(av);
+                const bn = parseFloat(bv);
+                if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            }
+
             return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
         });
+
         rows.forEach(r => tbody.appendChild(r));
     });
 });

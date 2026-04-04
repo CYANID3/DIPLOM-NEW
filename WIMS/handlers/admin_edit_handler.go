@@ -41,15 +41,27 @@ func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
 			r.FormValue("email"),
 		)
 		if err != nil {
-			http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Ошибка обновления профиля"), http.StatusSeeOther)
+			http.Redirect(w, r, editURL(target, "Ошибка обновления профиля", ""), http.StatusSeeOther)
 			return
 		}
 
-		// роль — нельзя снять с себя админа
+		// роль
 		newRole := r.FormValue("role")
+
+		// нельзя снять с себя права
 		if target == username && newRole != "admin" {
-			http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Нельзя снять с себя права администратора"), http.StatusSeeOther)
+			http.Redirect(w, r, editURL(target, "Нельзя снять с себя права администратора", ""), http.StatusSeeOther)
 			return
+		}
+
+		// повышение до admin — требует подтверждения паролем
+		if newRole == "admin" && user.Role != "admin" {
+			confirmPwd := r.FormValue("confirm_admin_password")
+			ok, _ := models.CheckPassword(username, confirmPwd)
+			if !ok {
+				http.Redirect(w, r, editURL(target, "Неверный пароль для подтверждения повышения до администратора", ""), http.StatusSeeOther)
+				return
+			}
 		}
 
 		_, err = database.DB.Exec(
@@ -57,37 +69,34 @@ func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
 			newRole, target,
 		)
 		if err != nil {
-			http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Ошибка обновления роли"), http.StatusSeeOther)
+			http.Redirect(w, r, editURL(target, "Ошибка обновления роли", ""), http.StatusSeeOther)
 			return
 		}
 
-		// смена пароля — только если хоть одно поле заполнено
+		// смена пароля
 		pass1 := r.FormValue("password1")
 		pass2 := r.FormValue("password2")
 
 		if pass1 != "" || pass2 != "" {
 			if pass1 != pass2 {
-				http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Пароли не совпадают"), http.StatusSeeOther)
+				http.Redirect(w, r, editURL(target, "Пароли не совпадают", "password"), http.StatusSeeOther)
 				return
 			}
-
 			if len(pass1) < 4 {
-				http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Пароль слишком короткий (минимум 4 символа)"), http.StatusSeeOther)
+				http.Redirect(w, r, editURL(target, "Пароль слишком короткий (минимум 4 символа)", ""), http.StatusSeeOther)
 				return
 			}
-
 			err := models.UpdatePassword(target, pass1)
 			if err != nil {
-				http.Redirect(w, r, "/admin/edit?username="+target+"&error="+url.QueryEscape("Ошибка смены пароля"), http.StatusSeeOther)
+				http.Redirect(w, r, editURL(target, "Ошибка смены пароля", ""), http.StatusSeeOther)
 				return
 			}
 		}
 
-		http.Redirect(w, r, "/admin/edit?username="+target+"&success="+url.QueryEscape("Изменения сохранены"), http.StatusSeeOther)
+		http.Redirect(w, r, editURL(target, "", "Изменения сохранены"), http.StatusSeeOther)
 		return
 	}
 
-	// GET — читаем query params после редиректа
 	errorMsg := r.URL.Query().Get("error")
 	successMsg := r.URL.Query().Get("success")
 
@@ -97,8 +106,19 @@ func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
 		"User":          user,
 		"Error":         errorMsg,
 		"Success":       successMsg,
-		"PasswordError": errorMsg == "Пароли не совпадают",
+		"PasswordError": r.URL.Query().Get("pe") == "1",
 	}
 
 	adminEditTmpl.Execute(w, data)
+}
+
+func editURL(target, errMsg, successMsg string) string {
+	base := "/admin/edit?username=" + target
+	if errMsg != "" {
+		return base + "&error=" + url.QueryEscape(errMsg)
+	}
+	if successMsg != "" {
+		return base + "&success=" + url.QueryEscape(successMsg)
+	}
+	return base
 }

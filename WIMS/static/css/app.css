@@ -370,9 +370,32 @@ a:hover {
 .text-muted {
     color: var(--app-muted) !important;
 }
-.nav-link.nav-admin {
-    color: #198754 !important;
+
+/* ===== MODAL ===== */
+/* Bootstrap modal не подхватывает наши переменные — переопределяем явно */
+/* admin.html: модалка удаления пользователя */
+.modal-content {
+    background-color: var(--app-card-bg)  !important;
+    color:            var(--app-color)    !important;
+    border-color:     var(--app-border)   !important;
 }
-.nav-link.nav-admin:hover {
-    color: #157347 !important;
+
+.modal-header,
+.modal-footer {
+    border-color: var(--app-border) !important;
+}
+
+.modal-title {
+    color: var(--app-color) !important;
+}
+
+/* btn-close в тёмной теме — иконка крестика светлая */
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* backdrop чуть темнее в тёмной теме */
+[data-theme="dark"] .modal-backdrop {
+    background-color: #000;
+    opacity:          0.7 !important;
 }

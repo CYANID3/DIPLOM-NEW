@@ -11,11 +11,9 @@
 
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
-
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
 <span class="navbar-toggler-icon"></span>
 </button>
-
 <div class="collapse navbar-collapse" id="nav">
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
@@ -25,21 +23,18 @@
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
 </div>
-
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 <div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-{{.Username}}
-</button>
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>
 </div>
 </div>
-
 </div>
 </nav>
 
@@ -49,7 +44,7 @@
 <div class="card p-4">
 <h3>Профиль</h3>
 
-<form method="post">
+<form method="post" id="profileForm">
 <h5>Данные</h5>
 <input class="form-control mb-2" name="first_name"  value="{{.User.FirstName}}"  placeholder="Имя">
 <input class="form-control mb-2" name="last_name"   value="{{.User.LastName}}"   placeholder="Фамилия">
@@ -62,24 +57,39 @@
 <input id="oldPass" class="form-control" type="password" name="old_password" placeholder="Текущий пароль">
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPass', this)">👁</button>
 </div>
-
 <div class="input-group mb-2">
-<input id="pass1"
-       class="form-control {{if .PasswordError}}is-invalid{{end}}"
+<input id="pass1" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password1" placeholder="Новый пароль">
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1', this)">👁</button>
 </div>
-
 <div class="input-group mb-3">
-<input id="pass2"
-       class="form-control {{if .PasswordError}}is-invalid{{end}}"
+<input id="pass2" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password2" placeholder="Повторите пароль">
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2', this)">👁</button>
 </div>
 
-<button class="btn btn-primary w-100">Сохранить</button>
+<button class="btn btn-primary w-100" type="submit">Сохранить</button>
 </form>
+</div>
 
+</div>
+</div>
+
+<!-- МОДАЛКА: НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ -->
+<div class="modal fade" id="unsavedModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Несохранённые изменения</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+<p class="mb-0">Вы изменили данные профиля, но не сохранили их. Всё равно выйти?</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Остаться</button>
+<a href="/logout" class="btn btn-danger" id="unsavedLogoutBtn">Выйти без сохранения</a>
+</div>
 </div>
 </div>
 </div>
@@ -105,14 +115,33 @@
 <script>
 function togglePassword(id, btn) {
     const input = document.getElementById(id);
-    if (input.type === "password") {
-        input.type = "text";
-        btn.innerText = "🙈";
-    } else {
-        input.type = "password";
-        btn.innerText = "👁";
-    }
+    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
+    else { input.type = "password"; btn.innerText = "👁"; }
 }
+
+// флаг читается в theme.js для координации двух модалок
+window._profileFormDirty = false;
+
+document.getElementById("profileForm").addEventListener("input", function () {
+    window._profileFormDirty = true;
+});
+document.getElementById("profileForm").addEventListener("submit", function () {
+    window._profileFormDirty = false;
+});
+
+// перехват выхода — если форма грязная, показываем unsavedModal,
+// иначе theme.js покажет стандартную logoutModal
+document.querySelectorAll('a[href="/logout"]').forEach(function (link) {
+    // убираем листенер который добавил theme.js и ставим свой
+    link.addEventListener("click", function (e) {
+        if (window._profileFormDirty) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            new bootstrap.Modal(document.getElementById("unsavedModal")).show();
+        }
+        // если не грязная — theme.js перехватит и покажет logoutModal
+    }, true); // capture=true — срабатывает раньше theme.js
+});
 
 document.addEventListener("DOMContentLoaded", function () {
     const err = document.getElementById("errorToast");
