@@ -2,11 +2,9 @@
 <html>
 <head>
 <title>Регистрация</title>
-
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
-
 </head>
 
 <body class="bg-body">
@@ -15,12 +13,7 @@
 
 <h3>Регистрация</h3>
 
-{{if .Error}}
-<div class="alert alert-danger">{{.Error}}</div>
-{{end}}
-
 <div class="card p-3">
-
 <form method="post" autocomplete="on">
 
 <input class="form-control mb-2" name="username" placeholder="Логин" required>
@@ -30,22 +23,36 @@
 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('regPass', this)">👁</button>
 </div>
 
+<div class="input-group mb-3">
+<input id="regPass2" class="form-control" type="password" name="password2" placeholder="Повторите пароль" required>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('regPass2', this)">👁</button>
+</div>
+
 <button class="btn btn-primary w-100">Создать</button>
-
 </form>
-
 </div>
 
+<div class="mt-2">
 <a href="/login">Войти</a>
+</div>
 
 </div>
+
+<!-- toast контейнер для клиентских ошибок -->
+<div id="clientToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
+</div>
+</div>
+{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
-
 <script>
 function togglePassword(id, btn) {
     const input = document.getElementById(id);
-
     if (input.type === "password") {
         input.type = "text";
         btn.innerText = "🙈";
@@ -54,6 +61,29 @@ function togglePassword(id, btn) {
         btn.innerText = "👁";
     }
 }
+
+function showClientError(msg) {
+    const container = document.getElementById("clientToastContainer");
+    const id = "ct_" + Date.now();
+    const div = document.createElement("div");
+    div.innerHTML = '<div id="' + id + '" class="toast text-bg-danger" role="alert"><div class="toast-body">' + msg + '</div></div>';
+    container.appendChild(div.firstChild);
+    new bootstrap.Toast(document.getElementById(id)).show();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const err = document.getElementById("errorToast");
+    if (err) new bootstrap.Toast(err).show();
+
+    document.querySelector("form").addEventListener("submit", function(e) {
+        const p1 = document.getElementById("regPass").value;
+        const p2 = document.getElementById("regPass2").value;
+        if (p1 !== p2) {
+            e.preventDefault();
+            showClientError("Пароли не совпадают");
+        }
+    });
+});
 </script>
 
 </body>

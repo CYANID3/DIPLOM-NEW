@@ -53,8 +53,12 @@ func GetHistory() ([]HistoryItem, error) {
 			return nil, err
 		}
 
-		if first.Valid || last.Valid {
-			h.UserFullName = strings.TrimSpace(first.String + " " + last.String)
+		// имя: используем только если хотя бы одно непустое
+		firstName := strings.TrimSpace(first.String)
+		lastName  := strings.TrimSpace(last.String)
+		fullName  := strings.TrimSpace(firstName + " " + lastName)
+		if fullName != "" {
+			h.UserFullName = fullName
 		} else {
 			h.UserFullName = h.Username
 		}

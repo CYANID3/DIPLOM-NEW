@@ -94,6 +94,14 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// проверка пароля администратора
+	adminPassword := r.FormValue("admin_password")
+	ok, _ := models.CheckPassword(username, adminPassword)
+	if !ok {
+		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Неверный пароль"), http.StatusSeeOther)
+		return
+	}
+
 	err := models.DeleteUser(target)
 	if err != nil {
 		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Ошибка удаления пользователя"), http.StatusSeeOther)

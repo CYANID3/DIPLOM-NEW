@@ -5,17 +5,21 @@
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
+<style>
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
+</style>
 </head>
 
 <body class="bg-body">
 
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
-
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
 <span class="navbar-toggler-icon"></span>
 </button>
-
 <div class="collapse navbar-collapse" id="nav">
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
@@ -25,13 +29,10 @@
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
 </div>
-
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 <div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-{{.Username}}
-</button>
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
@@ -39,7 +40,6 @@
 </div>
 </div>
 </div>
-
 </div>
 </nav>
 
@@ -53,15 +53,15 @@
 <table id="historyTable" class="table table-striped">
 <thead>
 <tr>
-<th>ID</th>
+<th class="sortable" data-col="0">ID</th>
 <th>Действие</th>
-<th>Пользователь</th>
-<th>Штрихкод</th>
-<th>Товар</th>
-<th>Цена</th>
-<th>Кол-во</th>
-<th>Сумма</th>
-<th>Время</th>
+<th class="sortable" data-col="2">Пользователь</th>
+<th class="sortable" data-col="3">Штрихкод</th>
+<th class="sortable" data-col="4">Товар</th>
+<th class="sortable" data-col="5">Цена</th>
+<th class="sortable" data-col="6">Кол-во</th>
+<th class="sortable" data-col="7">Сумма</th>
+<th class="sortable" data-col="8">Время</th>
 </tr>
 </thead>
 <tbody>
@@ -101,13 +101,37 @@
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script>
-const historySearch = document.getElementById("historySearch");
-historySearch.addEventListener("keyup", function () {
-    const filter = historySearch.value.toLowerCase();
+// поиск
+document.getElementById("historySearch").addEventListener("keyup", function () {
+    const filter = this.value.toLowerCase();
     document.querySelectorAll("#historyTable tbody tr").forEach(row => {
         const barcode = row.cells[3]?.innerText.toLowerCase() || "";
         const name    = row.cells[4]?.innerText.toLowerCase() || "";
         row.style.display = (barcode.includes(filter) || name.includes(filter)) ? "" : "none";
+    });
+});
+
+// сортировка
+document.querySelectorAll("#historyTable th.sortable").forEach(th => {
+    th.addEventListener("click", function () {
+        const col   = parseInt(this.dataset.col);
+        const tbody = document.querySelector("#historyTable tbody");
+        const rows  = Array.from(tbody.querySelectorAll("tr"));
+        const asc   = !this.classList.contains("sort-asc");
+
+        document.querySelectorAll("#historyTable th.sortable").forEach(t => t.classList.remove("sort-asc","sort-desc"));
+        this.classList.add(asc ? "sort-asc" : "sort-desc");
+
+        rows.sort((a, b) => {
+            const av = a.cells[col]?.innerText.trim() || "";
+            const bv = b.cells[col]?.innerText.trim() || "";
+            // числовая сортировка для числовых колонок
+            const an = parseFloat(av);
+            const bn = parseFloat(bv);
+            if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
+        });
+        rows.forEach(r => tbody.appendChild(r));
     });
 });
 </script>

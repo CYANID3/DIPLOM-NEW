@@ -5,14 +5,17 @@
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
-
 <style>
 #usersTable { table-layout: fixed; width: 100%; }
-#usersTable th:nth-child(1) { width: 40%; }
+#usersTable th:nth-child(1) { width: 38%; }
 #usersTable th:nth-child(2) { width: 20%; }
-#usersTable th:nth-child(3) { width: 15%; }
-#usersTable th:nth-child(4) { width: 25%; }
+#usersTable th:nth-child(3) { width: 14%; }
+#usersTable th:nth-child(4) { width: 28%; }
 #usersTable td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
 </style>
 </head>
 
@@ -20,11 +23,9 @@
 
 <nav class="navbar navbar-expand-lg border-bottom px-3">
 <div class="container-fluid">
-
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
 <span class="navbar-toggler-icon"></span>
 </button>
-
 <div class="collapse navbar-collapse" id="nav">
 <div class="navbar-nav">
 <a class="nav-link" href="/">Главная</a>
@@ -34,13 +35,10 @@
 <a class="nav-link nav-admin" href="/admin">Админ-панель</a>
 {{end}}
 </div>
-
 <div class="ms-auto d-flex gap-2">
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 <div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">
-{{.Username}}
-</button>
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
@@ -48,60 +46,81 @@
 </div>
 </div>
 </div>
-
 </div>
 </nav>
 
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-<div class="card p-3 mb-4">
-<h5>Добавить пользователя</h5>
-<form action="/admin/create" method="post" class="row g-2">
-<div class="col-md-3">
-<input class="form-control" name="first_name" placeholder="Имя" required>
+<!-- ФОРМА СОЗДАНИЯ -->
+<div class="card p-4 mb-4">
+<h5 class="mb-3">Добавить пользователя</h5>
+<form action="/admin/create" method="post">
+
+<div class="row g-2 mb-2">
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Имя</label>
+<input class="form-control" name="first_name" placeholder="Иван" required>
 </div>
-<div class="col-md-3">
-<input class="form-control" name="last_name" placeholder="Фамилия" required>
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Фамилия</label>
+<input class="form-control" name="last_name" placeholder="Иванов" required>
 </div>
-<div class="col-md-2">
-<input class="form-control" name="middle_name" placeholder="Отчество">
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Отчество</label>
+<input class="form-control" name="middle_name" placeholder="Иванович">
 </div>
-<div class="col-md-2">
-<input class="form-control" name="position" placeholder="Должность">
 </div>
-<div class="col-md-2">
+
+<div class="row g-2 mb-2">
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Логин</label>
+<input class="form-control" name="username" placeholder="ivanov" required>
+</div>
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Пароль</label>
+<div class="input-group">
+<input id="createPass" class="form-control" type="password" name="password" placeholder="••••••" required>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('createPass', this)">👁</button>
+</div>
+</div>
+<div class="col-md-4">
+<label class="form-label text-muted small mb-1">Роль</label>
 <select class="form-select" name="role">
 <option value="user">user</option>
 <option value="manager">manager</option>
 <option value="admin">admin</option>
 </select>
 </div>
-<div class="col-md-4">
-<input class="form-control" name="username" placeholder="Логин" required>
 </div>
-<div class="col-md-4">
-<input class="form-control" type="password" name="password" placeholder="Пароль" required>
+
+<div class="row g-2 mb-3">
+<div class="col-md-6">
+<label class="form-label text-muted small mb-1">Должность</label>
+<input class="form-control" name="position" placeholder="Менеджер">
 </div>
-<div class="col-md-4">
-<input class="form-control" name="email" placeholder="Email">
+<div class="col-md-6">
+<label class="form-label text-muted small mb-1">Email</label>
+<input class="form-control" name="email" placeholder="ivan@example.com">
 </div>
-<div class="col-md-12">
-<button class="btn btn-primary w-100">Создать</button>
 </div>
+
+<button class="btn btn-primary px-4">Создать пользователя</button>
 </form>
 </div>
 
+<!-- ПОИСК -->
 <input id="userSearch" class="form-control mb-3" placeholder="Поиск пользователя">
 
+<!-- СПИСОК -->
 <div class="card p-3">
 <h5>Пользователи</h5>
 <table id="usersTable" class="table table-striped">
 <thead>
 <tr>
-<th>ФИО</th>
-<th>Логин</th>
-<th>Роль</th>
+<th class="sortable" data-col="0">ФИО</th>
+<th class="sortable" data-col="1">Логин</th>
+<th class="sortable" data-col="2">Роль</th>
 <th class="text-end">Действия</th>
 </tr>
 </thead>
@@ -122,10 +141,8 @@
 <td class="text-end">
 <div class="d-flex justify-content-end gap-2">
 <a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">Редактировать</a>
-<form action="/admin/delete" method="post">
-<input type="hidden" name="username" value="{{.Username}}">
-<button class="btn btn-danger btn-sm">Удалить</button>
-</form>
+<button type="button" class="btn btn-danger btn-sm"
+        onclick="confirmDelete('{{.Username}}')">Удалить</button>
 </div>
 </td>
 </tr>
@@ -138,6 +155,35 @@
 </table>
 </div>
 
+</div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО УДАЛЕНИЯ -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Подтверждение удаления</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<form action="/admin/delete" method="post">
+<div class="modal-body">
+<p>Вы собираетесь удалить пользователя <strong id="deleteUsername"></strong>.</p>
+<input type="hidden" name="username" id="deleteUsernameInput">
+<div class="mb-0">
+<label class="form-label">Введите ваш пароль для подтверждения</label>
+<div class="input-group">
+<input id="confirmPass" class="form-control" type="password" name="admin_password" placeholder="Ваш пароль" required>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPass', this)">👁</button>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+<button type="submit" class="btn btn-danger">Удалить</button>
+</div>
+</form>
+</div>
 </div>
 </div>
 
@@ -160,11 +206,44 @@
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script>
-const userSearch = document.getElementById("userSearch");
-userSearch.addEventListener("keyup", function () {
-    const filter = userSearch.value.toLowerCase();
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
+    else { input.type = "password"; btn.innerText = "👁"; }
+}
+
+function confirmDelete(username) {
+    document.getElementById("deleteUsername").textContent = username;
+    document.getElementById("deleteUsernameInput").value = username;
+    document.getElementById("confirmPass").value = "";
+    new bootstrap.Modal(document.getElementById("deleteModal")).show();
+}
+
+// поиск
+document.getElementById("userSearch").addEventListener("keyup", function () {
+    const filter = this.value.toLowerCase();
     document.querySelectorAll("#usersTable tbody tr").forEach(row => {
         row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+    });
+});
+
+// сортировка
+document.querySelectorAll("th.sortable").forEach(th => {
+    th.addEventListener("click", function () {
+        const col   = parseInt(this.dataset.col);
+        const tbody = document.querySelector("#usersTable tbody");
+        const rows  = Array.from(tbody.querySelectorAll("tr"));
+        const asc   = !this.classList.contains("sort-asc");
+
+        document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("sort-asc","sort-desc"));
+        this.classList.add(asc ? "sort-asc" : "sort-desc");
+
+        rows.sort((a, b) => {
+            const av = a.cells[col]?.innerText.trim().toLowerCase() || "";
+            const bv = b.cells[col]?.innerText.trim().toLowerCase() || "";
+            return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
+        });
+        rows.forEach(r => tbody.appendChild(r));
     });
 });
 
