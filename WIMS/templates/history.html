@@ -35,6 +35,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
 <ul class="dropdown-menu dropdown-menu-end">
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>
@@ -46,7 +47,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-<input id="historySearch" class="form-control mb-3" placeholder="Поиск по штрихкоду или названию">
+<input id="historySearch" class="form-control mb-3" placeholder="Поиск по штрихкоду, названию или пользователю">
 
 <div class="card p-3">
 <h5>История действий</h5>
@@ -54,7 +55,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <thead>
 <tr>
 <th class="sortable" data-col="0" data-type="num">ID</th>
-<th>Действие</th>
+<th class="sortable" data-col="1" data-type="action">Действие</th>
 <th class="sortable" data-col="2" data-type="str">Пользователь</th>
 <th class="sortable" data-col="3" data-type="str">Штрихкод</th>
 <th class="sortable" data-col="4" data-type="str">Товар</th>
@@ -68,7 +69,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 {{range .History}}
 <tr>
 <td>{{.ID}}</td>
-<td>
+<td data-action="{{.Action}}">
 {{if eq .Action "add"}}
 <span class="badge text-bg-success">Добавлено</span>
 {{else if eq .Action "sell"}}
@@ -102,59 +103,77 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
+// порядок сортировки для действий
+var ACTION_ORDER = { "add": 0, "sell": 1, "delete": 2 };
+
+function getCellValue(row, col, type) {
+    var cell = row.cells[col];
+    if (!cell) return "";
+    if (type === "date")   return cell.getAttribute("data-raw") || "";
+    if (type === "action") return cell.getAttribute("data-action") || "";
+    return cell.innerText.trim();
+}
+
+function compareRows(a, b, col, type, asc) {
+    var av = getCellValue(a, col, type);
+    var bv = getCellValue(b, col, type);
+
+    var result;
+
+    if (type === "action") {
+        var an = ACTION_ORDER[av] !== undefined ? ACTION_ORDER[av] : 99;
+        var bn = ACTION_ORDER[bv] !== undefined ? ACTION_ORDER[bv] : 99;
+        result = an - bn;
+    } else if (type === "num") {
+        var an = parseFloat(av);
+        var bn = parseFloat(bv);
+        result = (!isNaN(an) && !isNaN(bn)) ? an - bn : av.localeCompare(bv, "ru");
+    } else {
+        // str и date — лексикографически
+        result = av.localeCompare(bv, "ru");
+    }
+
+    return asc ? result : -result;
+}
+
 // поиск
 document.getElementById("historySearch").addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll("#historyTable tbody tr").forEach(row => {
-        const barcode = row.cells[3]?.innerText.toLowerCase() || "";
-        const user    = row.cells[2]?.innerText.toLowerCase() || "";
-        const name    = row.cells[4]?.innerText.toLowerCase() || "";
-        row.style.display = (barcode.includes(filter) || name.includes(filter) || user.includes(filter)) ? "" : "none";
-    });
+    var filter = this.value.toLowerCase();
+    var rows = document.querySelectorAll("#historyTable tbody tr");
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var barcode = row.cells[3] ? row.cells[3].innerText.toLowerCase() : "";
+        var name    = row.cells[4] ? row.cells[4].innerText.toLowerCase() : "";
+        var user    = row.cells[2] ? row.cells[2].innerText.toLowerCase() : "";
+        row.style.display = (barcode.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || user.indexOf(filter) >= 0) ? "" : "none";
+    }
 });
 
 // сортировка
-document.querySelectorAll("#historyTable th.sortable").forEach(th => {
-    th.addEventListener("click", function () {
-        const col   = parseInt(this.dataset.col);
-        const type  = this.dataset.type; // num | str | date
-        const tbody = document.querySelector("#historyTable tbody");
-        const rows  = Array.from(tbody.querySelectorAll("tr"));
-        const asc   = !this.classList.contains("sort-asc");
+var headers = document.querySelectorAll("#historyTable th.sortable");
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener("click", function () {
+        var col  = parseInt(this.getAttribute("data-col"), 10);
+        var type = this.getAttribute("data-type") || "str";
+        var tbody = document.querySelector("#historyTable tbody");
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+        var asc  = !this.classList.contains("sort-asc");
 
-        document.querySelectorAll("#historyTable th.sortable").forEach(t =>
-            t.classList.remove("sort-asc", "sort-desc")
-        );
+        for (var i = 0; i < headers.length; i++) {
+            headers[i].classList.remove("sort-asc", "sort-desc");
+        }
         this.classList.add(asc ? "sort-asc" : "sort-desc");
 
-        rows.sort((a, b) => {
-            const cellA = a.cells[col];
-            const cellB = b.cells[col];
-
-            if (type === "date") {
-                // используем data-raw (ISO строка) для точного сравнения
-                const av = cellA?.dataset.raw || "";
-                const bv = cellB?.dataset.raw || "";
-                return asc
-                    ? av.localeCompare(bv)
-                    : bv.localeCompare(av);
-            }
-
-            const av = cellA?.innerText.trim() || "";
-            const bv = cellB?.innerText.trim() || "";
-
-            if (type === "num") {
-                const an = parseFloat(av);
-                const bn = parseFloat(bv);
-                if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
-            }
-
-            return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
+        var self = this;
+        rows.sort(function (a, b) {
+            return compareRows(a, b, col, type, asc);
         });
 
-        rows.forEach(r => tbody.appendChild(r));
+        for (var i = 0; i < rows.length; i++) {
+            tbody.appendChild(rows[i]);
+        }
     });
-});
+}
 </script>
 
 </body>

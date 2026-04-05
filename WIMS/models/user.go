@@ -29,6 +29,14 @@ func UpdateProfile(username, firstName, lastName, middleName, position, email st
 	return err
 }
 
+func UpdateRole(username, role string) error {
+	_, err := database.DB.Exec(
+		"UPDATE users SET role=? WHERE username=?",
+		role, username,
+	)
+	return err
+}
+
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(hash), err
@@ -125,7 +133,7 @@ func GetUserByUsername(username string) *User {
 
 func GetAllUsers() ([]User, error) {
 	rows, err := database.DB.Query(
-		"SELECT username, role, first_name, last_name FROM users",
+		"SELECT username, role, first_name, last_name, email FROM users",
 	)
 	if err != nil {
 		return nil, err
@@ -136,7 +144,7 @@ func GetAllUsers() ([]User, error) {
 
 	for rows.Next() {
 		var u User
-		err := rows.Scan(&u.Username, &u.Role, &u.FirstName, &u.LastName)
+		err := rows.Scan(&u.Username, &u.Role, &u.FirstName, &u.LastName, &u.Email)
 		if err != nil {
 			return nil, err
 		}

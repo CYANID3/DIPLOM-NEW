@@ -7,10 +7,11 @@
 <script src="/static/js/theme.js"></script>
 <style>
 #usersTable { table-layout: fixed; width: 100%; }
-#usersTable th:nth-child(1) { width: 38%; }
-#usersTable th:nth-child(2) { width: 20%; }
-#usersTable th:nth-child(3) { width: 14%; }
-#usersTable th:nth-child(4) { width: 28%; }
+#usersTable th:nth-child(1) { width: 24%; }
+#usersTable th:nth-child(2) { width: 14%; }
+#usersTable th:nth-child(3) { width: 10%; }
+#usersTable th:nth-child(4) { width: 22%; }
+#usersTable th:nth-child(5) { width: 30%; }
 #usersTable td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
@@ -121,13 +122,14 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <th class="sortable" data-col="0">ФИО</th>
 <th class="sortable" data-col="1">Логин</th>
 <th class="sortable" data-col="2">Роль</th>
+<th class="sortable" data-col="3" data-type="str">Email</th>
 <th class="text-end">Действия</th>
 </tr>
 </thead>
 <tbody>
 {{range .Users}}
 <tr>
-<td>{{.FirstName}} {{.LastName}}</td>
+<td>{{if or .FirstName .LastName}}{{.FirstName}} {{.LastName}}{{else}}<span class="text-muted fst-italic">Не указано</span>{{end}}</td>
 <td>{{.Username}}</td>
 <td>
 {{if eq .Role "admin"}}
@@ -138,6 +140,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <span class="badge text-bg-primary">user</span>
 {{end}}
 </td>
+<td>{{if .Email}}{{.Email}}{{else}}<span class="text-muted fst-italic">Не указан</span>{{end}}</td>
 <td class="text-end">
 <div class="d-flex justify-content-end gap-2">
 <a href="/admin/edit?username={{.Username}}" class="btn btn-warning btn-sm">Редактировать</a>
@@ -148,7 +151,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </tr>
 {{else}}
 <tr>
-<td colspan="4" class="text-center text-muted py-4">👤 Пользователей пока нет</td>
+<td colspan="5" class="text-center text-muted py-4">👤 Пользователей пока нет</td>
 </tr>
 {{end}}
 </tbody>
