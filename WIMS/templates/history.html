@@ -100,14 +100,16 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
 <script>
 // поиск
 document.getElementById("historySearch").addEventListener("keyup", function () {
     const filter = this.value.toLowerCase();
     document.querySelectorAll("#historyTable tbody tr").forEach(row => {
         const barcode = row.cells[3]?.innerText.toLowerCase() || "";
+        const user    = row.cells[2]?.innerText.toLowerCase() || "";
         const name    = row.cells[4]?.innerText.toLowerCase() || "";
-        row.style.display = (barcode.includes(filter) || name.includes(filter)) ? "" : "none";
+        row.style.display = (barcode.includes(filter) || name.includes(filter) || user.includes(filter)) ? "" : "none";
     });
 });
 

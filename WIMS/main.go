@@ -23,16 +23,9 @@ func createDefaultAdmin() {
 	}
 
 	err = models.CreateUser(
-		"admin",
-		"admin",
-		"admin",
-		"Admin",
-		"User",
-		"",
-		"",
-		"",
+		"admin", "admin", "admin",
+		"Admin", "User", "", "", "",
 	)
-
 	if err != nil {
 		log.Println("Ошибка создания admin:", err)
 		return
@@ -43,7 +36,6 @@ func createDefaultAdmin() {
 
 func main() {
 	database.InitDB()
-
 	createDefaultAdmin()
 
 	mux := http.NewServeMux()
@@ -52,7 +44,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// routes
+	// routes — регистрируем точные паттерны
 	mux.HandleFunc("/", handlers.IndexPage)
 	mux.HandleFunc("/add", handlers.AddProductHandler)
 	mux.HandleFunc("/delete", handlers.DeleteProductHandler)
@@ -70,10 +62,19 @@ func main() {
 	mux.HandleFunc("/admin/delete", handlers.DeleteUserHandler)
 	mux.HandleFunc("/admin/edit", handlers.AdminEditUserPage)
 
-	// 404 handler
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// обёртка: всё что не совпало с точным паттерном — 404
+	// "/" в ServeMux матчит всё, поэтому проверяем r.URL.Path явно
+	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// получаем паттерн который выбрал mux
 		_, pattern := mux.Handler(r)
 
+		// "/" матчит всё — проверяем что путь именно "/"
+		if pattern == "/" && r.URL.Path != "/" {
+			handlers.NotFoundPage(w, r)
+			return
+		}
+
+		// пустой паттерн — тоже 404 (на случай будущих изменений)
 		if pattern == "" {
 			handlers.NotFoundPage(w, r)
 			return
@@ -83,5 +84,5 @@ func main() {
 	})
 
 	log.Println("Server :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	log.Fatal(http.ListenAndServe(":8080", finalHandler))
 }
