@@ -78,8 +78,8 @@ func AddProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name     := r.FormValue("name")
-	barcode  := r.FormValue("barcode")
+	name := r.FormValue("name")
+	barcode := r.FormValue("barcode")
 	category := r.FormValue("category")
 
 	price, err := strconv.ParseFloat(r.FormValue("price"), 64)

@@ -42,7 +42,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </thead>
 <tbody>
 {{range .Products}}
-<tr {{if and (gt .MinStock 0) (le .Quantity .MinStock)}}class="table-warning"{{end}}>
+<tr {{if eq .Quantity 0}}class="table-danger"{{else if and (gt .MinStock 0) (le .Quantity .MinStock)}}class="table-warning"{{end}}>
 <td>{{.ID}}</td>
 <td>{{.Barcode}}</td>
 <td>{{.Name}}</td>
