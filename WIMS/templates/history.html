@@ -20,7 +20,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
 <input id="historySearch" class="form-control" style="max-width:400px"
-       placeholder="Поиск по штрихкоду, названию или пользователю">
+       placeholder="Поиск по штрихкоду, названию, пользователю или действию">
 {{if or (eq .Role "manager") (eq .Role "admin")}}
 <a href="/history/export" class="btn btn-sm btn-outline-secondary ms-2">↓ CSV</a>
 {{end}}
@@ -89,7 +89,8 @@ document.getElementById('historySearch').addEventListener('keyup', function () {
         var barcode = row.cells[3] ? row.cells[3].innerText.toLowerCase() : '';
         var name    = row.cells[4] ? row.cells[4].innerText.toLowerCase() : '';
         var user    = row.cells[2] ? row.cells[2].innerText.toLowerCase() : '';
-        row.style.display = (barcode.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || user.indexOf(filter) >= 0) ? '' : 'none';
+        var action  = row.cells[1] ? row.cells[1].innerText.toLowerCase() : '';
+        row.style.display = (barcode.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || user.indexOf(filter) >= 0 || action.indexOf(filter) >= 0) ? '' : 'none';
     });
 });
 

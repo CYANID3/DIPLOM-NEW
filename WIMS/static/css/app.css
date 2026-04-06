@@ -36,7 +36,7 @@
     --app-link-color:        #0d6efd;
     --app-link-hover:        #0a58ca;
 
-    --app-muted:             #6c757d;
+    --app-muted:             #434648;
     --app-placeholder:       #6c757d;
 
     --app-alert-danger-bg:   #f8d7da;
@@ -76,7 +76,7 @@
     --app-link-color:        #9ecbff;
     --app-link-hover:        #cfe2ff;
 
-    --app-muted:             #adb5bd;
+    --app-muted:             #ececec;
     --app-placeholder:       #adb5bd;
 
     --app-alert-danger-bg:   rgba(220,53,69,0.15);
@@ -464,13 +464,13 @@ a:hover {
 }
 
 [data-theme="dark"] {
-    --row-danger-bg:    #e04555;
+    --row-danger-bg:    #974f56;
     --row-danger-color: #ffffff;
-    --row-danger-border:#cc3344;
+    --row-danger-border:#7c4550;
 
-    --row-warning-bg:   #f0b400;
+    --row-warning-bg:   #987611;
     --row-warning-color:#ffffff;
-    --row-warning-border:#d9a000;
+    --row-warning-border:#796224;
 }
 
 .table-danger,
