@@ -18,55 +18,26 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-{{if eq .Role "manager"}}{{if eq .Role "admin"}}{{end}}{{end}}
+<div class="d-flex justify-content-between align-items-center mb-3">
+<input id="searchInput" class="form-control" style="max-width:400px" placeholder="Поиск по названию, штрихкоду или категории">
 {{if or (eq .Role "manager") (eq .Role "admin")}}
-<div class="card p-3 mb-3">
-<h5>Добавить товар</h5>
-<form action="/add" method="post" class="row g-2">
-<div class="col-md-3">
-<input class="form-control" name="name" placeholder="Название" required>
-</div>
-<div class="col-md-2">
-<input class="form-control" name="barcode" placeholder="Штрихкод">
-</div>
-<div class="col-md-2">
-<input class="form-control" name="price" type="number" step="0.01" placeholder="Цена" required>
-</div>
-<div class="col-md-2">
-<input class="form-control" name="quantity" type="number" placeholder="Количество" required>
-</div>
-<div class="col-md-1">
-<input class="form-control" name="min_stock" type="number" placeholder="Мин." value="0">
-</div>
-<div class="col-md-2">
-<button class="btn btn-primary w-100">Добавить</button>
-</div>
-</form>
-</div>
+<a href="/admin/products" class="btn btn-sm btn-outline-secondary ms-2">Управление товарами →</a>
 {{end}}
-
-<input id="searchInput" class="form-control mb-3" placeholder="Поиск">
+</div>
 
 <div class="card p-3">
-<div class="d-flex justify-content-between align-items-center mb-2">
-<h5 class="mb-0">Товары на складе</h5>
-{{if or (eq .Role "manager") (eq .Role "admin")}}
-<a href="/admin/products" class="btn btn-sm btn-outline-secondary">Управление товарами</a>
-{{end}}
-</div>
+<h5 class="mb-3">Товары на складе</h5>
 <table id="productsTable" class="table table-striped">
 <thead>
 <tr>
 <th class="sortable" data-col="0">ID</th>
 <th class="sortable" data-col="1">Штрихкод</th>
 <th class="sortable" data-col="2">Название</th>
-<th class="sortable" data-col="3">Цена</th>
-<th class="sortable" data-col="4">Остаток</th>
-<th class="sortable" data-col="5">Сумма</th>
+<th class="sortable" data-col="3">Категория</th>
+<th class="sortable" data-col="4">Цена</th>
+<th class="sortable" data-col="5">Остаток</th>
+<th class="sortable" data-col="6">Сумма</th>
 <th>Продать</th>
-{{if or (eq .Role "manager") (eq .Role "admin")}}
-<th>Удалить</th>
-{{end}}
 </tr>
 </thead>
 <tbody>
@@ -75,6 +46,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{.ID}}</td>
 <td>{{.Barcode}}</td>
 <td>{{.Name}}</td>
+<td>{{if .Category}}{{.Category}}{{else}}<span class="text-muted">—</span>{{end}}</td>
 <td>{{printf "%.2f" .Price}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
@@ -90,14 +62,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
         onclick="confirmSell(this.closest('.sell-form'))">OK</button>
 </form>
 </td>
-{{if or (eq $.Role "manager") (eq $.Role "admin")}}
-<td>
-<button type="button" class="btn btn-danger btn-sm w-100"
-        onclick="confirmDelete({{.ID}}, '{{.Name}}', {{.Quantity}}, '{{printf "%.2f" .Total}}')">
-Удалить
-</button>
-</td>
-{{end}}
 </tr>
 {{else}}
 <tr>
@@ -107,29 +71,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </tbody>
 </table>
 </div>
-</div>
-</div>
 
-<!-- МОДАЛКА: УДАЛЕНИЕ ТОВАРА -->
-<div class="modal fade" id="deleteProductModal" tabindex="-1" data-bs-backdrop="static">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Удаление товара</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<form action="/delete" method="post">
-<div class="modal-body">
-<p class="mb-1">Вы собираетесь удалить <strong id="delProductName"></strong>.</p>
-<p class="mb-0 text-muted">Остаток: <span id="delProductQty"></span> шт. на сумму <span id="delProductTotal"></span></p>
-<input type="hidden" name="id" id="delProductId">
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-<button type="submit" class="btn btn-danger">Удалить</button>
-</div>
-</form>
-</div>
 </div>
 </div>
 
@@ -173,24 +115,16 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-var SELL_LIMIT = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
+var SELL_LIMIT    = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
 var pendingSellForm = null;
 
 function showClientError(msg) {
     var container = document.getElementById('clientToastContainer');
-    var id = 'ct_' + Date.now();
+    var id  = 'ct_' + Date.now();
     var div = document.createElement('div');
     div.innerHTML = '<div id="' + id + '" class="toast text-bg-danger" role="alert"><div class="toast-body">' + msg + '</div></div>';
     container.appendChild(div.firstChild);
     new bootstrap.Toast(document.getElementById(id)).show();
-}
-
-function confirmDelete(id, name, qty, total) {
-    document.getElementById('delProductId').value         = id;
-    document.getElementById('delProductName').textContent = name;
-    document.getElementById('delProductQty').textContent  = qty;
-    document.getElementById('delProductTotal').textContent= total;
-    new bootstrap.Modal(document.getElementById('deleteProductModal')).show();
 }
 
 function confirmSell(form) {
@@ -205,9 +139,9 @@ function confirmSell(form) {
         return;
     }
     if (qty >= SELL_LIMIT) {
-        document.getElementById('sellQtyLabel').textContent  = qty;
-        document.getElementById('sellNameLabel').textContent = name;
-        document.getElementById('sellTotalLabel').textContent= (qty * price).toFixed(2);
+        document.getElementById('sellQtyLabel').textContent   = qty;
+        document.getElementById('sellNameLabel').textContent  = name;
+        document.getElementById('sellTotalLabel').textContent = (qty * price).toFixed(2);
         pendingSellForm = form;
         new bootstrap.Modal(document.getElementById('confirmSellModal')).show();
         return;

@@ -10,6 +10,7 @@ import (
 )
 
 var productsAdminTmpl = template.Must(template.ParseFiles("templates/products_admin.html", "templates/navbar.html"))
+var productEditTmpl   = template.Must(template.ParseFiles("templates/product_edit.html", "templates/navbar.html"))
 
 // ProductsAdminPage — страница управления товарами (manager + admin)
 func ProductsAdminPage(w http.ResponseWriter, r *http.Request) {
@@ -145,8 +146,7 @@ func EditProductPage(w http.ResponseWriter, r *http.Request) {
 		"Error":      r.URL.Query().Get("error"),
 	}
 
-	tmpl := template.Must(template.ParseFiles("templates/product_edit.html"))
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := productEditTmpl.Execute(w, data); err != nil {
 		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
 	}
 }
