@@ -7,13 +7,11 @@ import (
 	"wims/models"
 )
 
-var adminTmpl = template.Must(template.ParseFiles("templates/admin.html"))
+var adminTmpl = template.Must(template.ParseFiles("templates/admin.html", "templates/navbar.html"))
 
 func AdminPage(w http.ResponseWriter, r *http.Request) {
-	username, role, display := GetSession(r)
-
-	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	_, role, display, ok := RequireRole(w, r, "admin")
+	if !ok {
 		return
 	}
 
@@ -31,20 +29,16 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 		"Success":  r.URL.Query().Get("success"),
 	}
 
-	err = adminTmpl.Execute(w, data)
-	if err != nil {
+	if err := adminTmpl.Execute(w, data); err != nil {
 		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
 	}
 }
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, role, _ := GetSession(r)
-
-	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	admin, _, _, ok := RequireRole(w, r, "admin")
+	if !ok {
 		return
 	}
-
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		return
@@ -71,42 +65,41 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	models.WriteAdminLog(admin, "create_user", newUsername, "роль: "+r.FormValue("role"))
 	http.Redirect(w, r, "/admin?success="+url.QueryEscape("Пользователь создан"), http.StatusSeeOther)
 }
 
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, role, _ := GetSession(r)
-
-	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	admin, _, _, ok := RequireRole(w, r, "admin")
+	if !ok {
 		return
 	}
-
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
 		return
 	}
 
 	target := r.FormValue("username")
-
-	if target == username {
+	if target == admin {
 		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Нельзя удалить самого себя"), http.StatusSeeOther)
 		return
 	}
 
-	// проверка пароля администратора
 	adminPassword := r.FormValue("admin_password")
-	ok, _ := models.CheckPassword(username, adminPassword)
-	if !ok {
+	ok2, _ := models.CheckPassword(admin, adminPassword)
+	if !ok2 {
 		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Неверный пароль"), http.StatusSeeOther)
 		return
 	}
 
-	err := models.DeleteUser(target)
-	if err != nil {
+	// принудительно разлогиниваем удаляемого пользователя
+	models.DeleteUserSessions(target)
+
+	if err := models.DeleteUser(target); err != nil {
 		http.Redirect(w, r, "/admin?error="+url.QueryEscape("Ошибка удаления пользователя"), http.StatusSeeOther)
 		return
 	}
 
+	models.WriteAdminLog(admin, "delete_user", target, "")
 	http.Redirect(w, r, "/admin?success="+url.QueryEscape("Пользователь удалён"), http.StatusSeeOther)
 }

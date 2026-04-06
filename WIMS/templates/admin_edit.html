@@ -6,53 +6,22 @@
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 </head>
-
 <body class="bg-body">
-
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><hr class="dropdown-divider"></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
+{{template "navbar" .}}
 
 <div class="wrapper w-100 pt-4">
 <div class="container" style="max-width:700px">
-
 <div class="card p-4">
 <h3>Редактирование пользователя</h3>
 
 <form method="post" id="editForm">
-
 <h5>Данные</h5>
 <input class="form-control mb-2" value="{{.User.Username}}" disabled>
-<input class="form-control mb-2" name="first_name"   value="{{.User.FirstName}}"  placeholder="Имя">
-<input class="form-control mb-2" name="last_name"    value="{{.User.LastName}}"   placeholder="Фамилия">
-<input class="form-control mb-2" name="middle_name"  value="{{.User.MiddleName}}" placeholder="Отчество">
-<input class="form-control mb-2" name="position"     value="{{.User.Position}}"   placeholder="Должность">
-<input class="form-control mb-3" name="email"        value="{{.User.Email}}"      placeholder="Email">
+<input class="form-control mb-2" name="first_name"  value="{{.User.FirstName}}"  placeholder="Имя">
+<input class="form-control mb-2" name="last_name"   value="{{.User.LastName}}"   placeholder="Фамилия">
+<input class="form-control mb-2" name="middle_name" value="{{.User.MiddleName}}" placeholder="Отчество">
+<input class="form-control mb-2" name="position"    value="{{.User.Position}}"   placeholder="Должность">
+<input class="form-control mb-3" name="email"       value="{{.User.Email}}"      placeholder="Email">
 
 <h5>Роль</h5>
 <select class="form-select mb-3" name="role" id="roleSelect" data-original="{{.User.Role}}">
@@ -65,48 +34,45 @@
 <div class="input-group mb-2">
 <input id="pass1" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password1" placeholder="Новый пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1',this)">👁</button>
 </div>
 <div class="input-group mb-3">
 <input id="pass2" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password2" placeholder="Повторите пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2',this)">👁</button>
 </div>
 
 <button class="btn btn-primary w-100" type="button" id="saveBtn">Сохранить</button>
 </form>
 </div>
-
 <a href="/admin" class="btn btn-secondary mt-3">Назад</a>
-
 </div>
 </div>
 
-<!-- МОДАЛКА: ПОДТВЕРЖДЕНИЕ ПОВЫШЕНИЯ ДО ADMIN -->
-<div class="modal fade" id="promoteModal" tabindex="-1">
+<!-- МОДАЛКА: ПОВЫШЕНИЕ ДО ADMIN -->
+<div class="modal fade" id="promoteModal" tabindex="-1" data-bs-backdrop="static">
 <div class="modal-dialog modal-dialog-centered">
 <div class="modal-content">
 <div class="modal-header">
 <h5 class="modal-title">Повышение до администратора</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<button type="button" class="btn-close" id="promoteCancelBtn2"></button>
 </div>
 <div class="modal-body">
-<p>Вы собираетесь выдать права администратора пользователю <strong>{{.User.Username}}</strong>.</p>
-<p class="text-muted mb-3">Это действие даст ему полный доступ к системе. Введите ваш пароль для подтверждения.</p>
+<p>Вы выдаёте права администратора пользователю <strong>{{.User.Username}}</strong>.</p>
+<p class="text-muted mb-3">Введите ваш пароль для подтверждения.</p>
 <div class="input-group">
-<input id="promotePass" class="form-control" type="password" placeholder="Ваш пароль" name="confirm_password">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('promotePass', this)">👁</button>
+<input id="promotePass" class="form-control" type="password" placeholder="Ваш пароль">
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('promotePass',this)">👁</button>
 </div>
 </div>
 <div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="promoteCancelBtn">Отмена</button>
+<button type="button" class="btn btn-secondary" id="promoteCancelBtn">Отмена</button>
 <button type="button" class="btn btn-danger" id="promoteConfirmBtn">Подтвердить</button>
 </div>
 </div>
 </div>
 </div>
 
-<!-- TOAST -->
 {{if .Error}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="errorToast" class="toast text-bg-danger" role="alert">
@@ -114,7 +80,6 @@
 </div>
 </div>
 {{end}}
-
 {{if .Success}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="successToast" class="toast text-bg-success" role="alert">
@@ -127,62 +92,56 @@
 <script src="/static/js/logout.js"></script>
 <script>
 function togglePassword(id, btn) {
-    const input = document.getElementById(id);
-    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
-    else { input.type = "password"; btn.innerText = "👁"; }
+    var input = document.getElementById(id);
+    if (input.type === 'password') { input.type = 'text'; btn.innerText = '🙈'; }
+    else { input.type = 'password'; btn.innerText = '👁'; }
 }
 
-const roleSelect  = document.getElementById("roleSelect");
-const saveBtn     = document.getElementById("saveBtn");
-const promotePass = document.getElementById("promotePass");
+var roleSelect   = document.getElementById('roleSelect');
+var promoteModal = new bootstrap.Modal(document.getElementById('promoteModal'));
+var confirmInput = document.createElement('input');
+confirmInput.type = 'hidden';
+confirmInput.name = 'confirm_admin_password';
+document.getElementById('editForm').appendChild(confirmInput);
 
-// скрытое поле для пароля подтверждения — добавим в форму динамически
-const confirmInput = document.createElement("input");
-confirmInput.type  = "hidden";
-confirmInput.name  = "confirm_admin_password";
-document.getElementById("editForm").appendChild(confirmInput);
-
-saveBtn.addEventListener("click", function () {
-    const newRole      = roleSelect.value;
-    const originalRole = roleSelect.dataset.original;
-
-    // если роль меняется на admin и текущая не admin — запросить пароль
-    if (newRole === "admin" && originalRole !== "admin") {
-        promotePass.value = "";
-        new bootstrap.Modal(document.getElementById("promoteModal")).show();
+document.getElementById('saveBtn').addEventListener('click', function () {
+    var newRole      = roleSelect.value;
+    var originalRole = roleSelect.getAttribute('data-original');
+    if (newRole === 'admin' && originalRole !== 'admin') {
+        document.getElementById('promotePass').value = '';
+        promoteModal.show();
         return;
     }
-
-    document.getElementById("editForm").submit();
+    document.getElementById('editForm').submit();
 });
 
-document.getElementById("promoteConfirmBtn").addEventListener("click", function () {
-    const pwd = promotePass.value.trim();
+document.getElementById('promoteConfirmBtn').addEventListener('click', function () {
+    var pwd = document.getElementById('promotePass').value.trim();
     if (!pwd) {
-        promotePass.classList.add("is-invalid");
+        document.getElementById('promotePass').classList.add('is-invalid');
         return;
     }
-    promotePass.classList.remove("is-invalid");
+    document.getElementById('promotePass').classList.remove('is-invalid');
     confirmInput.value = pwd;
-    bootstrap.Modal.getInstance(document.getElementById("promoteModal")).hide();
-    document.getElementById("editForm").submit();
+    document.getElementById('promoteModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('editForm').submit();
+    }, { once: true });
+    promoteModal.hide();
 });
 
-// при отмене модалки — вернуть select на исходное значение
-document.getElementById("promoteCancelBtn").addEventListener("click", function () {
-    roleSelect.value = roleSelect.dataset.original;
-});
-document.getElementById("promoteModal").addEventListener("hidden.bs.modal", function () {
-    if (!confirmInput.value) roleSelect.value = roleSelect.dataset.original;
-});
+function cancelPromote() {
+    roleSelect.value = roleSelect.getAttribute('data-original');
+    promoteModal.hide();
+}
+document.getElementById('promoteCancelBtn').addEventListener('click', cancelPromote);
+document.getElementById('promoteCancelBtn2').addEventListener('click', cancelPromote);
 
-document.addEventListener("DOMContentLoaded", function () {
-    const err = document.getElementById("errorToast");
-    const ok  = document.getElementById("successToast");
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
-
 </body>
 </html>

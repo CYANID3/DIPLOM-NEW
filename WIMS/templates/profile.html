@@ -6,37 +6,8 @@
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 </head>
-
 <body class="bg-body">
-
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><hr class="dropdown-divider"></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
+{{template "navbar" .}}
 
 <div class="wrapper w-100 pt-4">
 <div class="container">
@@ -54,17 +25,17 @@
 <h5>Смена пароля</h5>
 <div class="input-group mb-2">
 <input id="oldPass" class="form-control" type="password" name="old_password" placeholder="Текущий пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPass', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPass',this)">👁</button>
 </div>
 <div class="input-group mb-2">
 <input id="pass1" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password1" placeholder="Новый пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1',this)">👁</button>
 </div>
 <div class="input-group mb-3">
 <input id="pass2" class="form-control {{if .PasswordError}}is-invalid{{end}}"
        type="password" name="password2" placeholder="Повторите пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2',this)">👁</button>
 </div>
 
 <button class="btn btn-primary w-100" type="submit">Сохранить</button>
@@ -91,7 +62,6 @@
 </div>
 </div>
 
-<!-- TOAST -->
 {{if .Error}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="errorToast" class="toast text-bg-danger" role="alert">
@@ -99,7 +69,6 @@
 </div>
 </div>
 {{end}}
-
 {{if .Success}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="successToast" class="toast text-bg-success" role="alert">
@@ -112,38 +81,35 @@
 <script src="/static/js/logout.js"></script>
 <script>
 function togglePassword(id, btn) {
-    const input = document.getElementById(id);
-    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
-    else { input.type = "password"; btn.innerText = "👁"; }
+    var input = document.getElementById(id);
+    if (input.type === 'password') { input.type = 'text'; btn.innerText = '🙈'; }
+    else { input.type = 'password'; btn.innerText = '👁'; }
 }
 
 (function () {
-    let formDirty  = false;
-    let pendingUrl = null;
+    var formDirty  = false;
+    var pendingUrl = null;
+    var unsavedModalEl = document.getElementById('unsavedModal');
+    var unsavedModal   = new bootstrap.Modal(unsavedModalEl);
 
-    const unsavedModalEl = document.getElementById("unsavedModal");
-    const unsavedModal   = new bootstrap.Modal(unsavedModalEl);
+    document.getElementById('profileForm').addEventListener('input',  function () { formDirty = true; });
+    document.getElementById('profileForm').addEventListener('submit', function () { formDirty = false; });
 
-    document.getElementById("profileForm").addEventListener("input",  function () { formDirty = true; });
-    document.getElementById("profileForm").addEventListener("submit", function () { formDirty = false; });
-
-    document.getElementById("unsavedStayBtn").addEventListener("click", function () {
+    document.getElementById('unsavedStayBtn').addEventListener('click', function () {
         pendingUrl = null;
         unsavedModal.hide();
     });
-
-    document.getElementById("unsavedLeaveBtn").addEventListener("click", function () {
-        unsavedModal.hide();
-        unsavedModalEl.addEventListener("hidden.bs.modal", function () {
+    document.getElementById('unsavedLeaveBtn').addEventListener('click', function () {
+        unsavedModalEl.addEventListener('hidden.bs.modal', function () {
             window.location.href = pendingUrl;
         }, { once: true });
+        unsavedModal.hide();
     });
 
-    // перехватываем все ссылки на странице
-    document.querySelectorAll("a[href]").forEach(function (link) {
-        const href = link.getAttribute("href");
-        if (!href || href.startsWith("#") || href.startsWith("javascript")) return;
-        link.addEventListener("click", function (e) {
+    document.querySelectorAll('a[href]').forEach(function (link) {
+        var href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+        link.addEventListener('click', function (e) {
             if (!formDirty) return;
             e.preventDefault();
             e.stopImmediatePropagation();
@@ -152,13 +118,11 @@ function togglePassword(id, btn) {
         }, true);
     });
 
-    // тосты
-    const err = document.getElementById("errorToast");
-    const ok  = document.getElementById("successToast");
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 }());
 </script>
-
 </body>
 </html>

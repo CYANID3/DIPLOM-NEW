@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Редактирование товара</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4">
+<div class="container" style="max-width:600px">
+<div class="card p-4">
+<h4 class="mb-4">Редактирование товара</h4>
+
+<form method="post">
+<div class="mb-3">
+<label class="form-label text-muted small mb-1">Название</label>
+<input class="form-control" name="name" value="{{.Product.Name}}" required>
+</div>
+<div class="mb-3">
+<label class="form-label text-muted small mb-1">Штрихкод</label>
+<input class="form-control" name="barcode" value="{{.Product.Barcode}}">
+</div>
+<div class="row g-2 mb-3">
+<div class="col-md-6">
+<label class="form-label text-muted small mb-1">Цена</label>
+<input class="form-control" name="price" type="number" step="0.01" value="{{printf "%.2f" .Product.Price}}" required>
+</div>
+<div class="col-md-6">
+<label class="form-label text-muted small mb-1">Мин. остаток (предупреждение)</label>
+<input class="form-control" name="min_stock" type="number" value="{{.Product.MinStock}}">
+</div>
+</div>
+<div class="mb-3">
+<label class="form-label text-muted small mb-1">Остаток (только чтение)</label>
+<input class="form-control" value="{{.Product.Quantity}} шт." disabled>
+<div class="form-text">Остаток меняется только через добавление / продажу.</div>
+</div>
+<div class="mb-4">
+<label class="form-label text-muted small mb-1">Категория</label>
+<select class="form-select" name="category" id="catSelect" onchange="toggleNewCat(this)">
+<option value="">— без категории —</option>
+{{range .Categories}}
+<option value="{{.}}" {{if eq . $.Product.Category}}selected{{end}}>{{.}}</option>
+{{end}}
+<option value="__new__">+ Новая категория</option>
+</select>
+</div>
+<div class="mb-4" id="newCatWrap" style="display:none">
+<label class="form-label text-muted small mb-1">Новая категория</label>
+<input class="form-control" name="category_new" id="category_new" placeholder="Введите название">
+</div>
+
+<div class="d-flex gap-2">
+<button class="btn btn-primary px-4">Сохранить</button>
+<a href="/admin/products" class="btn btn-secondary">Отмена</a>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
+</div>
+</div>
+{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+function toggleNewCat(sel) {
+    var wrap = document.getElementById('newCatWrap');
+    var inp  = document.getElementById('category_new');
+    if (sel.value === '__new__') {
+        wrap.style.display = '';
+        sel.value = '';
+        inp.required = true;
+    } else {
+        wrap.style.display = 'none';
+        inp.required = false;
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    if (err) new bootstrap.Toast(err).show();
+});
+</script>
+</body>
+</html>

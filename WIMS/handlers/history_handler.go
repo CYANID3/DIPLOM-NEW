@@ -6,13 +6,11 @@ import (
 	"wims/models"
 )
 
-var historyTmpl = template.Must(template.ParseFiles("templates/history.html"))
+var historyTmpl = template.Must(template.ParseFiles("templates/history.html", "templates/navbar.html"))
 
 func HistoryPage(w http.ResponseWriter, r *http.Request) {
-	username, role, display := GetSession(r)
-
-	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	username, role, display, ok := RequireAuth(w, r)
+	if !ok {
 		return
 	}
 
@@ -22,14 +20,17 @@ func HistoryPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
-		"History":  history,
-		"Username": display,
-		"Role":     role,
+		"History":     history,
+		"Username":    display,
+		"Role":        role,
+		"CurrentUser": username,
+		"Settings":    settings,
 	}
 
-	err = historyTmpl.Execute(w, data)
-	if err != nil {
+	if err := historyTmpl.Execute(w, data); err != nil {
 		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
 	}
 }

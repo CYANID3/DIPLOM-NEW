@@ -1,0 +1,52 @@
+{{define "navbar"}}
+<nav class="navbar navbar-expand-lg border-bottom px-3">
+<div class="container-fluid">
+<a class="navbar-brand fw-semibold" href="/">{{if .Settings}}{{index .Settings "org_name"}}{{else}}WIMS{{end}}</a>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="nav">
+<div class="navbar-nav">
+<a class="nav-link" href="/">Склад</a>
+<a class="nav-link" href="/transaction">Продажа</a>
+<a class="nav-link" href="/history">История</a>
+
+{{if eq .Role "manager"}}
+<a class="nav-link nav-admin" href="/admin/dashboard">Панель</a>
+<a class="nav-link nav-admin" href="/admin/products">Товары</a>
+{{end}}
+
+{{if eq .Role "admin"}}
+<div class="nav-item dropdown">
+<a class="nav-link nav-admin dropdown-toggle" href="#" data-bs-toggle="dropdown">Управление</a>
+<ul class="dropdown-menu">
+<li><a class="dropdown-item" href="/admin/dashboard">Дашборд</a></li>
+<li><a class="dropdown-item" href="/admin/products">Товары</a></li>
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/admin">Пользователи</a></li>
+<li><a class="dropdown-item" href="/admin/sessions">Сессии</a></li>
+<li><a class="dropdown-item" href="/admin/log">Журнал</a></li>
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/admin/settings">Настройки</a></li>
+</ul>
+</div>
+{{end}}
+</div>
+
+<div class="ms-auto d-flex gap-2">
+<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
+<div class="dropdown">
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
+<ul class="dropdown-menu dropdown-menu-end">
+<li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</nav>
+{{end}}

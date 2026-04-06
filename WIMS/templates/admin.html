@@ -1,63 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Админка</title>
+<title>Пользователи</title>
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 <style>
-#usersTable { table-layout: fixed; width: 100%; }
-#usersTable th:nth-child(1) { width: 24%; }
-#usersTable th:nth-child(2) { width: 14%; }
-#usersTable th:nth-child(3) { width: 10%; }
-#usersTable th:nth-child(4) { width: 22%; }
-#usersTable th:nth-child(5) { width: 30%; }
-#usersTable td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 th.sortable { cursor: pointer; user-select: none; }
 th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
 th.sort-asc::after  { content: " ↑"; opacity: 1; }
 th.sort-desc::after { content: " ↓"; opacity: 1; }
+#usersTable { table-layout: fixed; width: 100%; }
+#usersTable th:nth-child(1) { width: 22%; }
+#usersTable th:nth-child(2) { width: 13%; }
+#usersTable th:nth-child(3) { width: 10%; }
+#usersTable th:nth-child(4) { width: 20%; }
+#usersTable th:nth-child(5) { width: 35%; }
+#usersTable td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 </head>
-
 <body class="bg-body">
-
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
+{{template "navbar" .}}
 
 <div class="wrapper w-100 pt-4">
 <div class="container">
 
-<!-- ФОРМА СОЗДАНИЯ -->
 <div class="card p-4 mb-4">
 <h5 class="mb-3">Добавить пользователя</h5>
 <form action="/admin/create" method="post">
-
 <div class="row g-2 mb-2">
 <div class="col-md-4">
 <label class="form-label text-muted small mb-1">Имя</label>
@@ -72,7 +42,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <input class="form-control" name="middle_name" placeholder="Иванович">
 </div>
 </div>
-
 <div class="row g-2 mb-2">
 <div class="col-md-4">
 <label class="form-label text-muted small mb-1">Логин</label>
@@ -82,7 +51,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <label class="form-label text-muted small mb-1">Пароль</label>
 <div class="input-group">
 <input id="createPass" class="form-control" type="password" name="password" placeholder="••••••" required>
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('createPass', this)">👁</button>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('createPass',this)">👁</button>
 </div>
 </div>
 <div class="col-md-4">
@@ -94,7 +63,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </select>
 </div>
 </div>
-
 <div class="row g-2 mb-3">
 <div class="col-md-6">
 <label class="form-label text-muted small mb-1">Должность</label>
@@ -105,15 +73,12 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <input class="form-control" name="email" placeholder="ivan@example.com">
 </div>
 </div>
-
 <button class="btn btn-primary px-4">Создать пользователя</button>
 </form>
 </div>
 
-<!-- ПОИСК -->
 <input id="userSearch" class="form-control mb-3" placeholder="Поиск пользователя">
 
-<!-- СПИСОК -->
 <div class="card p-3">
 <h5>Пользователи</h5>
 <table id="usersTable" class="table table-striped">
@@ -132,12 +97,9 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{if or .FirstName .LastName}}{{.FirstName}} {{.LastName}}{{else}}<span class="text-muted fst-italic">Не указано</span>{{end}}</td>
 <td>{{.Username}}</td>
 <td>
-{{if eq .Role "admin"}}
-<span class="badge text-bg-danger">admin</span>
-{{else if eq .Role "manager"}}
-<span class="badge text-bg-warning">manager</span>
-{{else}}
-<span class="badge text-bg-primary">user</span>
+{{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
+{{else}}<span class="badge text-bg-primary">user</span>
 {{end}}
 </td>
 <td>{{if .Email}}{{.Email}}{{else}}<span class="text-muted fst-italic">Не указан</span>{{end}}</td>
@@ -150,19 +112,16 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </td>
 </tr>
 {{else}}
-<tr>
-<td colspan="5" class="text-center text-muted py-4">👤 Пользователей пока нет</td>
-</tr>
+<tr><td colspan="5" class="text-center text-muted py-4">👤 Пользователей пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
-
 </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО УДАЛЕНИЯ -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<!-- МОДАЛКА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ -->
+<div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static">
 <div class="modal-dialog modal-dialog-centered">
 <div class="modal-content">
 <div class="modal-header">
@@ -173,12 +132,10 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <div class="modal-body">
 <p>Вы собираетесь удалить пользователя <strong id="deleteUsername"></strong>.</p>
 <input type="hidden" name="username" id="deleteUsernameInput">
-<div class="mb-0">
 <label class="form-label">Введите ваш пароль для подтверждения</label>
 <div class="input-group">
 <input id="confirmPass" class="form-control" type="password" name="admin_password" placeholder="Ваш пароль" required>
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPass', this)">👁</button>
-</div>
+<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPass',this)">👁</button>
 </div>
 </div>
 <div class="modal-footer">
@@ -190,7 +147,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 </div>
 
-<!-- TOAST -->
 {{if .Error}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="errorToast" class="toast text-bg-danger" role="alert">
@@ -198,7 +154,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 </div>
 {{end}}
-
 {{if .Success}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
 <div id="successToast" class="toast text-bg-success" role="alert">
@@ -211,53 +166,50 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/logout.js"></script>
 <script>
 function togglePassword(id, btn) {
-    const input = document.getElementById(id);
-    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
-    else { input.type = "password"; btn.innerText = "👁"; }
+    var input = document.getElementById(id);
+    if (input.type === 'password') { input.type = 'text'; btn.innerText = '🙈'; }
+    else { input.type = 'password'; btn.innerText = '👁'; }
 }
 
 function confirmDelete(username) {
-    document.getElementById("deleteUsername").textContent = username;
-    document.getElementById("deleteUsernameInput").value = username;
-    document.getElementById("confirmPass").value = "";
-    new bootstrap.Modal(document.getElementById("deleteModal")).show();
+    document.getElementById('deleteUsername').textContent    = username;
+    document.getElementById('deleteUsernameInput').value     = username;
+    document.getElementById('confirmPass').value             = '';
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
 
-// поиск
-document.getElementById("userSearch").addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll("#usersTable tbody tr").forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+document.getElementById('userSearch').addEventListener('keyup', function () {
+    var filter = this.value.toLowerCase();
+    document.querySelectorAll('#usersTable tbody tr').forEach(function (row) {
+        row.style.display = row.innerText.toLowerCase().indexOf(filter) >= 0 ? '' : 'none';
     });
 });
 
-// сортировка
-document.querySelectorAll("th.sortable").forEach(th => {
-    th.addEventListener("click", function () {
-        const col   = parseInt(this.dataset.col);
-        const tbody = document.querySelector("#usersTable tbody");
-        const rows  = Array.from(tbody.querySelectorAll("tr"));
-        const asc   = !this.classList.contains("sort-asc");
-
-        document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("sort-asc","sort-desc"));
-        this.classList.add(asc ? "sort-asc" : "sort-desc");
-
-        rows.sort((a, b) => {
-            const av = a.cells[col]?.innerText.trim().toLowerCase() || "";
-            const bv = b.cells[col]?.innerText.trim().toLowerCase() || "";
-            return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
+var headers = document.querySelectorAll('#usersTable th.sortable');
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener('click', function () {
+        var col   = parseInt(this.getAttribute('data-col'), 10);
+        var tbody = document.querySelector('#usersTable tbody');
+        var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc   = !this.classList.contains('sort-asc');
+        var allTh = document.querySelectorAll('#usersTable th.sortable');
+        for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        rows.sort(function (a, b) {
+            var av = a.cells[col] ? a.cells[col].innerText.trim() : '';
+            var bv = b.cells[col] ? b.cells[col].innerText.trim() : '';
+            return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
         });
-        rows.forEach(r => tbody.appendChild(r));
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
     });
-});
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-    const err = document.getElementById("errorToast");
-    const ok  = document.getElementById("successToast");
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
-
 </body>
 </html>

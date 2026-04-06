@@ -7,7 +7,7 @@ import (
 	"wims/models"
 )
 
-var profileTmpl = template.Must(template.ParseFiles("templates/profile.html"))
+var profileTmpl = template.Must(template.ParseFiles("templates/profile.html", "templates/navbar.html"))
 
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
 	username, role, display := GetSession(r)
