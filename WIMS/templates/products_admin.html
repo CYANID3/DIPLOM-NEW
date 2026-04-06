@@ -41,7 +41,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 <div class="col-md-1">
 <label class="form-label text-muted small mb-1">Мин. остаток</label>
-<input class="form-control" name="min_stock" type="number" placeholder="0" value="0">
+<input class="form-control" name="min_stock" type="number" placeholder="0" value="{{if .Settings}}{{index .Settings "low_stock_limit"}}{{else}}0{{end}}">
 </div>
 </div>
 <div class="row g-2 mb-3">
@@ -94,10 +94,10 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{.Barcode}}</td>
 <td>{{.Name}}</td>
 <td>{{if .Category}}{{.Category}}{{else}}<span class="text-muted fst-italic">—</span>{{end}}</td>
-<td>{{printf "%.2f" .Price}}</td>
+<td>{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td>{{.Quantity}}</td>
 <td>{{if gt .MinStock 0}}{{.MinStock}}{{else}}<span class="text-muted">—</span>{{end}}</td>
-<td>{{printf "%.2f" .Total}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="text-end">
 <div class="d-flex justify-content-end gap-1">
 <a href="/admin/products/edit?id={{.ID}}" class="btn btn-warning btn-sm">Изменить</a>

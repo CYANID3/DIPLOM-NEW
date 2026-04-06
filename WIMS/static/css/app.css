@@ -46,30 +46,30 @@
 
 /* ===== ПЕРЕМЕННЫЕ: ТЁМНАЯ ТЕМА ===== */
 [data-theme="dark"] {
-    --app-bg:                #121212;
+    --app-bg:                #1c1c1c;
     --app-color:             #e9ecef;
 
-    --app-card-bg:           #1e1e1e;
-    --app-border:            #343a40;
+    --app-card-bg:           #272727;
+    --app-border:            #4a5058;
 
-    --app-input-bg:          #2b2b2b;
+    --app-input-bg:          #313131;
     --app-input-color:       #e9ecef;
     --app-input-focus-border:#5a9cf8;
     --app-input-focus-shadow:0 0 0 0.25rem rgba(90,156,248,0.25);
-    --app-input-disabled-bg: #252525;
+    --app-input-disabled-bg: #2b2b2b;
 
-    --app-table-bg:          #1e1e1e;
+    --app-table-bg:          #272727;
     --app-table-color:       #e9ecef;
     --app-table-stripe:      rgba(255,255,255,0.05);
-    --app-table-border:      #343a40;
+    --app-table-border:      #4a5058;
 
-    --app-dropdown-bg:       #2b2b2b;
+    --app-dropdown-bg:       #313131;
     --app-dropdown-color:    #e9ecef;
     --app-dropdown-hover-bg: #3a3a3a;
     --app-dropdown-hover-color: #ffffff;
     --app-dropdown-active-bg:#0d6efd;
 
-    --app-navbar-bg:         #1e1e1e;
+    --app-navbar-bg:         #272727;
     --app-nav-color:         #e9ecef;
     --app-nav-hover-color:   #ffffff;
 
@@ -405,17 +405,17 @@ a:hover {
    data-theme стоит на <html> — явно прописываем тёмные значения */
 
 [data-theme="dark"] .modal-content {
-    --bs-modal-bg:           #1e1e1e;
+    --bs-modal-bg:           #272727;
     --bs-modal-color:        #e9ecef;
-    --bs-modal-border-color: #343a40;
-    background-color: #1e1e1e !important;
+    --bs-modal-border-color: #4a5058;
+    background-color: #272727 !important;
     color:            #e9ecef !important;
-    border-color:     #343a40 !important;
+    border-color:     #4a5058 !important;
 }
 
 [data-theme="dark"] .modal-header,
 [data-theme="dark"] .modal-footer {
-    border-color: #343a40 !important;
+    border-color: #4a5058 !important;
 }
 
 [data-theme="dark"] .modal-title {
@@ -438,4 +438,77 @@ a:hover {
 .navbar .nav-link.nav-admin:hover,
 .navbar .nav-link.nav-admin:focus {
     color: #198754 !important;
+}
+
+/* ===== NAVBAR BRAND ===== */
+.navbar-brand {
+    color: var(--app-nav-color) !important;
+}
+.navbar-brand:hover,
+.navbar-brand:focus {
+    color: var(--app-nav-hover-color) !important;
+}
+
+/* ===== ТАБЛИЦЫ: ЦВЕТНЫЕ СТРОКИ ===== */
+/* Переменные задаются в :root и [data-theme="dark"],
+   сами правила одни — меняются автоматически при смене темы */
+
+:root {
+    --row-danger-bg:    #f5c6cb;
+    --row-danger-color: #58151c;
+    --row-danger-border:#f1aeb5;
+
+    --row-warning-bg:   #fff3cd;
+    --row-warning-color:#332701;
+    --row-warning-border:#ffe69c;
+}
+
+[data-theme="dark"] {
+    --row-danger-bg:    #e04555;
+    --row-danger-color: #ffffff;
+    --row-danger-border:#cc3344;
+
+    --row-warning-bg:   #f0b400;
+    --row-warning-color:#ffffff;
+    --row-warning-border:#d9a000;
+}
+
+.table-danger,
+.table-danger td,
+.table-danger th {
+    --bs-table-bg:            var(--row-danger-bg)     !important;
+    --bs-table-color:         var(--row-danger-color)  !important;
+    --bs-table-border-color:  var(--row-danger-border) !important;
+    --bs-table-striped-bg:    var(--row-danger-bg)     !important;
+    --bs-table-striped-color: var(--row-danger-color)  !important;
+    background-color: var(--row-danger-bg)    !important;
+    color:            var(--row-danger-color) !important;
+    border-color:     var(--row-danger-border)!important;
+}
+
+.table-warning,
+.table-warning td,
+.table-warning th {
+    --bs-table-bg:            var(--row-warning-bg)     !important;
+    --bs-table-color:         var(--row-warning-color)  !important;
+    --bs-table-border-color:  var(--row-warning-border) !important;
+    --bs-table-striped-bg:    var(--row-warning-bg)     !important;
+    --bs-table-striped-color: var(--row-warning-color)  !important;
+    background-color: var(--row-warning-bg)    !important;
+    color:            var(--row-warning-color) !important;
+    border-color:     var(--row-warning-border)!important;
+}
+
+/* ===== ТЁМНАЯ ТЕМА: NAVBAR BRAND ===== */
+/* Bootstrap перебивает через --bs-navbar-brand-color на :root */
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .navbar-brand:hover,
+[data-theme="dark"] .navbar-brand:focus {
+    color: #ffffff !important;
+}
+
+/* ===== ТЁМНАЯ ТЕМА: BORDER WARNING CARD ===== */
+/* Карточка низкого остатка на дашборде */
+[data-theme="dark"] .border-warning {
+    border-color: rgba(255, 193, 7, 0.4) !important;
 }

@@ -47,16 +47,20 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{.Barcode}}</td>
 <td>{{.Name}}</td>
 <td>{{if .Category}}{{.Category}}{{else}}<span class="text-muted">—</span>{{end}}</td>
-<td>{{printf "%.2f" .Price}}</td>
+<td>{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td>{{.Quantity}}</td>
-<td>{{printf "%.2f" .Total}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td>
+{{if eq .Quantity 0}}
+<span class="text-muted fw-bold small fst-italic">Нет в наличии</span>
+{{else}}
 <div class="d-flex gap-1">
 <input class="form-control form-control-sm sell-qty-input" type="number"
        min="1" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
 <button class="btn btn-success btn-sm" type="button"
         onclick="goToSell(this)">OK</button>
 </div>
+{{end}}
 </td>
 </tr>
 {{else}}

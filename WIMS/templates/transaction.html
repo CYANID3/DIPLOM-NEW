@@ -21,7 +21,11 @@
 <select class="form-select" name="id" id="productSelect" required onchange="loadProduct(this.value)">
 <option value="">— выберите товар —</option>
 {{range .Products}}
+{{if eq .Quantity 0}}
+<option value="{{.ID}}" disabled>{{.Name}}{{if .Category}} ({{.Category}}){{end}} — нет в наличии</option>
+{{else}}
 <option value="{{.ID}}">{{.Name}}{{if .Category}} ({{.Category}}){{end}}</option>
+{{end}}
 {{end}}
 </select>
 </div>
@@ -56,7 +60,7 @@
 <div class="mb-4 p-3 card bg-body">
 <div class="d-flex justify-content-between">
 <span class="text-muted">Итого:</span>
-<strong id="totalLabel" class="fs-5">—</strong>
+<strong id="totalLabel" class="fs-5">—</strong> <span class="text-muted">{{if .Settings}}{{index .Settings "currency"}}{{end}}</span>
 </div>
 </div>
 
@@ -107,6 +111,7 @@
 <script src="/static/js/logout.js"></script>
 <script>
 var CONFIRM_LIMIT = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
+var currency = '{{if .Settings}}{{index .Settings "currency"}}{{end}}';
 var currentStock = 0;
 var currentPrice = 0;
 
@@ -145,7 +150,7 @@ function loadProduct(id, callback) {
 function updateTotal() {
     var qty = parseInt(document.getElementById('qtyInput').value, 10);
     if (!isNaN(qty) && qty > 0 && currentPrice > 0) {
-        document.getElementById('totalLabel').textContent = (qty * currentPrice).toFixed(2);
+        document.getElementById('totalLabel').textContent = (qty * currentPrice).toFixed(2) + ' ' + currency;
     } else {
         document.getElementById('totalLabel').textContent = '—';
     }

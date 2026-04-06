@@ -30,21 +30,21 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <div class="col-6 col-md-4 col-lg-2">
 <div class="card stat-card text-center">
 <div class="text-muted small mb-1">Продажи сегодня</div>
-<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalToday}}</div>
+<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalToday}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
 <div class="text-muted small">{{.Summary.CountToday}} операций</div>
 </div>
 </div>
 <div class="col-6 col-md-4 col-lg-2">
 <div class="card stat-card text-center">
 <div class="text-muted small mb-1">За неделю</div>
-<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalWeek}}</div>
+<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalWeek}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
 <div class="text-muted small">{{.Summary.CountWeek}} операций</div>
 </div>
 </div>
 <div class="col-6 col-md-4 col-lg-2">
 <div class="card stat-card text-center">
 <div class="text-muted small mb-1">За месяц</div>
-<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalMonth}}</div>
+<div class="fs-5 fw-semibold">{{printf "%.2f" .Summary.TotalMonth}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
 <div class="text-muted small">{{.Summary.CountMonth}} операций</div>
 </div>
 </div>
@@ -101,7 +101,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <tr>
 <td>{{.Name}}</td>
 <td>{{.Quantity}}</td>
-<td>{{printf "%.2f" .Total}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
 {{else}}
 <tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
@@ -128,7 +128,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <tr>
 <td>{{.UserFullName}}</td>
 <td>{{.SellCount}}</td>
-<td>{{printf "%.2f" .SellTotal}}</td>
+<td>{{printf "%.2f" .SellTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
 {{else}}
 <tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
@@ -155,7 +155,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <tr>
 <td>{{.Day}}</td>
 <td>{{.Count}}</td>
-<td>{{printf "%.2f" .Total}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
 {{else}}
 <tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
