@@ -16,7 +16,6 @@ type Session struct {
 	IP        string
 }
 
-// CreateSession генерирует токен, сохраняет сессию и возвращает токен
 func CreateSession(username, userAgent, ip string) (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
@@ -34,7 +33,6 @@ func CreateSession(username, userAgent, ip string) (string, error) {
 	return token, nil
 }
 
-// GetSession возвращает сессию по токену и обновляет last_seen
 func GetSession(token string) *Session {
 	var s Session
 	err := database.DB.QueryRow(
@@ -45,7 +43,6 @@ func GetSession(token string) *Session {
 		return nil
 	}
 
-	// обновляем last_seen
 	database.DB.Exec(
 		`UPDATE sessions SET last_seen = ? WHERE token = ?`,
 		time.Now().UTC().Format("2006-01-02T15:04:05Z"), token,
@@ -53,17 +50,14 @@ func GetSession(token string) *Session {
 	return &s
 }
 
-// DeleteSession удаляет сессию (выход)
 func DeleteSession(token string) {
 	database.DB.Exec(`DELETE FROM sessions WHERE token = ?`, token)
 }
 
-// DeleteUserSessions удаляет все сессии пользователя (принудительный разлогин)
 func DeleteUserSessions(username string) {
 	database.DB.Exec(`DELETE FROM sessions WHERE username = ?`, username)
 }
 
-// GetAllSessions возвращает все активные сессии
 func GetAllSessions() ([]Session, error) {
 	rows, err := database.DB.Query(
 		`SELECT s.token, s.username, s.created_at, s.last_seen, s.user_agent, s.ip
@@ -78,12 +72,19 @@ func GetAllSessions() ([]Session, error) {
 	var result []Session
 	for rows.Next() {
 		var s Session
+		var createdRaw, lastSeenRaw string
+
 		if err := rows.Scan(
-			&s.Token, &s.Username, &s.CreatedAt,
-			&s.LastSeen, &s.UserAgent, &s.IP,
+			&s.Token, &s.Username, &createdRaw,
+			&lastSeenRaw, &s.UserAgent, &s.IP,
 		); err != nil {
 			return nil, err
 		}
+
+		// форматируем даты через общую функцию из history.go
+		s.CreatedAt, _ = formatTimestamp(createdRaw)
+		s.LastSeen, _  = formatTimestamp(lastSeenRaw)
+
 		result = append(result, s)
 	}
 	return result, rows.Err()

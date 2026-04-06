@@ -203,6 +203,7 @@ func ExportProductsCSVHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(w)
+	writer.Comma = ';' // точка с запятой — стандарт для Excel в русской локали
 	writer.WriteAll(data)
 	writer.Flush()
 }
@@ -225,6 +226,7 @@ func ExportHistoryCSVHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(w)
+	writer.Comma = ';' // точка с запятой — стандарт для Excel в русской локали
 	writer.WriteAll(data)
 	writer.Flush()
 }

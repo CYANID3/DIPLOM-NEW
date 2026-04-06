@@ -51,16 +51,12 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
 <td>
-<form action="/sell" method="post" class="d-flex gap-1 sell-form"
-      data-name="{{.Name}}"
-      data-price="{{printf "%.2f" .Price}}"
-      data-stock="{{.Quantity}}">
-<input type="hidden" name="id" value="{{.ID}}">
-<input class="form-control form-control-sm sell-qty" name="quantity"
-       type="number" min="1" data-stock="{{.Quantity}}" required>
+<div class="d-flex gap-1">
+<input class="form-control form-control-sm sell-qty-input" type="number"
+       min="1" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
 <button class="btn btn-success btn-sm" type="button"
-        onclick="confirmSell(this.closest('.sell-form'))">OK</button>
-</form>
+        onclick="goToSell(this)">OK</button>
+</div>
 </td>
 </tr>
 {{else}}
@@ -75,25 +71,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 </div>
 
-<!-- МОДАЛКА: ПОДТВЕРЖДЕНИЕ ПРОДАЖИ -->
-<div class="modal fade" id="confirmSellModal" tabindex="-1" data-bs-backdrop="static">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Подтверждение продажи</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<p class="mb-1">Продать <strong id="sellQtyLabel"></strong> шт. товара <strong id="sellNameLabel"></strong>?</p>
-<p class="mb-0 text-muted">Сумма: <span id="sellTotalLabel"></span></p>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-<button type="button" class="btn btn-success" id="sellConfirmBtn">Продать</button>
-</div>
-</div>
-</div>
-</div>
+
 
 <div id="clientToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
@@ -115,9 +93,6 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-var SELL_LIMIT    = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
-var pendingSellForm = null;
-
 function showClientError(msg) {
     var container = document.getElementById('clientToastContainer');
     var id  = 'ct_' + Date.now();
@@ -127,35 +102,22 @@ function showClientError(msg) {
     new bootstrap.Toast(document.getElementById(id)).show();
 }
 
-function confirmSell(form) {
-    var input = form.querySelector('.sell-qty');
+// кнопка OK — проверяет кол-во и открывает страницу транзакции с предзаполнением
+function goToSell(btn) {
+    var input = btn.previousElementSibling;
     var qty   = parseInt(input.value, 10);
     var stock = parseInt(input.dataset.stock, 10);
-    var name  = form.dataset.name;
-    var price = parseFloat(form.dataset.price);
-    if (!qty || qty < 1) return;
+    var id    = input.dataset.id;
+    if (!qty || qty < 1) {
+        showClientError('Укажите количество');
+        return;
+    }
     if (qty > stock) {
         showClientError('Нельзя продать больше, чем есть на складе (остаток: ' + stock + ')');
         return;
     }
-    if (qty >= SELL_LIMIT) {
-        document.getElementById('sellQtyLabel').textContent   = qty;
-        document.getElementById('sellNameLabel').textContent  = name;
-        document.getElementById('sellTotalLabel').textContent = (qty * price).toFixed(2);
-        pendingSellForm = form;
-        new bootstrap.Modal(document.getElementById('confirmSellModal')).show();
-        return;
-    }
-    form.submit();
+    window.location.href = '/transaction?id=' + id + '&qty=' + qty;
 }
-
-document.getElementById('sellConfirmBtn').addEventListener('click', function () {
-    var modal = bootstrap.Modal.getInstance(document.getElementById('confirmSellModal'));
-    document.getElementById('confirmSellModal').addEventListener('hidden.bs.modal', function () {
-        if (pendingSellForm) { pendingSellForm.submit(); pendingSellForm = null; }
-    }, { once: true });
-    modal.hide();
-});
 
 document.getElementById('searchInput').addEventListener('keyup', function () {
     var filter = this.value.toLowerCase();

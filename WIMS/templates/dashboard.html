@@ -48,20 +48,39 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <div class="text-muted small">{{.Summary.CountMonth}} операций</div>
 </div>
 </div>
+
+</div>
+
 {{if .LowStock}}
-<div class="col-12 col-lg-6">
-<div class="card stat-card border-warning">
-<div class="text-warning fw-semibold mb-2">⚠ Товары с низким остатком</div>
+<div class="card p-3 mb-4 border-warning">
+<div class="d-flex justify-content-between align-items-center mb-2">
+<span class="fw-semibold text-warning">⚠ Товары с низким остатком</span>
+<span class="text-muted small">{{len .LowStock}} позиций</span>
+</div>
+<div style="max-height:160px; overflow-y:auto;">
+<table class="table table-sm mb-0">
+<thead>
+<tr>
+<th>Название</th>
+<th>Штрихкод</th>
+<th class="text-danger">Остаток</th>
+<th class="text-muted">Минимум</th>
+</tr>
+</thead>
+<tbody>
 {{range .LowStock}}
-<div class="d-flex justify-content-between small">
-<span>{{.Name}}</span>
-<span class="text-danger">{{.Quantity}} / {{.MinStock}} мин.</span>
+<tr>
+<td>{{.Name}}</td>
+<td class="text-muted small">{{if .Barcode}}{{.Barcode}}{{else}}—{{end}}</td>
+<td class="text-danger fw-semibold">{{.Quantity}}</td>
+<td class="text-muted">{{.MinStock}}</td>
+</tr>
+{{end}}
+</tbody>
+</table>
+</div>
 </div>
 {{end}}
-</div>
-</div>
-{{end}}
-</div>
 
 <div class="row g-4">
 

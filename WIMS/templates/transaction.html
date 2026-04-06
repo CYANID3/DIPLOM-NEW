@@ -119,7 +119,7 @@ function showClientError(msg) {
     new bootstrap.Toast(document.getElementById(id)).show();
 }
 
-function loadProduct(id) {
+function loadProduct(id, callback) {
     if (!id) {
         document.getElementById('productInfo').style.display = 'none';
         document.getElementById('totalLabel').textContent = '—';
@@ -137,6 +137,7 @@ function loadProduct(id) {
             document.getElementById('infoStock').textContent    = p.quantity + ' шт.';
             document.getElementById('productInfo').style.display = '';
             updateTotal();
+            if (typeof callback === 'function') callback();
         })
         .catch(function () { showClientError('Ошибка загрузки данных товара'); });
 }
@@ -191,6 +192,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
+
+    // предзаполнение из GET-параметров (?id=X&qty=Y)
+    var params = new URLSearchParams(window.location.search);
+    var preId  = params.get('id');
+    var preQty = params.get('qty');
+
+    if (preId) {
+        var select = document.getElementById('productSelect');
+        select.value = preId;
+        // запускаем загрузку данных товара
+        loadProduct(preId, function () {
+            if (preQty) {
+                document.getElementById('qtyInput').value = preQty;
+                updateTotal();
+            }
+        });
+    }
 });
 </script>
 </body>
