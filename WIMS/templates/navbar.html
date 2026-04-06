@@ -39,7 +39,21 @@
 <button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
 <div class="dropdown">
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
+<ul class="dropdown-menu dropdown-menu-end user-dropdown">
+<li class="user-dropdown-header px-3 py-2">
+<div class="d-flex align-items-center gap-2">
+<div class="user-avatar">{{slice .Username 0 1}}</div>
+<div>
+<div class="user-dropdown-name">{{.Username}}</div>
+<div class="mt-1">
+{{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
+{{else}}<span class="badge text-bg-primary">user</span>{{end}}
+</div>
+</div>
+</div>
+</li>
+<li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
 <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>

@@ -21,10 +21,13 @@ func AdminPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
 		"Username": display,
 		"Role":     role,
 		"Users":    users,
+		"Settings": settings,
 		"Error":    r.URL.Query().Get("error"),
 		"Success":  r.URL.Query().Get("success"),
 	}

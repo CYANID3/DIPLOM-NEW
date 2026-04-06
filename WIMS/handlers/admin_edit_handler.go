@@ -100,10 +100,13 @@ func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
 		"Username":      display,
 		"Role":          role,
 		"User":          user,
+		"Settings":      settings,
 		"Error":         r.URL.Query().Get("error"),
 		"Success":       r.URL.Query().Get("success"),
 		"PasswordError": r.URL.Query().Get("pe") == "1",

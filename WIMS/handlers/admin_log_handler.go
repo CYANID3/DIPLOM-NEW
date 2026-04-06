@@ -20,10 +20,13 @@ func AdminLogPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
 		"Username": display,
 		"Role":     role,
 		"Logs":     logs,
+		"Settings": settings,
 	}
 
 	if err := adminLogTmpl.Execute(w, data); err != nil {

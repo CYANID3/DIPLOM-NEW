@@ -47,9 +47,10 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <tr>
 <td>{{.ID}}</td>
 <td data-action="{{.Action}}">
-{{if eq .Action "add"}}<span class="badge text-bg-success">Добавлено</span>
-{{else if eq .Action "sell"}}<span class="badge text-bg-primary">Продано</span>
-{{else if eq .Action "delete"}}<span class="badge text-bg-danger">Удалено</span>
+{{if eq .Action "add"}}<span class="badge text-bg-success">Создан</span>
+{{else if eq .Action "restock"}}<span class="badge text-bg-restock">Пополнен</span>
+{{else if eq .Action "sell"}}<span class="badge text-bg-primary">Продан</span>
+{{else if eq .Action "delete"}}<span class="badge text-bg-danger">Удалён</span>
 {{else}}<span class="badge text-bg-secondary">{{.Action}}</span>
 {{end}}
 </td>
@@ -73,7 +74,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-var ACTION_ORDER = { 'add': 0, 'sell': 1, 'delete': 2 };
+var ACTION_ORDER = { 'add': 0, 'restock': 1, 'sell': 2, 'delete': 3 };
 
 function getCellValue(row, col, type) {
     var cell = row.cells[col];

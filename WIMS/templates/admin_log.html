@@ -47,6 +47,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 {{else if eq .Action "change_role"}}<span class="badge text-bg-warning">Смена роли</span>
 {{else if eq .Action "change_password"}}<span class="badge text-bg-secondary">Смена пароля</span>
 {{else if eq .Action "add_product"}}<span class="badge text-bg-success">Добавлен товар</span>
+{{else if eq .Action "restock_product"}}<span class="badge text-bg-restock">Пополнен товар</span>
 {{else if eq .Action "edit_product"}}<span class="badge text-bg-primary">Изменён товар</span>
 {{else if eq .Action "delete_product"}}<span class="badge text-bg-danger">Удалён товар</span>
 {{else if eq .Action "kill_session"}}<span class="badge text-bg-warning">Завершена сессия</span>

@@ -12,10 +12,20 @@
 <div class="wrapper w-100 pt-4">
 <div class="container">
 <div class="card p-4">
-<h3>Профиль</h3>
+
+<div class="d-flex align-items-center gap-2 mb-4">
+<h3 class="mb-0">Профиль</h3>
+{{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
+{{else}}<span class="badge text-bg-primary">user</span>{{end}}
+</div>
 
 <form method="post" id="profileForm">
 <h5>Данные</h5>
+<div class="mb-2">
+<label class="form-label text-muted small mb-1">Логин</label>
+<input class="form-control" value="{{.User.Username}}" disabled>
+</div>
 <input class="form-control mb-2" name="first_name"  value="{{.User.FirstName}}"  placeholder="Имя">
 <input class="form-control mb-2" name="last_name"   value="{{.User.LastName}}"   placeholder="Фамилия">
 <input class="form-control mb-2" name="middle_name" value="{{.User.MiddleName}}" placeholder="Отчество">
@@ -124,5 +134,6 @@ function togglePassword(id, btn) {
     if (ok)  new bootstrap.Toast(ok).show();
 }());
 </script>
+
 </body>
 </html>

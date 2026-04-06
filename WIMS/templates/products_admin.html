@@ -100,6 +100,8 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="text-end">
 <div class="d-flex justify-content-end gap-1">
+<button type="button" class="btn btn-success btn-sm"
+        onclick="openRestock({{.ID}}, '{{.Name}}', {{printf "%.2f" .Price}})">Пополнить</button>
 <a href="/admin/products/edit?id={{.ID}}" class="btn btn-warning btn-sm">Изменить</a>
 <button type="button" class="btn btn-danger btn-sm"
         onclick="confirmDeleteProduct({{.ID}}, '{{.Name}}', {{.Quantity}}, '{{printf "%.2f" .Total}}')">
@@ -115,6 +117,31 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </table>
 </div>
 
+</div>
+</div>
+
+<!-- МОДАЛКА ПОПОЛНЕНИЯ -->
+<div class="modal fade" id="restockModal" tabindex="-1" data-bs-backdrop="static">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Пополнение товара</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<form action="/admin/products/restock" method="post">
+<div class="modal-body">
+<p class="mb-1">Товар: <strong id="restockName"></strong></p>
+<p class="mb-3 text-muted small">Цена: <span id="restockPrice"></span></p>
+<input type="hidden" name="id" id="restockId">
+<label class="form-label text-muted small mb-1">Количество для пополнения</label>
+<input class="form-control" name="quantity" id="restockQty" type="number" min="1" placeholder="0" required>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+<button type="submit" class="btn btn-info">Пополнить</button>
+</div>
+</form>
+</div>
 </div>
 </div>
 
@@ -170,6 +197,14 @@ function toggleNewCat(sel) {
         wrap.style.display = 'none';
         inp.required = false;
     }
+}
+
+function openRestock(id, name, price) {
+    document.getElementById('restockId').value        = id;
+    document.getElementById('restockName').textContent = name;
+    document.getElementById('restockPrice').textContent= price;
+    document.getElementById('restockQty').value        = '';
+    new bootstrap.Modal(document.getElementById('restockModal')).show();
 }
 
 function confirmDeleteProduct(id, name, qty, total) {

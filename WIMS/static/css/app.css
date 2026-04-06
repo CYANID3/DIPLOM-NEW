@@ -13,7 +13,7 @@
     --app-border:            #dee2e6;
 
     --app-input-bg:          #ffffff;
-    --app-input-color:       #212529;
+    --app-input-color:       #181a1d;
     --app-input-focus-border:#86b7fe;
     --app-input-focus-shadow:0 0 0 0.25rem rgba(13,110,253,0.25);
     --app-input-disabled-bg: #e9ecef;
@@ -36,8 +36,8 @@
     --app-link-color:        #0d6efd;
     --app-link-hover:        #0a58ca;
 
-    --app-muted:             #434648;
-    --app-placeholder:       #6c757d;
+    --app-muted:             #6c757d;
+    --app-placeholder:       #9fa6ab;
 
     --app-alert-danger-bg:   #f8d7da;
     --app-alert-danger-color:#842029;
@@ -77,7 +77,7 @@
     --app-link-hover:        #cfe2ff;
 
     --app-muted:             #ececec;
-    --app-placeholder:       #adb5bd;
+    --app-placeholder:       #969fa8;
 
     --app-alert-danger-bg:   rgba(220,53,69,0.15);
     --app-alert-danger-color:#f5a7ae;
@@ -307,12 +307,14 @@ a:hover {
 
 /* ===== PLACEHOLDER ===== */
 ::placeholder {
-    color:   var(--app-placeholder);
+    color:   var(--app-placeholder) !important;
     opacity: 1;
+    font-style: italic;
 }
 [data-theme="dark"] ::placeholder {
     color:   var(--app-placeholder) !important;
     opacity: 1;
+    font-style: italic;
 }
 
 /* ===== INPUT-GROUP ===== */
@@ -464,13 +466,13 @@ a:hover {
 }
 
 [data-theme="dark"] {
-    --row-danger-bg:    #974f56;
+    --row-danger-bg:    #ba505b;
     --row-danger-color: #ffffff;
-    --row-danger-border:#7c4550;
+    --row-danger-border:#923d47;
 
-    --row-warning-bg:   #987611;
+    --row-warning-bg:   #b8920b;
     --row-warning-color:#ffffff;
-    --row-warning-border:#796224;
+    --row-warning-border:#a47b0a;
 }
 
 .table-danger,
@@ -511,4 +513,56 @@ a:hover {
 /* Карточка низкого остатка на дашборде */
 [data-theme="dark"] .border-warning {
     border-color: rgba(255, 193, 7, 0.4) !important;
+}
+
+/* ===== КАСТОМНЫЙ БЕЙДЖ: TEAL ===== */
+.badge.text-bg-restock,
+span.text-bg-restock {
+    --bs-badge-color:  #ffffff;
+    background-color:  #11a6ab !important;
+    color:             #ffffff !important;
+}
+/* Bootstrap читает цвет текста бейджа через --bs-badge-color */
+.text-bg-restock {
+    --bs-badge-color:  #ffffff;
+    background-color:  #11a6ab !important;
+    color:             #ffffff !important;
+}
+
+/* ===== USER DROPDOWN ===== */
+.user-dropdown {
+    min-width: 200px;
+}
+
+.user-dropdown-header {
+    background-color: var(--app-dropdown-bg);
+}
+
+.user-dropdown-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--app-color);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #198754;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+[data-theme="dark"] .user-dropdown-header {
+    background-color: var(--app-dropdown-bg);
+}
+
+[data-theme="dark"] .user-dropdown-name {
+    color: var(--app-color);
 }

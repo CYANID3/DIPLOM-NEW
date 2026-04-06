@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/csv"
+	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -138,11 +139,14 @@ func EditProductPage(w http.ResponseWriter, r *http.Request) {
 
 	categories, _ := models.GetCategories()
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
 		"Username":   display,
 		"Role":       role,
 		"Product":    product,
 		"Categories": categories,
+		"Settings":   settings,
 		"Error":      r.URL.Query().Get("error"),
 	}
 
@@ -229,4 +233,42 @@ func ExportHistoryCSVHandler(w http.ResponseWriter, r *http.Request) {
 	writer.Comma = ';' // точка с запятой — стандарт для Excel в русской локали
 	writer.WriteAll(data)
 	writer.Flush()
+}
+
+// RestockProductHandler — пополнение остатка существующего товара
+func RestockProductHandler(w http.ResponseWriter, r *http.Request) {
+	username, _, _, ok := RequireRole(w, r, "admin", "manager")
+	if !ok {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/admin/products", http.StatusSeeOther)
+		return
+	}
+
+	id, err := strconv.Atoi(r.FormValue("id"))
+	if err != nil {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверный ID"), http.StatusSeeOther)
+		return
+	}
+
+	qty, err := strconv.Atoi(r.FormValue("quantity"))
+	if err != nil || qty <= 0 {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверное количество"), http.StatusSeeOther)
+		return
+	}
+
+	product, err := models.GetProductByID(id)
+	if err != nil || product == nil {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Товар не найден"), http.StatusSeeOther)
+		return
+	}
+
+	if err := models.RestockProduct(id, qty, username); err != nil {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Ошибка пополнения"), http.StatusSeeOther)
+		return
+	}
+
+	models.WriteAdminLog(username, "restock_product", product.Name, fmt.Sprintf("%d шт.", qty))
+	http.Redirect(w, r, "/admin/products?success="+url.QueryEscape("Товар пополнен"), http.StatusSeeOther)
 }

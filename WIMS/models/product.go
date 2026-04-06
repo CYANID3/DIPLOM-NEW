@@ -261,3 +261,38 @@ func ExportHistoryCSV() ([][]string, error) {
 	}
 	return result, rows.Err()
 }
+
+// RestockProduct — пополняет остаток существующего товара
+func RestockProduct(id, qty int, username string) error {
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var name, barcode string
+	var price float64
+	err = tx.QueryRow(
+		`SELECT name, barcode, price FROM products WHERE id=?`, id,
+	).Scan(&name, &barcode, &price)
+	if err != nil {
+		return err
+	}
+
+	if _, err = tx.Exec(
+		`UPDATE products SET quantity = quantity + ? WHERE id=?`, qty, id,
+	); err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`INSERT INTO history(action, username, target, barcode, quantity, price)
+		 VALUES(?, ?, ?, ?, ?, ?)`,
+		"restock", username, name, barcode, qty, price,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}

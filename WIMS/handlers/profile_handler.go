@@ -10,10 +10,8 @@ import (
 var profileTmpl = template.Must(template.ParseFiles("templates/profile.html", "templates/navbar.html"))
 
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
-	username, role, display := GetSession(r)
-
-	if username == "" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	username, role, display, ok := RequireAuth(w, r)
+	if !ok {
 		return
 	}
 
@@ -69,10 +67,13 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := models.GetAllSettings()
+
 	data := map[string]interface{}{
 		"Username":      display,
 		"Role":          role,
 		"User":          user,
+		"Settings":      settings,
 		"Error":         r.URL.Query().Get("error"),
 		"Success":       r.URL.Query().Get("success"),
 		"PasswordError": r.URL.Query().Get("password_error") == "1",

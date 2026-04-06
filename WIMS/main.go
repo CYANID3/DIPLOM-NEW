@@ -73,6 +73,7 @@ func main() {
 	mux.HandleFunc("/admin/products/add", handlers.AddProductAdminHandler)
 	mux.HandleFunc("/admin/products/edit", handlers.EditProductPage)
 	mux.HandleFunc("/admin/products/delete", handlers.DeleteProductAdminHandler)
+	mux.HandleFunc("/admin/products/restock", handlers.RestockProductHandler)
 	mux.HandleFunc("/admin/products/export", handlers.ExportProductsCSVHandler)
 
 	// настройки (admin only)
