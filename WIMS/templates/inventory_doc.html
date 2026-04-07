@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Инвентаризация #{{.Inventory.ID}}</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+<style>
+.diff-plus  { color: #198754; font-weight: 600; }
+.diff-minus { color: #dc3545; font-weight: 600; }
+.diff-zero  { color: var(--app-muted); }
+input.actual-qty { width: 80px; text-align: center; }
+[data-theme="dark"] input.actual-qty { background-color: var(--app-input-bg); color: var(--app-input-color); border-color: var(--app-border); }
+</style>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4">
+<div class="container">
+
+<!-- ШАПКА ДОКУМЕНТА -->
+<div class="card p-4 mb-4">
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+<div>
+<h4 class="mb-1">Инвентаризация #{{.Inventory.ID}}</h4>
+<div class="text-muted small">
+Ответственный: <strong>{{.Inventory.UserDisplay}}</strong> ·
+Создана: {{.Inventory.CreatedAt}}
+{{if .Inventory.CompletedAt}} · Завершена: {{.Inventory.CompletedAt}}{{end}}
+</div>
+{{if .Inventory.Note}}<div class="mt-1 text-muted small">{{.Inventory.Note}}</div>{{end}}
+</div>
+<div class="d-flex gap-2 align-items-center">
+{{if eq .Inventory.Status "draft"}}
+<span class="badge text-bg-warning fs-6">Черновик</span>
+{{else}}
+<span class="badge text-bg-success fs-6">Завершена</span>
+{{end}}
+<a href="/inventory/export?id={{.Inventory.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+<a href="/inventory" class="btn btn-sm btn-secondary">← Назад</a>
+</div>
+</div>
+</div>
+
+<!-- ТАБЛИЦА ТОВАРОВ -->
+<form method="post" id="invForm">
+<div class="card p-3 mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h5 class="mb-0">Позиции ({{len .Items}})</h5>
+{{if eq .Inventory.Status "draft"}}
+<button class="btn btn-sm btn-primary" type="submit">Сохранить факт</button>
+{{end}}
+</div>
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+<thead>
+<tr>
+<th>Товар</th>
+<th>Штрихкод</th>
+<th class="text-center">Ожидаемо</th>
+<th class="text-center">Факт</th>
+<th class="text-center">Разница</th>
+<th class="text-end">Цена</th>
+<th class="text-end">Сумма факт</th>
+</tr>
+</thead>
+<tbody>
+{{range .Items}}
+<tr {{if ne .Diff 0}}class="{{if gt .Diff 0}}table-success{{else}}table-danger{{end}}"{{end}}>
+<td>{{.ProductName}}</td>
+<td class="text-muted small">{{.Barcode}}</td>
+<td class="text-center">{{.ExpectedQty}}</td>
+<td class="text-center">
+{{if eq $.Inventory.Status "draft"}}
+<input class="form-control form-control-sm actual-qty d-inline-block"
+       type="number" min="0"
+       name="item_{{.ID}}"
+       value="{{.ActualQty}}"
+       onchange="calcDiff(this, {{.ExpectedQty}})">
+{{else}}
+{{.ActualQty}}
+{{end}}
+</td>
+<td class="text-center">
+<span id="diff_{{.ID}}" class="{{if gt .Diff 0}}diff-plus{{else if lt .Diff 0}}diff-minus{{else}}diff-zero{{end}}">
+{{if gt .Diff 0}}+{{end}}{{.Diff}}
+</span>
+</td>
+<td class="text-end">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-end" id="total_{{.ID}}">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{else}}
+<tr><td colspan="7" class="text-center text-muted py-4">Нет позиций</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- КНОПКА ЗАВЕРШЕНИЯ -->
+{{if eq .Inventory.Status "draft"}}
+<div class="card p-4 border-warning">
+<h6 class="text-warning mb-2">⚠ Завершение инвентаризации</h6>
+<p class="text-muted small mb-3">
+После завершения остатки всех товаров будут скорректированы по фактическим данным.
+Это действие необратимо.
+</p>
+<button type="button" class="btn btn-warning"
+        onclick="confirmComplete()">Завершить инвентаризацию</button>
+</div>
+{{end}}
+</form>
+
+</div>
+</div>
+
+<!-- МОДАЛКА ЗАВЕРШЕНИЯ -->
+<div class="modal fade" id="completeModal" tabindex="-1" data-bs-backdrop="static">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Завершить инвентаризацию?</h5>
+</div>
+<div class="modal-body">
+<p>Остатки всех товаров будут скорректированы по введённым фактическим данным.</p>
+<p class="text-danger mb-0">Это действие необратимо.</p>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+<form action="/inventory/complete" method="post" style="display:inline">
+<input type="hidden" name="id" value="{{.Inventory.ID}}">
+<button type="submit" class="btn btn-warning">Завершить</button>
+</form>
+</div>
+</div>
+</div>
+</div>
+
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
+</div>
+</div>
+{{end}}
+{{if .Success}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="successToast" class="toast text-bg-success" role="alert">
+<div class="toast-body">{{.Success}}</div>
+</div>
+</div>
+{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+function calcDiff(input, expected) {
+    var actual  = parseInt(input.value, 10) || 0;
+    var diff    = actual - expected;
+    var id      = input.name.replace('item_', '');
+    var diffEl  = document.getElementById('diff_' + id);
+    var totalEl = document.getElementById('total_' + id);
+
+    if (diffEl) {
+        diffEl.textContent  = (diff > 0 ? '+' : '') + diff;
+        diffEl.className    = diff > 0 ? 'diff-plus' : diff < 0 ? 'diff-minus' : 'diff-zero';
+    }
+    // обновляем строку подсветки
+    var row = input.closest('tr');
+    if (row) {
+        row.classList.remove('table-success', 'table-danger');
+        if (diff > 0) row.classList.add('table-success');
+        if (diff < 0) row.classList.add('table-danger');
+    }
+}
+
+function confirmComplete() {
+    new bootstrap.Modal(document.getElementById('completeModal')).show();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
+});
+</script>
+</body>
+</html>

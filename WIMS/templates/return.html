@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Возвраты</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+<style>
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
+</style>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4">
+<div class="container">
+
+<!-- ФОРМА ВОЗВРАТА -->
+<div class="card p-4 mb-4">
+<h5 class="mb-3">Оформить возврат</h5>
+<form action="/returns/create" method="post" id="returnForm">
+
+<div class="mb-3">
+<label class="form-label text-muted small mb-1">Выберите продажу из истории</label>
+<select class="form-select" name="history_id" id="sellSelect" required onchange="fillReturn(this)">
+<option value="">— выберите продажу —</option>
+{{range .Sells}}
+<option value="{{.ID}}"
+        data-name="{{.ProductName}}"
+        data-barcode="{{.Barcode}}"
+        data-qty="{{.Quantity}}"
+        data-price="{{printf "%.2f" .Price}}">
+#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}})
+</option>
+{{end}}
+</select>
+</div>
+
+<!-- карточка выбранной продажи -->
+<div id="sellInfo" class="card p-3 mb-3 bg-body" style="display:none">
+<div class="row g-2 small">
+<div class="col-6"><div class="text-muted">Товар</div><div id="infoName" class="fw-semibold"></div></div>
+<div class="col-6"><div class="text-muted">Штрихкод</div><div id="infoBarcode"></div></div>
+<div class="col-6"><div class="text-muted">Продано</div><div id="infoQty"></div></div>
+<div class="col-6"><div class="text-muted">Цена</div><div id="infoPrice"></div></div>
+</div>
+</div>
+
+<input type="hidden" name="product_id" id="productId">
+<input type="hidden" name="product_name" id="productName">
+<input type="hidden" name="barcode" id="barcode">
+<input type="hidden" name="price" id="price">
+
+<div class="row g-2 mb-3">
+<div class="col-md-3">
+<label class="form-label text-muted small mb-1">Количество к возврату</label>
+<input class="form-control" name="quantity" id="returnQty" type="number" min="1" placeholder="0" required>
+</div>
+<div class="col-md-9">
+<label class="form-label text-muted small mb-1">Примечание</label>
+<input class="form-control" name="note" placeholder="Причина возврата (необязательно)">
+</div>
+</div>
+
+<div class="d-flex gap-2">
+<button class="btn btn-warning px-4" type="submit">Оформить возврат</button>
+<a href="/returns/export" class="btn btn-outline-secondary">↓ CSV</a>
+</div>
+</form>
+</div>
+
+<!-- СПИСОК ВОЗВРАТОВ -->
+<div class="card p-3">
+<h5>История возвратов</h5>
+<table id="returnsTable" class="table table-striped">
+<thead>
+<tr>
+<th class="sortable" data-col="0">ID</th>
+<th class="sortable" data-col="1">Сотрудник</th>
+<th class="sortable" data-col="2">Товар</th>
+<th class="sortable" data-col="3">Штрихкод</th>
+<th class="sortable" data-col="4">Кол-во</th>
+<th class="sortable" data-col="5">Сумма</th>
+<th class="sortable" data-col="6">Примечание</th>
+<th class="sortable" data-col="7" data-type="date">Время</th>
+</tr>
+</thead>
+<tbody>
+{{range .Returns}}
+<tr>
+<td>{{.ID}}</td>
+<td>{{.UserDisplay}}</td>
+<td>{{.ProductName}}</td>
+<td>{{.Barcode}}</td>
+<td>{{.Quantity}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-muted small">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
+<td data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+</tr>
+{{else}}
+<tr><td colspan="8" class="text-center text-muted py-4">Возвратов пока нет</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+{{if .Error}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="errorToast" class="toast text-bg-danger" role="alert">
+<div class="toast-body">{{.Error}}</div>
+</div>
+</div>
+{{end}}
+{{if .Success}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div id="successToast" class="toast text-bg-success" role="alert">
+<div class="toast-body">{{.Success}}</div>
+</div>
+</div>
+{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+function fillReturn(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt.value) {
+        document.getElementById('sellInfo').style.display = 'none';
+        return;
+    }
+    document.getElementById('infoName').textContent    = opt.dataset.name;
+    document.getElementById('infoBarcode').textContent = opt.dataset.barcode;
+    document.getElementById('infoQty').textContent     = opt.dataset.qty + ' шт.';
+    document.getElementById('infoPrice').textContent   = opt.dataset.price;
+    document.getElementById('productName').value       = opt.dataset.name;
+    document.getElementById('barcode').value           = opt.dataset.barcode;
+    document.getElementById('price').value             = opt.dataset.price;
+    document.getElementById('returnQty').max           = opt.dataset.qty;
+    document.getElementById('sellInfo').style.display  = '';
+
+    // productId — нужно получить через API
+    fetch('/api/product-by-name?name=' + encodeURIComponent(opt.dataset.name))
+        .then(function(r) { return r.json(); })
+        .then(function(p) { document.getElementById('productId').value = p.id; })
+        .catch(function() {});
+}
+
+// сортировка
+var headers = document.querySelectorAll('#returnsTable th.sortable');
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener('click', function () {
+        var col  = parseInt(this.getAttribute('data-col'), 10);
+        var type = this.getAttribute('data-type') || 'str';
+        var tbody = document.querySelector('#returnsTable tbody');
+        var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc   = !this.classList.contains('sort-asc');
+        var allTh = document.querySelectorAll('#returnsTable th.sortable');
+        for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        rows.sort(function (a, b) {
+            var cellA = a.cells[col], cellB = b.cells[col];
+            var av = type === 'date' ? (cellA ? cellA.getAttribute('data-raw') || '' : '') : (cellA ? cellA.innerText.trim() : '');
+            var bv = type === 'date' ? (cellB ? cellB.getAttribute('data-raw') || '' : '') : (cellB ? cellB.innerText.trim() : '');
+            var an = parseFloat(av), bn = parseFloat(bv);
+            if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
+        });
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
+});
+</script>
+</body>
+</html>

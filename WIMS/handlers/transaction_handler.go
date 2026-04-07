@@ -97,3 +97,30 @@ func SellTransactionHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/transaction?success="+url.QueryEscape("Продажа выполнена"), http.StatusSeeOther)
 }
+
+// GetProductByNameHandler — JSON данные товара по названию (для возврата)
+func GetProductByNameHandler(w http.ResponseWriter, r *http.Request) {
+	_, _, _, ok := RequireAuth(w, r)
+	if !ok {
+		return
+	}
+	name := r.URL.Query().Get("name")
+	if name == "" {
+		http.Error(w, `{"error":"no name"}`, http.StatusBadRequest)
+		return
+	}
+	products, err := models.GetAllProducts()
+	if err != nil {
+		http.Error(w, `{"error":"db"}`, http.StatusInternalServerError)
+		return
+	}
+	for _, p := range products {
+		if p.Name == name {
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"id":%d,"name":%q,"barcode":%q,"price":%.2f,"quantity":%d}`,
+				p.ID, p.Name, p.Barcode, p.Price, p.Quantity)
+			return
+		}
+	}
+	http.Error(w, `{"error":"not found"}`, http.StatusNotFound)
+}

@@ -46,6 +46,7 @@ func main() {
 	mux.HandleFunc("/transaction", handlers.TransactionPage)
 	mux.HandleFunc("/transaction/sell", handlers.SellTransactionHandler)
 	mux.HandleFunc("/api/product", handlers.GetProductDataHandler)
+	mux.HandleFunc("/api/product-by-name", handlers.GetProductByNameHandler)
 
 	// история
 	mux.HandleFunc("/history", handlers.HistoryPage)
@@ -86,6 +87,22 @@ func main() {
 
 	// журнал действий (admin only)
 	mux.HandleFunc("/admin/log", handlers.AdminLogPage)
+
+	// возвраты (manager + admin)
+	mux.HandleFunc("/returns", handlers.ReturnPage)
+	mux.HandleFunc("/returns/create", handlers.CreateReturnHandler)
+	mux.HandleFunc("/returns/export", handlers.ExportReturnsCSVHandler)
+
+	// пересорт (manager + admin)
+	mux.HandleFunc("/regrade", handlers.RegradePage)
+	mux.HandleFunc("/regrade/create", handlers.CreateRegradeHandler)
+
+	// инвентаризация (manager + admin)
+	mux.HandleFunc("/inventory", handlers.InventoryListPage)
+	mux.HandleFunc("/inventory/create", handlers.CreateInventoryHandler)
+	mux.HandleFunc("/inventory/complete", handlers.CompleteInventoryHandler)
+	mux.HandleFunc("/inventory/export", handlers.ExportInventoryCSVHandler)
+	mux.HandleFunc("/inventory/", handlers.InventoryDocPage)
 
 	// 404
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -93,6 +93,57 @@ func createTables() {
 			key   TEXT PRIMARY KEY,
 			value TEXT
 		);`,
+
+		// возвраты товаров
+		`CREATE TABLE IF NOT EXISTS returns (
+			id          INTEGER PRIMARY KEY AUTOINCREMENT,
+			username    TEXT,
+			history_id  INTEGER,
+			product_id  INTEGER,
+			product_name TEXT,
+			barcode     TEXT,
+			quantity    INTEGER,
+			price       REAL DEFAULT 0,
+			note        TEXT DEFAULT '',
+			timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+
+		// пересорт
+		`CREATE TABLE IF NOT EXISTS regradings (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			username     TEXT,
+			from_id      INTEGER,
+			from_name    TEXT,
+			from_qty     INTEGER,
+			to_id        INTEGER,
+			to_name      TEXT,
+			to_qty       INTEGER,
+			note         TEXT DEFAULT '',
+			timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP
+		);`,
+
+		// инвентаризации (документы)
+		`CREATE TABLE IF NOT EXISTS inventories (
+			id          INTEGER PRIMARY KEY AUTOINCREMENT,
+			username    TEXT,
+			status      TEXT DEFAULT 'draft',
+			note        TEXT DEFAULT '',
+			created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+			completed_at DATETIME
+		);`,
+
+		// строки инвентаризации
+		`CREATE TABLE IF NOT EXISTS inventory_items (
+			id             INTEGER PRIMARY KEY AUTOINCREMENT,
+			inventory_id   INTEGER NOT NULL,
+			product_id     INTEGER NOT NULL,
+			product_name   TEXT,
+			barcode        TEXT,
+			expected_qty   INTEGER,
+			actual_qty     INTEGER DEFAULT 0,
+			diff           INTEGER DEFAULT 0,
+			price          REAL DEFAULT 0
+		);`,
 	}
 
 	for _, q := range queries {
@@ -127,6 +178,49 @@ func migrate() {
 		`ALTER TABLE history  ADD COLUMN price     REAL    DEFAULT 0`,
 		`ALTER TABLE products ADD COLUMN category  TEXT    DEFAULT ''`,
 		`ALTER TABLE products ADD COLUMN min_stock INTEGER DEFAULT 0`,
+		`CREATE TABLE IF NOT EXISTS returns (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			username     TEXT,
+			history_id   INTEGER,
+			product_id   INTEGER,
+			product_name TEXT,
+			barcode      TEXT,
+			quantity     INTEGER,
+			price        REAL DEFAULT 0,
+			note         TEXT DEFAULT '',
+			timestamp    DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS regradings (
+			id        INTEGER PRIMARY KEY AUTOINCREMENT,
+			username  TEXT,
+			from_id   INTEGER,
+			from_name TEXT,
+			from_qty  INTEGER,
+			to_id     INTEGER,
+			to_name   TEXT,
+			to_qty    INTEGER,
+			note      TEXT DEFAULT '',
+			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+		`CREATE TABLE IF NOT EXISTS inventories (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			username     TEXT,
+			status       TEXT DEFAULT 'draft',
+			note         TEXT DEFAULT '',
+			created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+			completed_at DATETIME
+		)`,
+		`CREATE TABLE IF NOT EXISTS inventory_items (
+			id           INTEGER PRIMARY KEY AUTOINCREMENT,
+			inventory_id INTEGER NOT NULL,
+			product_id   INTEGER NOT NULL,
+			product_name TEXT,
+			barcode      TEXT,
+			expected_qty INTEGER,
+			actual_qty   INTEGER DEFAULT 0,
+			diff         INTEGER DEFAULT 0,
+			price        REAL DEFAULT 0
+		)`,
 	}
 	for _, m := range migrations {
 		DB.Exec(m) // ошибка = колонка уже есть, игнорируем
