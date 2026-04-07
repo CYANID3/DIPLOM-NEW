@@ -59,7 +59,7 @@
 <ul class="dropdown-menu dropdown-menu-end user-dropdown">
 <li class="px-3 pt-2 pb-2">
 <div class="d-flex align-items-center gap-2">
-<div class="user-avatar">{{slice .Username 0 1}}</div>
+<div class="user-avatar" data-username="{{.Username}}" id="userAvatar"></div>
 <div>
 <div class="user-dropdown-name">{{.Username}}</div>
 <div class="mt-1">

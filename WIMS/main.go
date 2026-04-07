@@ -101,6 +101,7 @@ func main() {
 	mux.HandleFunc("/inventory", handlers.InventoryListPage)
 	mux.HandleFunc("/inventory/create", handlers.CreateInventoryHandler)
 	mux.HandleFunc("/inventory/complete", handlers.CompleteInventoryHandler)
+	mux.HandleFunc("/inventory/save-complete", handlers.SaveAndCompleteInventoryHandler)
 	mux.HandleFunc("/inventory/export", handlers.ExportInventoryCSVHandler)
 	mux.HandleFunc("/inventory/", handlers.InventoryDocPage)
 

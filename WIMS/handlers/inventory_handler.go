@@ -171,6 +171,59 @@ func CompleteInventoryHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/inventory/"+idStr+"?success="+url.QueryEscape("Инвентаризация завершена, остатки скорректированы"), http.StatusSeeOther)
 }
 
+// SaveAndCompleteInventoryHandler — сохраняет факт и завершает за один запрос
+func SaveAndCompleteInventoryHandler(w http.ResponseWriter, r *http.Request) {
+	username, _, _, ok := RequireRole(w, r, "admin", "manager")
+	if !ok {
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/inventory", http.StatusSeeOther)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Redirect(w, r, "/inventory?error="+url.QueryEscape("Неверный ID"), http.StatusSeeOther)
+		return
+	}
+
+	// шаг 1: сохраняем все item_ поля
+	if err := r.ParseForm(); err == nil {
+		for key, vals := range r.Form {
+			if len(key) > 5 && key[:5] == "item_" {
+				itemID, err := strconv.Atoi(key[5:])
+				if err != nil {
+					continue
+				}
+				actualQty, err := strconv.Atoi(vals[0])
+				if err != nil || actualQty < 0 {
+					continue
+				}
+				models.UpdateInventoryItem(itemID, actualQty)
+			}
+		}
+	}
+
+	// шаг 2: завершаем
+	if err := models.CompleteInventory(id, username); err != nil {
+		http.Redirect(w, r, "/inventory/"+idStr+"?error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
+		return
+	}
+
+	// лог
+	_, items, _ := models.GetInventoryByID(id)
+	surplus, shortage := 0, 0
+	for _, item := range items {
+		if item.Diff > 0 { surplus++ }
+		if item.Diff < 0 { shortage++ }
+	}
+	detail := fmt.Sprintf("позиций: %d, излишков: %d, недостач: %d", len(items), surplus, shortage)
+	models.WriteAdminLog(username, "complete_inventory", "Документ #"+idStr, detail)
+	http.Redirect(w, r, "/inventory/"+idStr+"?success="+url.QueryEscape("Инвентаризация завершена"), http.StatusSeeOther)
+}
+
 // ExportInventoryCSVHandler — экспорт строк инвентаризации
 func ExportInventoryCSVHandler(w http.ResponseWriter, r *http.Request) {
 	_, _, _, ok := RequireRole(w, r, "admin", "manager")

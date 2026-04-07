@@ -30,7 +30,8 @@ type InventoryItemRow struct {
 	ActualQty   int
 	Diff        int
 	Price       float64
-	Total       float64
+	Total       float64  // Price * ActualQty
+	DiffTotal   float64  // Price * |Diff| — для акта
 }
 
 // CreateInventory — создаёт новый документ инвентаризации
@@ -185,6 +186,9 @@ func GetInventoryByID(id int) (*Inventory, []InventoryItemRow, error) {
 			return nil, nil, err
 		}
 		item.Total = item.Price * float64(item.ActualQty)
+		diffAbs := item.Diff
+		if diffAbs < 0 { diffAbs = -diffAbs }
+		item.DiffTotal = item.Price * float64(diffAbs)
 		items = append(items, item)
 	}
 	return &inv, items, rows.Err()
@@ -193,8 +197,8 @@ func GetInventoryByID(id int) (*Inventory, []InventoryItemRow, error) {
 // UpdateInventoryItem — обновить фактическое количество по строке
 func UpdateInventoryItem(itemID, actualQty int) error {
 	_, err := database.DB.Exec(
-		`UPDATE inventory_items SET actual_qty = ?, diff = actual_qty - expected_qty
-		 WHERE id = ?`, actualQty, itemID,
+		`UPDATE inventory_items SET actual_qty = ?, diff = ? - expected_qty
+		 WHERE id = ?`, actualQty, actualQty, itemID,
 	)
 	return err
 }

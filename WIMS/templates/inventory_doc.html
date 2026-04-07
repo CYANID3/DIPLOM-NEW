@@ -103,14 +103,86 @@ input.actual-qty { width: 80px; text-align: center; }
 <div class="card p-4 border-warning">
 <h6 class="text-warning mb-2">⚠ Завершение инвентаризации</h6>
 <p class="text-muted small mb-3">
-После завершения остатки всех товаров будут скорректированы по фактическим данным.
+После завершения фактические данные будут сохранены и остатки скорректированы.
 Это действие необратимо.
 </p>
+<div id="allZeroWarn" class="alert alert-warning mb-3" style="display:none">
+⚠ Все фактические количества совпадают с ожидаемыми — расхождений нет.
+</div>
 <button type="button" class="btn btn-warning"
         onclick="confirmComplete()">Завершить инвентаризацию</button>
 </div>
 {{end}}
 </form>
+
+<!-- АКТ ИНВЕНТАРИЗАЦИИ — только для завершённых -->
+{{if eq .Inventory.Status "completed"}}
+{{$hasDiff := false}}
+{{range .Items}}{{if ne .Diff 0}}{{$hasDiff = true}}{{end}}{{end}}
+
+
+<div class="card p-4 mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h5 class="mb-0">Акт инвентаризации</h5>
+<a href="/inventory/export?id={{.Inventory.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+</div>
+
+<div class="row g-4">
+
+<!-- НЕДОСТАЧА -->
+<div class="col-md-6">
+<h6 class="text-danger mb-2">📉 Недостача (списание)</h6>
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Товар</th>
+<th class="text-center">Разница</th>
+<th class="text-end">Сумма</th>
+</tr>
+</thead>
+<tbody>
+{{range .Items}}
+{{if lt .Diff 0}}
+<tr class="table-danger">
+<td>{{.ProductName}}</td>
+<td class="text-center text-danger fw-semibold">{{.Diff}}</td>
+<td class="text-end">{{printf "%.2f" .DiffTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{end}}
+{{end}}
+</tbody>
+</table>
+</div>
+
+<!-- ИЗЛИШЕК -->
+<div class="col-md-6">
+<h6 class="text-success mb-2">📈 Излишек (оприходование)</h6>
+<table class="table table-sm">
+<thead>
+<tr>
+<th>Товар</th>
+<th class="text-center">Разница</th>
+<th class="text-end">Сумма</th>
+</tr>
+</thead>
+<tbody>
+{{range .Items}}
+{{if gt .Diff 0}}
+<tr class="table-success">
+<td>{{.ProductName}}</td>
+<td class="text-center text-success fw-semibold">+{{.Diff}}</td>
+<td class="text-end">{{printf "%.2f" .DiffTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{end}}
+{{end}}
+</tbody>
+</table>
+</div>
+
+</div>
+</div>
+
+{{end}}
 
 </div>
 </div>
@@ -123,15 +195,12 @@ input.actual-qty { width: 80px; text-align: center; }
 <h5 class="modal-title">Завершить инвентаризацию?</h5>
 </div>
 <div class="modal-body">
-<p>Остатки всех товаров будут скорректированы по введённым фактическим данным.</p>
+<p>Фактические данные будут сохранены и остатки скорректированы.</p>
 <p class="text-danger mb-0">Это действие необратимо.</p>
 </div>
 <div class="modal-footer">
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-<form action="/inventory/complete" method="post" style="display:inline">
-<input type="hidden" name="id" value="{{.Inventory.ID}}">
-<button type="submit" class="btn btn-warning">Завершить</button>
-</form>
+<button type="button" class="btn btn-warning" id="doCompleteBtn">Завершить</button>
 </div>
 </div>
 </div>
@@ -176,8 +245,38 @@ function calcDiff(input, expected) {
 }
 
 function confirmComplete() {
+    // проверяем есть ли хоть одно расхождение
+    var hasDiff = false;
+    document.querySelectorAll('[id^="diff_"]').forEach(function (el) {
+        var val = parseInt(el.textContent, 10);
+        if (!isNaN(val) && val !== 0) hasDiff = true;
+    });
+    var warn = document.getElementById('allZeroWarn');
+    if (warn) warn.style.display = hasDiff ? 'none' : '';
     new bootstrap.Modal(document.getElementById('completeModal')).show();
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    var doBtn = document.getElementById('doCompleteBtn');
+    if (!doBtn) return;
+
+    doBtn.addEventListener('click', function () {
+        // меняем action формы на save-complete и добавляем id
+        var invForm = document.getElementById('invForm');
+        invForm.action = '/inventory/save-complete';
+        // добавляем скрытый id если его нет
+        if (!invForm.querySelector('[name="id"]')) {
+            var hiddenId = document.createElement('input');
+            hiddenId.type  = 'hidden';
+            hiddenId.name  = 'id';
+            hiddenId.value = '{{.Inventory.ID}}';
+            invForm.appendChild(hiddenId);
+        }
+        doBtn.disabled = true;
+        doBtn.textContent = 'Завершение...';
+        invForm.submit();
+    });
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     var err = document.getElementById('errorToast');
