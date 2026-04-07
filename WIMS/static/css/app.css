@@ -517,14 +517,14 @@ a:hover {
 }
 
 /* ===== КАСТОМНЫЙ БЕЙДЖ: TEAL ===== */
-.badge.text-bg-teal,
-span.text-bg-teal {
+.badge.text-bg-restock,
+span.text-bg-restock {
     --bs-badge-color:  #ffffff;
     background-color:  #0F6E56 !important;
     color:             #ffffff !important;
 }
 /* Bootstrap читает цвет текста бейджа через --bs-badge-color */
-.text-bg-teal {
+.text-bg-restock {
     --bs-badge-color:  #ffffff;
     background-color:  #0F6E56 !important;
     color:             #ffffff !important;
