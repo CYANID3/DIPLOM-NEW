@@ -47,9 +47,9 @@
     --row-danger-color:      #58151c;
     --row-danger-border:     #f1aeb5;
 
-    --row-warning-bg:        #fff3cd;
-    --row-warning-color:     #332701;
-    --row-warning-border:    #ffe69c;
+    --row-warning-bg:        #ffeaa0;
+    --row-warning-color:     #5a3e00;
+    --row-warning-border:    #ffd84a;
 
     --row-success-bg:        #d1e7dd;
     --row-success-color:     #0a3622;
@@ -332,6 +332,14 @@ a:hover {
     color: var(--app-muted) !important;
 }
 
+/* ===== ОТКЛЮЧЕНИЕ HOVER НА ТАБЛИЦАХ ===== */
+.table tbody tr:hover > td,
+.table tbody tr:hover > th {
+    background-color: inherit !important;
+    color: inherit !important;
+    --bs-table-hover-bg: transparent;
+}
+
 /* ===== ТАБЛИЦЫ: ЦВЕТНЫЕ СТРОКИ ===== */
 .table-danger,
 .table-danger td,
@@ -546,4 +554,79 @@ span.text-bg-restock,
 /* ===== BORDER WARNING CARD ===== */
 [data-theme="dark"] .border-warning {
     border-color: rgba(255, 193, 7, 0.4) !important;
+}
+
+
+
+/* ===== КНОПКИ В ТАБЛИЦЕ ТОВАРОВ В ТЁМНОЙ ТЕМЕ ===== */
+[data-theme="dark"] .btn-outline-secondary {
+    color:        #adb5bd;
+    border-color: #4a5058;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #4a5058;
+    color: #ffffff;
+}
+[data-theme="dark"] .btn-outline-primary {
+    color:        #8ab4f8;
+    border-color: #6ea8fe;
+}
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #ffffff;
+    border-color: #0d6efd;
+}
+[data-theme="dark"] .btn-outline-warning {
+    color:        #ffc107;
+    border-color: #ffc107;
+}
+[data-theme="dark"] .btn-outline-warning:hover {
+    background-color: #ffc107;
+    color: #000;
+}
+[data-theme="dark"] .btn-outline-danger {
+    color:        #f07070;
+    border-color: #dc3545;
+}
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+
+/* ===== КНОПКИ ДЕЙСТВИЙ В ТАБЛИЦЕ ТОВАРОВ (ТЁМНАЯ ТЕМА) ===== */
+[data-theme="dark"] .btn-outline-secondary.btn-sm {
+    background-color: #4a5058;
+    color:            #ffffff;
+    border-color:     #4a5058;
+}
+[data-theme="dark"] .btn-outline-secondary.btn-sm:hover {
+    background-color: #5a6068;
+    border-color:     #5a6068;
+}
+[data-theme="dark"] .btn-outline-primary.btn-sm {
+    background-color: #0d6efd;
+    color:            #ffffff;
+    border-color:     #0d6efd;
+}
+[data-theme="dark"] .btn-outline-primary.btn-sm:hover {
+    background-color: #0b5ed7;
+    border-color:     #0b5ed7;
+}
+[data-theme="dark"] .btn-outline-danger.btn-sm {
+    background-color: #dc3545;
+    color:            #ffffff;
+    border-color:     #dc3545;
+}
+[data-theme="dark"] .btn-outline-danger.btn-sm:hover {
+    background-color: #bb2d3b;
+    border-color:     #bb2d3b;
+}
+[data-theme="dark"] .btn-outline-warning.btn-sm {
+    background-color: #ffc107;
+    color:            #000000;
+    border-color:     #ffc107;
+}
+[data-theme="dark"] .btn-outline-warning.btn-sm:hover {
+    background-color: #e0a800;
+    border-color:     #e0a800;
 }

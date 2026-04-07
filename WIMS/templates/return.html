@@ -33,34 +33,50 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <select class="form-select" name="history_id" id="sellSelect" required onchange="fillReturn(this)">
 <option value="">— выберите продажу —</option>
 {{range .Sells}}
+{{if gt .CanReturn 0}}
 <option value="{{.ID}}"
         data-name="{{.ProductName}}"
         data-barcode="{{.Barcode}}"
         data-qty="{{.Quantity}}"
-        data-price="{{printf "%.2f" .Price}}">
-#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}})
+        data-price="{{printf "%.2f" .Price}}"
+        data-returned="{{.AlreadyReturned}}"
+        data-canreturn="{{.CanReturn}}">
+#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}}){{if gt .AlreadyReturned 0}} [возвращено: {{.AlreadyReturned}}]{{end}}
 </option>
+{{else}}
+<option value="{{.ID}}" disabled>
+#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}}) — полностью возвращён
+</option>
+{{end}}
 {{end}}
 </select>
 </div>
 
 <div id="sellInfo" class="card p-3 mb-3" style="display:none">
 <div class="row g-3 small">
-<div class="col-6 col-md-3">
+<div class="col-6 col-md-2">
 <div class="text-muted mb-1">Товар</div>
 <div id="infoName" class="fw-semibold"></div>
 </div>
-<div class="col-6 col-md-3">
-<div class="text-muted mb-1">Штрихкод</div>
-<div id="infoBarcode" class="text-muted"></div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Цена за ед.</div>
+<div id="infoPrice" class="fw-semibold text-success"></div>
 </div>
-<div class="col-6 col-md-3">
+<div class="col-6 col-md-2">
 <div class="text-muted mb-1">Продано</div>
 <div id="infoQty" class="fw-semibold"></div>
 </div>
-<div class="col-6 col-md-3">
-<div class="text-muted mb-1">Цена</div>
-<div id="infoPrice" class="fw-semibold text-success"></div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Сумма продажи</div>
+<div id="infoTotal" class="fw-semibold text-warning"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Уже возвращено</div>
+<div id="infoReturned" class="text-danger"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Можно вернуть</div>
+<div id="infoCanReturn" class="fw-semibold text-success"></div>
 </div>
 </div>
 </div>
@@ -97,11 +113,13 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <th class="sortable ps-3" data-col="0">ID</th>
 <th class="sortable" data-col="1">Сотрудник</th>
 <th class="sortable" data-col="2">Товар</th>
-<th class="sortable" data-col="3">Штрихкод</th>
-<th class="sortable" data-col="4">Кол-во</th>
-<th class="sortable" data-col="5">Сумма</th>
-<th class="sortable" data-col="6">Примечание</th>
-<th class="sortable pe-3" data-col="7" data-type="date">Время</th>
+<th class="sortable text-center" data-col="3">Возвращено</th>
+<th class="sortable" data-col="4">Цена за ед.</th>
+<th class="sortable" data-col="5">Сумма возврата</th>
+<th class="sortable" data-col="6">Итого у клиента</th>
+<th class="sortable" data-col="7">Осталось в кассе</th>
+<th class="sortable" data-col="8">Примечание</th>
+<th class="sortable pe-3" data-col="9" data-type="date">Время</th>
 </tr>
 </thead>
 <tbody>
@@ -110,10 +128,12 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td class="ps-3 text-muted small">{{.ID}}</td>
 <td>{{.UserDisplay}}</td>
 <td class="fw-semibold">{{.ProductName}}</td>
-<td class="text-muted small">{{.Barcode}}</td>
-<td>{{.Quantity}}</td>
-<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
-<td class="text-muted small">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
+<td class="text-center">{{.Quantity}} шт.</td>
+<td class="text-muted">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-danger fw-semibold">−{{printf "%.2f" .ReturnTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-muted small" title="Сумма продажи: {{printf "%.2f" .SoldTotal}}">{{printf "%.2f" .SoldTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-success fw-semibold">{{printf "%.2f" .RemainTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{.Note}}">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
 <td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
@@ -136,15 +156,23 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 function fillReturn(sel) {
     var opt = sel.options[sel.selectedIndex];
     if (!opt.value) { document.getElementById('sellInfo').style.display = 'none'; return; }
-    document.getElementById('infoName').textContent    = opt.dataset.name;
-    document.getElementById('infoBarcode').textContent = opt.dataset.barcode;
-    document.getElementById('infoQty').textContent     = opt.dataset.qty + ' шт.';
-    document.getElementById('infoPrice').textContent   = opt.dataset.price;
-    document.getElementById('productName').value       = opt.dataset.name;
-    document.getElementById('barcode').value           = opt.dataset.barcode;
-    document.getElementById('price').value             = opt.dataset.price;
-    document.getElementById('returnQty').max           = opt.dataset.qty;
-    document.getElementById('sellInfo').style.display  = '';
+    var qty       = parseInt(opt.dataset.qty, 10);
+    var returned  = parseInt(opt.dataset.returned || '0', 10);
+    var canReturn = parseInt(opt.dataset.canreturn || qty.toString(), 10);
+    var price     = parseFloat(opt.dataset.price);
+    var total     = (qty * price).toFixed(2);
+
+    document.getElementById('infoName').textContent       = opt.dataset.name;
+    document.getElementById('infoPrice').textContent      = opt.dataset.price;
+    document.getElementById('infoQty').textContent        = qty + ' шт.';
+    document.getElementById('infoTotal').textContent      = total;
+    document.getElementById('infoReturned').textContent   = returned + ' шт.';
+    document.getElementById('infoCanReturn').textContent  = canReturn + ' шт.';
+    document.getElementById('productName').value          = opt.dataset.name;
+    document.getElementById('barcode').value              = opt.dataset.barcode;
+    document.getElementById('price').value                = opt.dataset.price;
+    document.getElementById('returnQty').max              = canReturn;
+    document.getElementById('sellInfo').style.display     = '';
     fetch('/api/product-by-name?name=' + encodeURIComponent(opt.dataset.name))
         .then(function(r) { return r.json(); })
         .then(function(p) { document.getElementById('productId').value = p.id; })

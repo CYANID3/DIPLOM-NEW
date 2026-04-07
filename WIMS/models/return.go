@@ -8,31 +8,35 @@ import (
 )
 
 type ReturnItem struct {
-	ID          int
-	Username    string
-	UserDisplay string
-	HistoryID   int
-	ProductID   int
-	ProductName string
-	Barcode     string
-	Quantity    int
-	Price       float64
-	Total       float64
-	Note        string
-	Timestamp   string
+	ID           int
+	Username     string
+	UserDisplay  string
+	HistoryID    int
+	ProductID    int
+	ProductName  string
+	Barcode      string
+	Quantity     int
+	Price        float64  // цена за единицу
+	SoldTotal    float64  // сумма исходной продажи
+	ReturnTotal  float64  // сумма возврата (qty * price)
+	RemainTotal  float64  // остаток после возврата (sold - returned)
+	Note         string
+	Timestamp    string
 	TimestampRaw string
 }
 
 // SellHistoryItem — запись продажи для выбора при возврате
 type SellHistoryItem struct {
-	ID          int
-	ProductName string
-	Barcode     string
-	Quantity    int
-	Price       float64
-	Total       float64
-	Timestamp   string
-	TimestampRaw string
+	ID             int
+	ProductName    string
+	Barcode        string
+	Quantity       int      // продано
+	Price          float64  // цена за единицу
+	Total          float64  // сумма продажи
+	AlreadyReturned int     // уже возвращено
+	CanReturn      int      // можно вернуть
+	Timestamp      string
+	TimestampRaw   string
 }
 
 // GetSellHistory — последние 100 продаж для выбора возврата
@@ -60,6 +64,11 @@ func GetSellHistory() ([]SellHistoryItem, error) {
 		if ts.Valid {
 			h.Timestamp, h.TimestampRaw = formatTimestamp(ts.String)
 		}
+		// сколько уже возвращено по этой продаже
+		database.DB.QueryRow(
+			`SELECT COALESCE(SUM(quantity), 0) FROM returns WHERE history_id = ?`, h.ID,
+		).Scan(&h.AlreadyReturned)
+		h.CanReturn = h.Quantity - h.AlreadyReturned
 		result = append(result, h)
 	}
 	return result, rows.Err()
@@ -165,7 +174,19 @@ func GetReturns() ([]ReturnItem, error) {
 		} else {
 			item.UserDisplay = item.Username
 		}
-		item.Total = item.Price * float64(item.Quantity)
+		item.ReturnTotal = item.Price * float64(item.Quantity)
+		// получаем сумму исходной продажи
+		var soldQty int
+		database.DB.QueryRow(
+			`SELECT COALESCE(quantity, 0) FROM history WHERE id = ?`, item.HistoryID,
+		).Scan(&soldQty)
+		item.SoldTotal = item.Price * float64(soldQty)
+		// сколько всего возвращено по этой продаже
+		var totalReturned int
+		database.DB.QueryRow(
+			`SELECT COALESCE(SUM(quantity), 0) FROM returns WHERE history_id = ?`, item.HistoryID,
+		).Scan(&totalReturned)
+		item.RemainTotal = item.Price * float64(soldQty - totalReturned)
 		if ts.Valid {
 			item.Timestamp, item.TimestampRaw = formatTimestamp(ts.String)
 		}

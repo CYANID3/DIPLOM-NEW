@@ -76,8 +76,8 @@ func CreateReturnHandler(w http.ResponseWriter, r *http.Request) {
 
 	price, _ := strconv.ParseFloat(r.FormValue("price"), 64)
 	productName := r.FormValue("product_name")
-	barcode := r.FormValue("barcode")
-	note := r.FormValue("note")
+	barcode     := r.FormValue("barcode")
+	note        := r.FormValue("note")
 
 	if err := models.CreateReturn(username, historyID, productID, qty, productName, barcode, note, price); err != nil {
 		http.Redirect(w, r, "/returns?error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
@@ -115,7 +115,7 @@ func ExportReturnsCSVHandler(w http.ResponseWriter, r *http.Request) {
 			ret.Barcode,
 			strconv.Itoa(ret.Quantity),
 			strconv.FormatFloat(ret.Price, 'f', 2, 64),
-			strconv.FormatFloat(ret.Total, 'f', 2, 64),
+			strconv.FormatFloat(ret.ReturnTotal, 'f', 2, 64),
 			ret.Note,
 			ret.Timestamp,
 		})

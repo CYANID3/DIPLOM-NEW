@@ -38,7 +38,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <th class="sortable" data-col="1">Штрихкод</th>
 <th class="sortable" data-col="2">Название</th>
 <th class="sortable" data-col="3">Категория</th>
-<th class="sortable" data-col="4">Цена</th>
+<th class="sortable" data-col="4">Цена за ед.</th>
 <th class="sortable" data-col="5">Остаток</th>
 <th class="sortable" data-col="6">Сумма</th>
 <th class="pe-3">Продать</th>
@@ -60,7 +60,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 {{else}}
 <div class="d-flex gap-1">
 <input class="form-control form-control-sm sell-qty-input" type="number"
-       min="1" style="width:72px" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
+       min="1" style="width:90px" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
 <button class="btn btn-success btn-sm px-2" type="button" onclick="goToSell(this)">OK</button>
 </div>
 {{end}}
