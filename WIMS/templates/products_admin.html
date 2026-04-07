@@ -60,7 +60,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td class="text-muted">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="text-end pe-3">
 <div class="d-flex justify-content-end gap-1">
-<button type="button" class="btn btn-sm btn-outline-secondary"
+<button type="button" class="btn btn-sm btn-outline-success"
         onclick="openRestock({{.ID}}, '{{.Name}}', {{printf "%.2f" .Price}})">Пополнить</button>
 <a href="/admin/products/edit?id={{.ID}}" class="btn btn-sm btn-outline-primary">Изменить</a>
 <button type="button" class="btn btn-sm btn-outline-danger"

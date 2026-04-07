@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 	"wims/database"
 	"wims/handlers"
 	"wims/models"
@@ -11,21 +12,62 @@ import (
 func createDefaultAdmin() {
 	var count int
 	if err := database.DB.QueryRow("SELECT COUNT(*) FROM users").Scan(&count); err != nil {
-		log.Println("Ошибка проверки пользователей:", err)
+		log.Printf("[ERROR] Ошибка проверки пользователей: %v", err)
 		return
 	}
 	if count > 0 {
 		return
 	}
 	if err := models.CreateUser("admin", "admin", "admin", "Admin", "User", "", "", ""); err != nil {
-		log.Println("Ошибка создания admin:", err)
+		log.Printf("[ERROR] Ошибка создания admin: %v", err)
 		return
 	}
-	log.Println("Создан пользователь admin / admin")
+	log.Println("[INFO]  Создан пользователь по умолчанию: admin / admin")
+}
+
+// loggingMiddleware — логирует каждый HTTP запрос
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rw := &responseWriter{ResponseWriter: w, status: 200}
+		next.ServeHTTP(rw, r)
+		duration := time.Since(start)
+
+		level := "[INFO] "
+		if rw.status >= 500 {
+			level = "[ERROR]"
+		} else if rw.status >= 400 {
+			level = "[WARN] "
+		}
+
+		log.Printf("%s %s %s %d %s",
+			level,
+			r.Method,
+			r.URL.Path,
+			rw.status,
+			duration.Round(time.Millisecond),
+		)
+	})
+}
+
+// responseWriter — обёртка для перехвата статус кода
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime)
+
+	log.Println("[INFO]  Инициализация базы данных...")
 	database.InitDB()
+	log.Println("[INFO]  База данных готова")
+
 	createDefaultAdmin()
 
 	mux := http.NewServeMux()
@@ -37,12 +79,10 @@ func main() {
 	// ===== ОСНОВНЫЕ СТРАНИЦЫ =====
 	mux.HandleFunc("/", handlers.IndexPage)
 	mux.HandleFunc("/sell", handlers.SellProductHandler)
-
-	// добавление и удаление — только manager/admin
 	mux.HandleFunc("/add", handlers.AddProductHandler)
 	mux.HandleFunc("/delete", handlers.DeleteProductHandler)
 
-	// транзакции (продажа с выбором товара)
+	// транзакции
 	mux.HandleFunc("/transaction", handlers.TransactionPage)
 	mux.HandleFunc("/transaction/sell", handlers.SellTransactionHandler)
 	mux.HandleFunc("/api/product", handlers.GetProductDataHandler)
@@ -65,11 +105,9 @@ func main() {
 	mux.HandleFunc("/admin/create", handlers.CreateUserHandler)
 	mux.HandleFunc("/admin/delete", handlers.DeleteUserHandler)
 	mux.HandleFunc("/admin/edit", handlers.AdminEditUserPage)
-
-	// дашборд (admin + manager)
 	mux.HandleFunc("/admin/dashboard", handlers.DashboardPage)
 
-	// управление товарами (admin + manager)
+	// управление товарами
 	mux.HandleFunc("/admin/products", handlers.ProductsAdminPage)
 	mux.HandleFunc("/admin/products/add", handlers.AddProductAdminHandler)
 	mux.HandleFunc("/admin/products/edit", handlers.EditProductPage)
@@ -77,27 +115,27 @@ func main() {
 	mux.HandleFunc("/admin/products/restock", handlers.RestockProductHandler)
 	mux.HandleFunc("/admin/products/export", handlers.ExportProductsCSVHandler)
 
-	// настройки (admin only)
+	// настройки
 	mux.HandleFunc("/admin/settings", handlers.SettingsPage)
 
-	// сессии (admin only)
+	// сессии
 	mux.HandleFunc("/admin/sessions", handlers.SessionsPage)
 	mux.HandleFunc("/admin/sessions/kill", handlers.KillSessionHandler)
 	mux.HandleFunc("/admin/sessions/kill-all", handlers.KillUserSessionsHandler)
 
-	// журнал действий (admin only)
+	// журнал
 	mux.HandleFunc("/admin/log", handlers.AdminLogPage)
 
-	// возвраты (manager + admin)
+	// возвраты
 	mux.HandleFunc("/returns", handlers.ReturnPage)
 	mux.HandleFunc("/returns/create", handlers.CreateReturnHandler)
 	mux.HandleFunc("/returns/export", handlers.ExportReturnsCSVHandler)
 
-	// пересорт (manager + admin)
+	// пересорт
 	mux.HandleFunc("/regrade", handlers.RegradePage)
 	mux.HandleFunc("/regrade/create", handlers.CreateRegradeHandler)
 
-	// инвентаризация (manager + admin)
+	// инвентаризация
 	mux.HandleFunc("/inventory", handlers.InventoryListPage)
 	mux.HandleFunc("/inventory/create", handlers.CreateInventoryHandler)
 	mux.HandleFunc("/inventory/complete", handlers.CompleteInventoryHandler)
@@ -106,19 +144,19 @@ func main() {
 	mux.HandleFunc("/inventory/", handlers.InventoryDocPage)
 
 	// 404
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	base := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, pattern := mux.Handler(r)
-		if pattern == "/" && r.URL.Path != "/" {
-			handlers.NotFoundPage(w, r)
-			return
-		}
-		if pattern == "" {
+		if (pattern == "/" && r.URL.Path != "/") || pattern == "" {
 			handlers.NotFoundPage(w, r)
 			return
 		}
 		mux.ServeHTTP(w, r)
 	})
 
-	log.Println("Server :8080")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	logged := loggingMiddleware(base)
+
+	log.Println("[INFO]  Сервер запущен на http://localhost:8080")
+	if err := http.ListenAndServe(":8080", logged); err != nil {
+		log.Fatalf("[FATAL] Ошибка запуска сервера: %v", err)
+	}
 }
