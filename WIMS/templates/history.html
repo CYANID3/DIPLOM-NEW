@@ -39,7 +39,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <th class="sortable" data-col="2" data-type="str">Пользователь</th>
 <th class="sortable" data-col="3" data-type="str">Штрихкод</th>
 <th class="sortable" data-col="4" data-type="str">Товар</th>
-<th class="sortable" data-col="5" data-type="num">Цена</th>
+<th class="sortable" data-col="5" data-type="num">Цена за ед.</th>
 <th class="sortable" data-col="6" data-type="num">Кол-во</th>
 <th class="sortable" data-col="7" data-type="num">Сумма</th>
 <th class="sortable pe-3" data-col="8" data-type="date">Время</th>
@@ -71,7 +71,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
-<tr><td colspan="9" class="text-center text-muted py-5">📜 История пока пуста</td></tr>
+<tr><td colspan="9" class="text-center text-muted py-5">История пока пуста</td></tr>
 {{end}}
 </tbody>
 </table>
