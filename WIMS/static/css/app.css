@@ -13,7 +13,7 @@
     --app-border:            #dee2e6;
 
     --app-input-bg:          #ffffff;
-    --app-input-color:       #181a1d;
+    --app-input-color:       #212529;
     --app-input-focus-border:#86b7fe;
     --app-input-focus-shadow:0 0 0 0.25rem rgba(13,110,253,0.25);
     --app-input-disabled-bg: #e9ecef;
@@ -37,7 +37,7 @@
     --app-link-hover:        #0a58ca;
 
     --app-muted:             #6c757d;
-    --app-placeholder:       #9fa6ab;
+    --app-placeholder:       #6c757d;
 
     --app-alert-danger-bg:   #f8d7da;
     --app-alert-danger-color:#842029;
@@ -76,8 +76,8 @@
     --app-link-color:        #9ecbff;
     --app-link-hover:        #cfe2ff;
 
-    --app-muted:             #ececec;
-    --app-placeholder:       #969fa8;
+    --app-muted:             #adb5bd;
+    --app-placeholder:       #adb5bd;
 
     --app-alert-danger-bg:   rgba(220,53,69,0.15);
     --app-alert-danger-color:#f5a7ae;
@@ -240,6 +240,9 @@ a:hover {
 .table tbody .text-muted {
     color: var(--app-muted) !important;
 }
+[data-theme="dark"] .table tbody .text-muted {
+    color: #ffffff!important;
+}
 
 /* ===== BADGE ===== */
 /* text-bg-success/primary/danger/secondary/warning — history.html и admin.html */
@@ -307,14 +310,12 @@ a:hover {
 
 /* ===== PLACEHOLDER ===== */
 ::placeholder {
-    color:   var(--app-placeholder) !important;
+    color:   var(--app-placeholder);
     opacity: 1;
-    font-style: italic;
 }
 [data-theme="dark"] ::placeholder {
     color:   var(--app-placeholder) !important;
     opacity: 1;
-    font-style: italic;
 }
 
 /* ===== INPUT-GROUP ===== */
@@ -466,13 +467,13 @@ a:hover {
 }
 
 [data-theme="dark"] {
-    --row-danger-bg:    #ba505b;
+    --row-danger-bg:    #c45e68;
     --row-danger-color: #ffffff;
-    --row-danger-border:#923d47;
+    --row-danger-border:#8d2632;
 
-    --row-warning-bg:   #b8920b;
+    --row-warning-bg:   #d49f00;
     --row-warning-color:#ffffff;
-    --row-warning-border:#a47b0a;
+    --row-warning-border:#d9a000;
 }
 
 .table-danger,
@@ -516,53 +517,82 @@ a:hover {
 }
 
 /* ===== КАСТОМНЫЙ БЕЙДЖ: TEAL ===== */
-.badge.text-bg-restock,
-span.text-bg-restock {
+.badge.text-bg-teal,
+span.text-bg-teal {
     --bs-badge-color:  #ffffff;
-    background-color:  #11a6ab !important;
+    background-color:  #0F6E56 !important;
     color:             #ffffff !important;
 }
 /* Bootstrap читает цвет текста бейджа через --bs-badge-color */
-.text-bg-restock {
+.text-bg-teal {
     --bs-badge-color:  #ffffff;
-    background-color:  #11a6ab !important;
+    background-color:  #0F6E56 !important;
     color:             #ffffff !important;
 }
 
 /* ===== USER DROPDOWN ===== */
 .user-dropdown {
-    min-width: 200px;
+    min-width: 210px;
 }
 
-.user-dropdown-header {
-    background-color: var(--app-dropdown-bg);
-}
-
-.user-dropdown-name {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--app-color);
+/* шапка с аватаром и именем */
+.user-dropdown-info {
+    display:     flex;
+    align-items: center;
+    gap:         10px;
+    padding:     12px 16px;
+    cursor:      default;
 }
 
 .user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width:            36px;
+    height:           36px;
+    border-radius:    50%;
     background-color: #198754;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    flex-shrink: 0;
+    color:            #ffffff;
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+    font-weight:      700;
+    font-size:        0.95rem;
+    text-transform:   uppercase;
+    flex-shrink:      0;
 }
 
-[data-theme="dark"] .user-dropdown-header {
-    background-color: var(--app-dropdown-bg);
+/* имя пользователя — явно задаём цвет чтобы Bootstrap не перебивал */
+.user-dropdown-name {
+    font-weight:  600;
+    font-size:    0.875rem;
+    margin-bottom: 3px;
+    color:        #212529;
 }
 
 [data-theme="dark"] .user-dropdown-name {
-    color: var(--app-color);
+    color: #e9ecef !important;
+}
+
+/* ===== TABLE-SUCCESS ===== */
+:root {
+    --row-success-bg:    #d1e7dd;
+    --row-success-color: #0a3622;
+    --row-success-border:#a3cfbb;
+}
+
+[data-theme="dark"] {
+    --row-success-bg:    #438d68;
+    --row-success-color: #ffffff;
+    --row-success-border:#15633b;
+}
+
+.table-success,
+.table-success td,
+.table-success th {
+    --bs-table-bg:            var(--row-success-bg)     !important;
+    --bs-table-color:         var(--row-success-color)  !important;
+    --bs-table-border-color:  var(--row-success-border) !important;
+    --bs-table-striped-bg:    var(--row-success-bg)     !important;
+    --bs-table-striped-color: var(--row-success-color)  !important;
+    background-color: var(--row-success-bg)    !important;
+    color:            var(--row-success-color) !important;
+    border-color:     var(--row-success-border)!important;
 }
