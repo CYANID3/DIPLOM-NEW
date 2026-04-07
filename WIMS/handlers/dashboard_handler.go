@@ -44,20 +44,41 @@ func DashboardPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	returnsSummary, err := models.GetReturnsSummary()
+	if err != nil {
+		http.Error(w, "Ошибка статистики возвратов", http.StatusInternalServerError)
+		return
+	}
+
+	invSummary, err := models.GetInventorySummary()
+	if err != nil {
+		http.Error(w, "Ошибка статистики инвентаризаций", http.StatusInternalServerError)
+		return
+	}
+
+	regradeSummary, err := models.GetRegradeSummary()
+	if err != nil {
+		http.Error(w, "Ошибка статистики пересортов", http.StatusInternalServerError)
+		return
+	}
+
 	settings := models.GetAllSettings()
 
 	data := map[string]interface{}{
-		"Username":    display,
-		"Role":        role,
-		"CurrentUser": username,
-		"Summary":     summary,
-		"TopProducts": topProducts,
-		"StaffStats":  staffStats,
-		"DailyStats":  dailyStats,
-		"LowStock":    lowStock,
-		"Settings":    settings,
-		"Error":       r.URL.Query().Get("error"),
-		"Success":     r.URL.Query().Get("success"),
+		"Username":       display,
+		"Role":           role,
+		"CurrentUser":    username,
+		"Summary":        summary,
+		"TopProducts":    topProducts,
+		"StaffStats":     staffStats,
+		"DailyStats":     dailyStats,
+		"LowStock":       lowStock,
+		"ReturnsSummary": returnsSummary,
+		"InvSummary":     invSummary,
+		"RegradeSummary": regradeSummary,
+		"Settings":       settings,
+		"Error":          r.URL.Query().Get("error"),
+		"Success":        r.URL.Query().Get("success"),
 	}
 
 	if err := dashboardTmpl.Execute(w, data); err != nil {

@@ -196,3 +196,69 @@ func GetLowStockProducts() ([]LowStockProduct, error) {
 	}
 	return result, rows.Err()
 }
+
+// --- Дополнительная статистика ---
+
+type ReturnsSummary struct {
+	CountMonth int
+	TotalMonth float64
+}
+
+type InventorySummary struct {
+	CompletedCount int
+	ShortageCount  int
+	SurplusCount   int
+	ShortageTotal  float64
+	SurplusTotal   float64
+}
+
+type RegradeSummary struct {
+	CountMonth int
+}
+
+// GetReturnsSummary — возвраты за 30 дней
+func GetReturnsSummary() (ReturnsSummary, error) {
+	var s ReturnsSummary
+	err := database.DB.QueryRow(`
+		SELECT
+			COALESCE(COUNT(*), 0),
+			COALESCE(SUM(quantity * price), 0)
+		FROM returns
+		WHERE date(timestamp) >= date('now', '-30 days')
+	`).Scan(&s.CountMonth, &s.TotalMonth)
+	return s, err
+}
+
+// GetInventorySummary — итоги инвентаризаций: недостачи и излишки из истории
+func GetInventorySummary() (InventorySummary, error) {
+	var s InventorySummary
+
+	// количество завершённых инвентаризаций
+	database.DB.QueryRow(
+		`SELECT COUNT(*) FROM inventories WHERE status = 'completed'`,
+	).Scan(&s.CompletedCount)
+
+	// недостачи из истории
+	database.DB.QueryRow(`
+		SELECT COALESCE(COUNT(*), 0), COALESCE(SUM(quantity * price), 0)
+		FROM history WHERE action = 'shortage'
+	`).Scan(&s.ShortageCount, &s.ShortageTotal)
+
+	// излишки из истории
+	err := database.DB.QueryRow(`
+		SELECT COALESCE(COUNT(*), 0), COALESCE(SUM(quantity * price), 0)
+		FROM history WHERE action = 'surplus'
+	`).Scan(&s.SurplusCount, &s.SurplusTotal)
+
+	return s, err
+}
+
+// GetRegradeSummary — пересорты за 30 дней
+func GetRegradeSummary() (RegradeSummary, error) {
+	var s RegradeSummary
+	err := database.DB.QueryRow(`
+		SELECT COALESCE(COUNT(*), 0) FROM regradings
+		WHERE date(timestamp) >= date('now', '-30 days')
+	`).Scan(&s.CountMonth)
+	return s, err
+}
