@@ -9,15 +9,15 @@
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
-<div class="container" style="max-width:600px">
-<div class="card p-4">
-<h4 class="mb-4">Новая продажа</h4>
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container" style="max-width:560px">
+
+<h4 class="fw-semibold mb-4">Новая продажа</h4>
 
 <form action="/transaction/sell" method="post" id="sellForm">
 
-<div class="mb-3">
-<label class="form-label text-muted small mb-1">Выберите товар</label>
+<div class="card p-4 mb-3">
+<label class="form-label small mb-1">Выберите товар</label>
 <select class="form-select" name="id" id="productSelect" required onchange="loadProduct(this.value)">
 <option value="">— выберите товар —</option>
 {{range .Products}}
@@ -30,43 +30,47 @@
 </select>
 </div>
 
-<!-- Карточка с данными выбранного товара -->
-<div id="productInfo" class="card p-3 mb-3 bg-body" style="display:none">
-<div class="row g-2 text-sm">
+<div id="productInfo" class="card p-4 mb-3" style="display:none">
+<h6 class="fw-semibold mb-3 text-muted">Информация о товаре</h6>
+<div class="row g-3">
 <div class="col-6">
-<div class="text-muted small">Штрихкод</div>
+<div class="small text-muted mb-1">Штрихкод</div>
 <div id="infoBarcode" class="fw-semibold">—</div>
 </div>
 <div class="col-6">
-<div class="text-muted small">Категория</div>
+<div class="small text-muted mb-1">Категория</div>
 <div id="infoCategory">—</div>
 </div>
 <div class="col-6">
-<div class="text-muted small">Цена</div>
-<div id="infoPrice" class="fw-semibold">—</div>
+<div class="small text-muted mb-1">Цена</div>
+<div id="infoPrice" class="fw-semibold text-success fs-5">—</div>
 </div>
 <div class="col-6">
-<div class="text-muted small">На складе</div>
+<div class="small text-muted mb-1">На складе</div>
 <div id="infoStock">—</div>
 </div>
 </div>
 </div>
 
-<div class="mb-3">
-<label class="form-label text-muted small mb-1">Количество</label>
-<input class="form-control" name="quantity" id="qtyInput" type="number" min="1" placeholder="0" required>
+<div class="card p-4 mb-3">
+<label class="form-label small mb-1">Количество</label>
+<input class="form-control form-control-lg" name="quantity" id="qtyInput"
+       type="number" min="1" placeholder="0" required>
 </div>
 
-<div class="mb-4 p-3 card bg-body">
-<div class="d-flex justify-content-between">
-<span class="text-muted">Итого:</span>
-<strong id="totalLabel" class="fs-5">—</strong>
+<div class="card p-4 mb-4">
+<div class="d-flex justify-content-between align-items-center">
+<span class="text-muted">Итого</span>
+<div>
+<strong id="totalLabel" class="fs-4">—</strong>
+<span class="text-muted ms-1">{{if .Settings}}{{index .Settings "currency"}}{{end}}</span>
+</div>
 </div>
 </div>
 
-<button class="btn btn-success w-100" type="button" id="sellBtn">Продать</button>
+<button class="btn btn-success btn-lg w-100 fw-semibold" type="button" id="sellBtn">Продать</button>
 </form>
-</div>
+
 </div>
 </div>
 
@@ -74,15 +78,19 @@
 <div class="modal fade" id="confirmModal" tabindex="-1" data-bs-backdrop="static">
 <div class="modal-dialog modal-dialog-centered modal-sm">
 <div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Подтверждение</h5>
+<div class="modal-header border-0 pb-0">
+<h6 class="modal-title">Подтверждение продажи</h6>
 </div>
 <div class="modal-body">
-<p class="mb-1">Продать <strong id="cQty"></strong> шт.?</p>
-<p class="mb-1 text-muted small" id="cName"></p>
-<p class="mb-0">Сумма: <strong id="cTotal"></strong></p>
+<p class="text-muted small mb-1" id="cName"></p>
+<div class="d-flex justify-content-between align-items-center">
+<span class="text-muted">Количество:</span><strong id="cQty"></strong>
 </div>
-<div class="modal-footer">
+<div class="d-flex justify-content-between align-items-center mt-1">
+<span class="text-muted">Сумма:</span><strong class="text-success" id="cTotal"></strong>
+</div>
+</div>
+<div class="modal-footer border-0 pt-0">
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
 <button type="button" class="btn btn-success" id="confirmSellBtn">Продать</button>
 </div>
@@ -91,36 +99,22 @@
 </div>
 
 <div id="clientToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
 var CONFIRM_LIMIT = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
 var currency = '{{if .Settings}}{{index .Settings "currency"}}{{end}}';
-var currentStock = 0;
-var currentPrice = 0;
+var currentStock = 0, currentPrice = 0;
 
 function showClientError(msg) {
-    var container = document.getElementById('clientToastContainer');
+    var c = document.getElementById('clientToastContainer');
     var id = 'ct_' + Date.now();
-    var div = document.createElement('div');
-    div.innerHTML = '<div id="' + id + '" class="toast text-bg-danger" role="alert"><div class="toast-body">' + msg + '</div></div>';
-    container.appendChild(div.firstChild);
+    var d = document.createElement('div');
+    d.innerHTML = '<div id="' + id + '" class="toast text-bg-danger"><div class="toast-body">' + msg + '</div></div>';
+    c.appendChild(d.firstChild);
     new bootstrap.Toast(document.getElementById(id)).show();
 }
 
@@ -132,28 +126,24 @@ function loadProduct(id, callback) {
         return;
     }
     fetch('/api/product?id=' + id)
-        .then(function (r) { return r.json(); })
-        .then(function (p) {
-            currentStock = p.quantity;
-            currentPrice = p.price;
+        .then(function(r) { return r.json(); })
+        .then(function(p) {
+            currentStock = p.quantity; currentPrice = p.price;
             document.getElementById('infoBarcode').textContent  = p.barcode  || '—';
             document.getElementById('infoCategory').textContent = p.category || '—';
-            document.getElementById('infoPrice').textContent    = p.price.toFixed(2);
+            document.getElementById('infoPrice').textContent    = p.price.toFixed(2) + ' ' + currency;
             document.getElementById('infoStock').textContent    = p.quantity + ' шт.';
             document.getElementById('productInfo').style.display = '';
             updateTotal();
             if (typeof callback === 'function') callback();
         })
-        .catch(function () { showClientError('Ошибка загрузки данных товара'); });
+        .catch(function() { showClientError('Ошибка загрузки данных товара'); });
 }
 
 function updateTotal() {
     var qty = parseInt(document.getElementById('qtyInput').value, 10);
-    if (!isNaN(qty) && qty > 0 && currentPrice > 0) {
-        document.getElementById('totalLabel').textContent = (qty * currentPrice).toFixed(2) + ' ' + currency;
-    } else {
-        document.getElementById('totalLabel').textContent = '—';
-    }
+    document.getElementById('totalLabel').textContent =
+        (!isNaN(qty) && qty > 0 && currentPrice > 0) ? (qty * currentPrice).toFixed(2) : '—';
 }
 
 document.getElementById('qtyInput').addEventListener('input', updateTotal);
@@ -161,23 +151,13 @@ document.getElementById('qtyInput').addEventListener('input', updateTotal);
 document.getElementById('sellBtn').addEventListener('click', function () {
     var qty  = parseInt(document.getElementById('qtyInput').value, 10);
     var name = document.getElementById('productSelect').options[document.getElementById('productSelect').selectedIndex].text;
-
-    if (!document.getElementById('productSelect').value) {
-        showClientError('Выберите товар');
-        return;
-    }
-    if (!qty || qty < 1) {
-        showClientError('Укажите количество');
-        return;
-    }
-    if (qty > currentStock) {
-        showClientError('Недостаточно товара на складе (остаток: ' + currentStock + ')');
-        return;
-    }
+    if (!document.getElementById('productSelect').value) { showClientError('Выберите товар'); return; }
+    if (!qty || qty < 1) { showClientError('Укажите количество'); return; }
+    if (qty > currentStock) { showClientError('Недостаточно на складе (остаток: ' + currentStock + ')'); return; }
     if (qty >= CONFIRM_LIMIT) {
-        document.getElementById('cQty').textContent   = qty;
+        document.getElementById('cQty').textContent   = qty + ' шт.';
         document.getElementById('cName').textContent  = name;
-        document.getElementById('cTotal').textContent = (qty * currentPrice).toFixed(2);
+        document.getElementById('cTotal').textContent = (qty * currentPrice).toFixed(2) + ' ' + currency;
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
         return;
     }
@@ -198,20 +178,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 
-    // предзаполнение из GET-параметров (?id=X&qty=Y)
     var params = new URLSearchParams(window.location.search);
     var preId  = params.get('id');
     var preQty = params.get('qty');
-
     if (preId) {
         var select = document.getElementById('productSelect');
         select.value = preId;
-        // запускаем загрузку данных товара
-        loadProduct(preId, function () {
-            if (preQty) {
-                document.getElementById('qtyInput').value = preQty;
-                updateTotal();
-            }
+        loadProduct(preId, function() {
+            if (preQty) { document.getElementById('qtyInput').value = preQty; updateTotal(); }
         });
     }
 });

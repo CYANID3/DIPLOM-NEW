@@ -15,16 +15,21 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h4 class="fw-semibold mb-0">Возвраты</h4>
+<a href="/returns/export" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+</div>
 
 <!-- ФОРМА ВОЗВРАТА -->
 <div class="card p-4 mb-4">
-<h5 class="mb-3">Оформить возврат</h5>
+<h6 class="fw-semibold mb-3 text-muted">Оформить возврат</h6>
 <form action="/returns/create" method="post" id="returnForm">
 
 <div class="mb-3">
-<label class="form-label text-muted small mb-1">Выберите продажу из истории</label>
+<label class="form-label small mb-1">Выберите продажу из истории</label>
 <select class="form-select" name="history_id" id="sellSelect" required onchange="fillReturn(this)">
 <option value="">— выберите продажу —</option>
 {{range .Sells}}
@@ -39,101 +44,98 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </select>
 </div>
 
-<!-- карточка выбранной продажи -->
-<div id="sellInfo" class="card p-3 mb-3 bg-body" style="display:none">
-<div class="row g-2 small">
-<div class="col-6"><div class="text-muted">Товар</div><div id="infoName" class="fw-semibold"></div></div>
-<div class="col-6"><div class="text-muted">Штрихкод</div><div id="infoBarcode"></div></div>
-<div class="col-6"><div class="text-muted">Продано</div><div id="infoQty"></div></div>
-<div class="col-6"><div class="text-muted">Цена</div><div id="infoPrice"></div></div>
+<div id="sellInfo" class="card p-3 mb-3" style="display:none">
+<div class="row g-3 small">
+<div class="col-6 col-md-3">
+<div class="text-muted mb-1">Товар</div>
+<div id="infoName" class="fw-semibold"></div>
+</div>
+<div class="col-6 col-md-3">
+<div class="text-muted mb-1">Штрихкод</div>
+<div id="infoBarcode" class="text-muted"></div>
+</div>
+<div class="col-6 col-md-3">
+<div class="text-muted mb-1">Продано</div>
+<div id="infoQty" class="fw-semibold"></div>
+</div>
+<div class="col-6 col-md-3">
+<div class="text-muted mb-1">Цена</div>
+<div id="infoPrice" class="fw-semibold text-success"></div>
+</div>
 </div>
 </div>
 
-<input type="hidden" name="product_id" id="productId">
+<input type="hidden" name="product_id"   id="productId">
 <input type="hidden" name="product_name" id="productName">
-<input type="hidden" name="barcode" id="barcode">
-<input type="hidden" name="price" id="price">
+<input type="hidden" name="barcode"      id="barcode">
+<input type="hidden" name="price"        id="price">
 
 <div class="row g-2 mb-3">
 <div class="col-md-3">
-<label class="form-label text-muted small mb-1">Количество к возврату</label>
+<label class="form-label small mb-1">Количество к возврату</label>
 <input class="form-control" name="quantity" id="returnQty" type="number" min="1" placeholder="0" required>
 </div>
 <div class="col-md-9">
-<label class="form-label text-muted small mb-1">Примечание</label>
+<label class="form-label small mb-1">Примечание</label>
 <input class="form-control" name="note" placeholder="Причина возврата (необязательно)">
 </div>
 </div>
 
-<div class="d-flex gap-2">
 <button class="btn btn-warning px-4" type="submit">Оформить возврат</button>
-<a href="/returns/export" class="btn btn-outline-secondary">↓ CSV</a>
-</div>
 </form>
 </div>
 
-<!-- СПИСОК ВОЗВРАТОВ -->
-<div class="card p-3">
-<h5>История возвратов</h5>
-<table id="returnsTable" class="table table-striped">
-<thead>
+<!-- ИСТОРИЯ ВОЗВРАТОВ -->
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">История возвратов</h6>
+</div>
+<div class="table-responsive">
+<table id="returnsTable" class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th class="sortable" data-col="0">ID</th>
+<th class="sortable ps-3" data-col="0">ID</th>
 <th class="sortable" data-col="1">Сотрудник</th>
 <th class="sortable" data-col="2">Товар</th>
 <th class="sortable" data-col="3">Штрихкод</th>
 <th class="sortable" data-col="4">Кол-во</th>
 <th class="sortable" data-col="5">Сумма</th>
 <th class="sortable" data-col="6">Примечание</th>
-<th class="sortable" data-col="7" data-type="date">Время</th>
+<th class="sortable pe-3" data-col="7" data-type="date">Время</th>
 </tr>
 </thead>
 <tbody>
 {{range .Returns}}
 <tr>
-<td>{{.ID}}</td>
+<td class="ps-3 text-muted small">{{.ID}}</td>
 <td>{{.UserDisplay}}</td>
-<td>{{.ProductName}}</td>
-<td>{{.Barcode}}</td>
+<td class="fw-semibold">{{.ProductName}}</td>
+<td class="text-muted small">{{.Barcode}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="text-muted small">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
-<td data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+<td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
-<tr><td colspan="8" class="text-center text-muted py-4">Возвратов пока нет</td></tr>
+<tr><td colspan="8" class="text-center text-muted py-5">Возвратов пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
-
-</div>
 </div>
 
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
 </div>
 </div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
 function fillReturn(sel) {
     var opt = sel.options[sel.selectedIndex];
-    if (!opt.value) {
-        document.getElementById('sellInfo').style.display = 'none';
-        return;
-    }
+    if (!opt.value) { document.getElementById('sellInfo').style.display = 'none'; return; }
     document.getElementById('infoName').textContent    = opt.dataset.name;
     document.getElementById('infoBarcode').textContent = opt.dataset.barcode;
     document.getElementById('infoQty').textContent     = opt.dataset.qty + ' шт.';
@@ -143,15 +145,11 @@ function fillReturn(sel) {
     document.getElementById('price').value             = opt.dataset.price;
     document.getElementById('returnQty').max           = opt.dataset.qty;
     document.getElementById('sellInfo').style.display  = '';
-
-    // productId — нужно получить через API
     fetch('/api/product-by-name?name=' + encodeURIComponent(opt.dataset.name))
         .then(function(r) { return r.json(); })
         .then(function(p) { document.getElementById('productId').value = p.id; })
         .catch(function() {});
 }
-
-// сортировка
 var headers = document.querySelectorAll('#returnsTable th.sortable');
 for (var h = 0; h < headers.length; h++) {
     headers[h].addEventListener('click', function () {
@@ -163,18 +161,17 @@ for (var h = 0; h < headers.length; h++) {
         var allTh = document.querySelectorAll('#returnsTable th.sortable');
         for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
         this.classList.add(asc ? 'sort-asc' : 'sort-desc');
-        rows.sort(function (a, b) {
-            var cellA = a.cells[col], cellB = b.cells[col];
-            var av = type === 'date' ? (cellA ? cellA.getAttribute('data-raw') || '' : '') : (cellA ? cellA.innerText.trim() : '');
-            var bv = type === 'date' ? (cellB ? cellB.getAttribute('data-raw') || '' : '') : (cellB ? cellB.innerText.trim() : '');
+        rows.sort(function(a,b) {
+            var ca = a.cells[col], cb = b.cells[col];
+            var av = type === 'date' ? (ca ? ca.getAttribute('data-raw') || '' : '') : (ca ? ca.innerText.trim() : '');
+            var bv = type === 'date' ? (cb ? cb.getAttribute('data-raw') || '' : '') : (cb ? cb.innerText.trim() : '');
             var an = parseFloat(av), bn = parseFloat(bv);
             if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
-            return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
+            return asc ? av.localeCompare(bv,'ru') : bv.localeCompare(av,'ru');
         });
         for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
     });
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     var err = document.getElementById('errorToast');
     var ok  = document.getElementById('successToast');

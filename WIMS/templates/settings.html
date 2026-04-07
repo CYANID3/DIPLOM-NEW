@@ -9,53 +9,50 @@
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
-<div class="container" style="max-width:500px">
-<div class="card p-4">
-<h4 class="mb-4">Настройки системы</h4>
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container" style="max-width:520px">
+
+<h4 class="fw-semibold mb-4">Настройки системы</h4>
 
 <form method="post">
+
+<div class="card p-4 mb-3">
+<h6 class="fw-semibold mb-3 text-muted">Общие</h6>
 <div class="mb-3">
-<label class="form-label text-muted small mb-1">Название организации</label>
+<label class="form-label small mb-1">Название организации</label>
 <input class="form-control" name="org_name" value="{{index .Settings "org_name"}}" required>
 </div>
-<div class="mb-3">
-<label class="form-label text-muted small mb-1">Валюта (отображается рядом с суммами)</label>
+<div class="mb-0">
+<label class="form-label small mb-1">Валюта</label>
 <input class="form-control" name="currency" value="{{index .Settings "currency"}}" required>
+<div class="form-text">Отображается рядом с суммами по всему приложению.</div>
 </div>
+</div>
+
+<div class="card p-4 mb-4">
+<h6 class="fw-semibold mb-3 text-muted">Пороги</h6>
 <div class="mb-3">
-<label class="form-label text-muted small mb-1">Порог подтверждения продажи (шт.)</label>
+<label class="form-label small mb-1">Порог подтверждения продажи (шт.)</label>
 <input class="form-control" name="sell_confirm_limit" type="number" min="1"
        value="{{index .Settings "sell_confirm_limit"}}" required>
-<div class="form-text">При продаже ≥ этого количества запрашивается подтверждение.</div>
+<div class="form-text">При продаже ≥ этого количества появляется запрос подтверждения.</div>
 </div>
-<div class="mb-4">
-<label class="form-label text-muted small mb-1">Порог низкого остатка (шт.)</label>
+<div class="mb-0">
+<label class="form-label small mb-1">Порог низкого остатка (шт.)</label>
 <input class="form-control" name="low_stock_limit" type="number" min="0"
        value="{{index .Settings "low_stock_limit"}}" required>
-<div class="form-text">Используется как значение по умолчанию при добавлении товара. Товары с остатком ≤ этого значения подсвечиваются жёлтым.</div>
+<div class="form-text">Подставляется по умолчанию при добавлении товара. Товары с остатком ≤ этого значения подсвечиваются жёлтым.</div>
+</div>
 </div>
 
 <button class="btn btn-primary w-100">Сохранить</button>
 </form>
-</div>
+
 </div>
 </div>
 
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>

@@ -15,118 +15,100 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-<input id="searchInput" class="form-control" style="max-width:400px" placeholder="Поиск по названию, штрихкоду или категории">
+<input id="searchInput" class="form-control" style="max-width:380px"
+       placeholder="Поиск по названию, штрихкоду или категории">
 {{if or (eq .Role "manager") (eq .Role "admin")}}
 <a href="/admin/products" class="btn btn-sm btn-outline-secondary ms-2">Управление товарами →</a>
 {{end}}
 </div>
 
-<div class="card p-3">
-<h5 class="mb-3">Товары на складе</h5>
-<table id="productsTable" class="table table-striped">
-<thead>
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">Товары на складе</h6>
+</div>
+<div class="table-responsive">
+<table id="productsTable" class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th class="sortable" data-col="0">ID</th>
+<th class="sortable ps-3" data-col="0">ID</th>
 <th class="sortable" data-col="1">Штрихкод</th>
 <th class="sortable" data-col="2">Название</th>
 <th class="sortable" data-col="3">Категория</th>
 <th class="sortable" data-col="4">Цена</th>
 <th class="sortable" data-col="5">Остаток</th>
 <th class="sortable" data-col="6">Сумма</th>
-<th>Продать</th>
+<th class="pe-3">Продать</th>
 </tr>
 </thead>
 <tbody>
 {{range .Products}}
 <tr {{if eq .Quantity 0}}class="table-danger"{{else if and (gt .MinStock 0) (le .Quantity .MinStock)}}class="table-warning"{{end}}>
-<td>{{.ID}}</td>
-<td>{{.Barcode}}</td>
-<td>{{.Name}}</td>
-<td>{{if .Category}}{{.Category}}{{else}}<span class="text-muted">—</span>{{end}}</td>
+<td class="ps-3 text-muted small">{{.ID}}</td>
+<td class="small text-muted">{{.Barcode}}</td>
+<td class="fw-semibold">{{.Name}}</td>
+<td>{{if .Category}}<span class="badge text-bg-secondary">{{.Category}}</span>{{else}}<span class="text-muted">—</span>{{end}}</td>
 <td>{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td>{{.Quantity}}</td>
-<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
-<td>
+<td class="text-muted">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="pe-3">
 {{if eq .Quantity 0}}
-<span class="text-muted fw-bold small">Нет в наличии</span>
+<span class="text-muted small fst-italic">Нет в наличии</span>
 {{else}}
 <div class="d-flex gap-1">
 <input class="form-control form-control-sm sell-qty-input" type="number"
-       min="1" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
-<button class="btn btn-success btn-sm" type="button"
-        onclick="goToSell(this)">OK</button>
+       min="1" style="width:72px" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
+<button class="btn btn-success btn-sm px-2" type="button" onclick="goToSell(this)">OK</button>
 </div>
 {{end}}
 </td>
 </tr>
 {{else}}
-<tr>
-<td colspan="8" class="text-center text-muted py-4">📦 Товаров пока нет</td>
-</tr>
+<tr><td colspan="8" class="text-center text-muted py-5">📦 Товаров пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
+</div>
 
 </div>
 </div>
-
-
 
 <div id="clientToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
+var SELL_LIMIT = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
+
 function showClientError(msg) {
-    var container = document.getElementById('clientToastContainer');
-    var id  = 'ct_' + Date.now();
-    var div = document.createElement('div');
-    div.innerHTML = '<div id="' + id + '" class="toast text-bg-danger" role="alert"><div class="toast-body">' + msg + '</div></div>';
-    container.appendChild(div.firstChild);
+    var c = document.getElementById('clientToastContainer');
+    var id = 'ct_' + Date.now();
+    var d = document.createElement('div');
+    d.innerHTML = '<div id="' + id + '" class="toast text-bg-danger"><div class="toast-body">' + msg + '</div></div>';
+    c.appendChild(d.firstChild);
     new bootstrap.Toast(document.getElementById(id)).show();
 }
 
-// кнопка OK — проверяет кол-во и открывает страницу транзакции с предзаполнением
 function goToSell(btn) {
     var input = btn.previousElementSibling;
     var qty   = parseInt(input.value, 10);
     var stock = parseInt(input.dataset.stock, 10);
     var id    = input.dataset.id;
-    if (!qty || qty < 1) {
-        showClientError('Укажите количество');
-        return;
-    }
-    if (qty > stock) {
-        showClientError('Нельзя продать больше, чем есть на складе (остаток: ' + stock + ')');
-        return;
-    }
+    if (!qty || qty < 1) { showClientError('Укажите количество'); return; }
+    if (qty > stock) { showClientError('Нельзя продать больше остатка (' + stock + ')'); return; }
     window.location.href = '/transaction?id=' + id + '&qty=' + qty;
 }
 
 document.getElementById('searchInput').addEventListener('keyup', function () {
-    var filter = this.value.toLowerCase();
-    document.querySelectorAll('#productsTable tbody tr').forEach(function (row) {
-        row.style.display = row.innerText.toLowerCase().indexOf(filter) >= 0 ? '' : 'none';
+    var f = this.value.toLowerCase();
+    document.querySelectorAll('#productsTable tbody tr').forEach(function(r) {
+        r.style.display = r.innerText.toLowerCase().indexOf(f) >= 0 ? '' : 'none';
     });
 });
 

@@ -15,44 +15,42 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
-<!-- ФОРМА ПЕРЕСОРТА -->
-<div class="card p-4 mb-4">
-<h5 class="mb-3">Оформить пересорт</h5>
-<form action="/regrade/create" method="post">
+<h4 class="fw-semibold mb-4">Пересорт</h4>
 
+<!-- ФОРМА -->
+<div class="card p-4 mb-4">
+<h6 class="fw-semibold mb-3 text-muted">Оформить пересорт</h6>
+<form action="/regrade/create" method="post">
 <div class="row g-3 mb-3">
-<!-- ИСТОЧНИК -->
+
 <div class="col-md-6">
-<div class="card p-3 border-danger">
-<h6 class="text-danger mb-3">Списание (−)</h6>
+<div class="card p-3 h-100" style="border-color: var(--row-danger-border)">
+<div class="fw-semibold small text-danger mb-3">Списание (−)</div>
 <div class="mb-2">
-<label class="form-label text-muted small mb-1">Товар</label>
-<select class="form-select" name="from_id" required onchange="updateStock(this, 'fromStock')">
+<label class="form-label small mb-1">Товар</label>
+<select class="form-select" name="from_id" required onchange="updateStock(this,'fromStock')">
 <option value="">— выберите товар —</option>
 {{range .Products}}
-<option value="{{.ID}}" data-stock="{{.Quantity}}">
-{{.Name}} (остаток: {{.Quantity}})
-</option>
+<option value="{{.ID}}" data-stock="{{.Quantity}}">{{.Name}} ({{.Quantity}} шт.)</option>
 {{end}}
 </select>
 </div>
 <div>
-<label class="form-label text-muted small mb-1">Количество</label>
+<label class="form-label small mb-1">Количество</label>
 <input class="form-control" name="from_qty" id="fromQty" type="number" min="1" placeholder="0" required>
 <div class="form-text" id="fromStock"></div>
 </div>
 </div>
 </div>
 
-<!-- НАЗНАЧЕНИЕ -->
 <div class="col-md-6">
-<div class="card p-3 border-success">
-<h6 class="text-success mb-3">Оприходование (+)</h6>
+<div class="card p-3 h-100" style="border-color: var(--row-success-border)">
+<div class="fw-semibold small text-success mb-3">Оприходование (+)</div>
 <div class="mb-2">
-<label class="form-label text-muted small mb-1">Товар</label>
+<label class="form-label small mb-1">Товар</label>
 <select class="form-select" name="to_id" required>
 <option value="">— выберите товар —</option>
 {{range .Products}}
@@ -61,74 +59,65 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </select>
 </div>
 <div>
-<label class="form-label text-muted small mb-1">Количество</label>
+<label class="form-label small mb-1">Количество</label>
 <input class="form-control" name="to_qty" type="number" min="1" placeholder="0" required>
 </div>
 </div>
 </div>
-</div>
 
+</div>
 <div class="mb-3">
-<label class="form-label text-muted small mb-1">Примечание</label>
+<label class="form-label small mb-1">Примечание</label>
 <input class="form-control" name="note" placeholder="Причина пересорта (необязательно)">
 </div>
-
 <button class="btn btn-primary px-4">Провести пересорт</button>
 </form>
 </div>
 
-<!-- ИСТОРИЯ ПЕРЕСОРТОВ -->
-<div class="card p-3">
-<h5>История пересортов</h5>
-<table id="regradeTable" class="table table-striped">
-<thead>
+<!-- ИСТОРИЯ -->
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">История пересортов</h6>
+</div>
+<div class="table-responsive">
+<table id="regradeTable" class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th class="sortable" data-col="0">ID</th>
+<th class="sortable ps-3" data-col="0">ID</th>
 <th class="sortable" data-col="1">Сотрудник</th>
 <th class="sortable" data-col="2">Списан</th>
-<th class="sortable" data-col="3">Кол-во −</th>
+<th class="sortable text-center" data-col="3">Кол-во −</th>
 <th class="sortable" data-col="4">Оприходован</th>
-<th class="sortable" data-col="5">Кол-во +</th>
+<th class="sortable text-center" data-col="5">Кол-во +</th>
 <th>Примечание</th>
-<th class="sortable" data-col="7" data-type="date">Время</th>
+<th class="sortable pe-3" data-col="7" data-type="date">Время</th>
 </tr>
 </thead>
 <tbody>
 {{range .Regradings}}
 <tr>
-<td>{{.ID}}</td>
+<td class="ps-3 text-muted small">{{.ID}}</td>
 <td>{{.UserDisplay}}</td>
-<td>{{.FromName}}</td>
-<td class="text-danger">−{{.FromQty}}</td>
-<td>{{.ToName}}</td>
-<td class="text-success">+{{.ToQty}}</td>
+<td class="fw-semibold">{{.FromName}}</td>
+<td class="text-center text-danger fw-semibold">−{{.FromQty}}</td>
+<td class="fw-semibold">{{.ToName}}</td>
+<td class="text-center text-success fw-semibold">+{{.ToQty}}</td>
 <td class="text-muted small">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
-<td data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+<td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
-<tr><td colspan="8" class="text-center text-muted py-4">Пересортов пока нет</td></tr>
+<tr><td colspan="8" class="text-center text-muted py-5">Пересортов пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
-
-</div>
 </div>
 
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
 </div>
 </div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
@@ -136,13 +125,8 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 function updateStock(sel, targetId) {
     var opt = sel.options[sel.selectedIndex];
     var el  = document.getElementById(targetId);
-    if (opt.value && el) {
-        el.textContent = 'На складе: ' + (opt.dataset.stock || 0) + ' шт.';
-    } else if (el) {
-        el.textContent = '';
-    }
+    if (el) el.textContent = opt.value ? 'На складе: ' + (opt.dataset.stock || 0) + ' шт.' : '';
 }
-
 var headers = document.querySelectorAll('#regradeTable th.sortable');
 for (var h = 0; h < headers.length; h++) {
     headers[h].addEventListener('click', function () {
@@ -154,18 +138,17 @@ for (var h = 0; h < headers.length; h++) {
         var allTh = document.querySelectorAll('#regradeTable th.sortable');
         for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
         this.classList.add(asc ? 'sort-asc' : 'sort-desc');
-        rows.sort(function (a, b) {
-            var cellA = a.cells[col], cellB = b.cells[col];
-            var av = type === 'date' ? (cellA ? cellA.getAttribute('data-raw') || '' : '') : (cellA ? cellA.innerText.trim() : '');
-            var bv = type === 'date' ? (cellB ? cellB.getAttribute('data-raw') || '' : '') : (cellB ? cellB.innerText.trim() : '');
+        rows.sort(function(a,b) {
+            var ca = a.cells[col], cb = b.cells[col];
+            var av = type === 'date' ? (ca ? ca.getAttribute('data-raw') || '' : '') : (ca ? ca.innerText.trim() : '');
+            var bv = type === 'date' ? (cb ? cb.getAttribute('data-raw') || '' : '') : (cb ? cb.innerText.trim() : '');
             var an = parseFloat(av), bn = parseFloat(bv);
             if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
-            return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
+            return asc ? av.localeCompare(bv,'ru') : bv.localeCompare(av,'ru');
         });
         for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
     });
 }
-
 document.addEventListener('DOMContentLoaded', function () {
     var err = document.getElementById('errorToast');
     var ok  = document.getElementById('successToast');

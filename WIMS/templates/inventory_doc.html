@@ -9,72 +9,78 @@
 .diff-plus  { color: #198754; font-weight: 600; }
 .diff-minus { color: #dc3545; font-weight: 600; }
 .diff-zero  { color: var(--app-muted); }
-[data-theme="dark"] .diff-plus  { color: var(--row-danger-color); }
-[data-theme="dark"] .diff-minus { color: var(--row-danger-color); }
-[data-theme="dark"] .diff-zero { color: var(--row-danger-color); }
-input.actual-qty { width: 80px; text-align: center; }
-[data-theme="dark"] input.actual-qty { background-color: var(--app-input-bg); color: var(--app-input-color); border-color: var(--app-border); }
+[data-theme="dark"] .diff-plus  { color: #4caf85; }
+[data-theme="dark"] .diff-minus { color: #f07070; }
+input.actual-qty {
+    width: 80px;
+    text-align: center;
+    background-color: var(--app-input-bg);
+    color: var(--app-input-color);
+    border-color: var(--app-border);
+}
 </style>
 </head>
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
-<!-- ШАПКА ДОКУМЕНТА -->
+<!-- ШАПКА -->
 <div class="card p-4 mb-4">
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
 <div>
-<h4 class="mb-1">Инвентаризация #{{.Inventory.ID}}</h4>
+<div class="d-flex align-items-center gap-2 mb-1">
+<h4 class="mb-0 fw-semibold">Инвентаризация #{{.Inventory.ID}}</h4>
+{{if eq .Inventory.Status "draft"}}
+<span class="badge text-bg-warning">Черновик</span>
+{{else}}
+<span class="badge text-bg-success">Завершена</span>
+{{end}}
+</div>
 <div class="text-muted small">
 Ответственный: <strong>{{.Inventory.UserDisplay}}</strong> ·
 Создана: {{.Inventory.CreatedAt}}
 {{if .Inventory.CompletedAt}} · Завершена: {{.Inventory.CompletedAt}}{{end}}
 </div>
-{{if .Inventory.Note}}<div class="mt-1 text-muted small">{{.Inventory.Note}}</div>{{end}}
+{{if .Inventory.Note}}<div class="mt-1 text-muted small fst-italic">{{.Inventory.Note}}</div>{{end}}
 </div>
 <div class="d-flex gap-2 align-items-center">
-{{if eq .Inventory.Status "draft"}}
-<span class="badge text-bg-warning fs-6">Черновик</span>
-{{else}}
-<span class="badge text-bg-success fs-6">Завершена</span>
-{{end}}
 <a href="/inventory/export?id={{.Inventory.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
 <a href="/inventory" class="btn btn-sm btn-secondary">← Назад</a>
 </div>
 </div>
 </div>
 
-<!-- ТАБЛИЦА ТОВАРОВ -->
+<!-- ТАБЛИЦА ПОЗИЦИЙ -->
 <form method="post" id="invForm">
-<div class="card p-3 mb-4">
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h5 class="mb-0">Позиции ({{len .Items}})</h5>
+<div class="card p-0 overflow-hidden mb-4">
+<div class="px-3 pt-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
+<h6 class="mb-0 fw-semibold">Позиции ({{len .Items}})</h6>
 {{if eq .Inventory.Status "draft"}}
 <button class="btn btn-sm btn-primary" type="submit">Сохранить факт</button>
 {{end}}
 </div>
 <div class="table-responsive">
-<table class="table table-striped align-middle">
-<thead>
+<table class="table table-hover mb-0 align-middle">
+<thead class="table-sm">
 <tr>
-<th>Товар</th>
+<th class="ps-3">Товар</th>
 <th>Штрихкод</th>
 <th class="text-center">Ожидаемо</th>
 <th class="text-center">Факт</th>
 <th class="text-center">Разница</th>
 <th>Причина расхождения</th>
 <th class="text-end">Цена</th>
-<th class="text-end">Сумма факт</th>
+<th class="text-end pe-3">Сумма факт</th>
 </tr>
 </thead>
 <tbody>
 {{range .Items}}
 <tr {{if ne .Diff 0}}class="{{if gt .Diff 0}}table-success{{else}}table-danger{{end}}"{{end}}>
-<td>{{.ProductName}}</td>
-<td class="small">{{.Barcode}}</td>
-<td class="text-center">{{.ExpectedQty}}</td>
+<td class="ps-3 fw-semibold">{{.ProductName}}</td>
+<td class="text-muted small">{{.Barcode}}</td>
+<td class="text-center text-muted">{{.ExpectedQty}}</td>
 <td class="text-center">
 {{if eq $.Inventory.Status "draft"}}
 <input class="form-control form-control-sm actual-qty d-inline-block"
@@ -83,7 +89,7 @@ input.actual-qty { width: 80px; text-align: center; }
        value="{{.ActualQty}}"
        onchange="calcDiff(this, {{.ExpectedQty}})">
 {{else}}
-{{.ActualQty}}
+<span class="fw-semibold">{{.ActualQty}}</span>
 {{end}}
 </td>
 <td class="text-center">
@@ -93,64 +99,70 @@ input.actual-qty { width: 80px; text-align: center; }
 </td>
 <td>
 {{if eq $.Inventory.Status "draft"}}
-<select class="form-select form-select-sm reason-select" name="reason_{{.ID}}" id="reason_{{.ID}}" style="min-width:160px;display:{{if ne .Diff 0}}block{{else}}none{{end}}">
+<select class="form-select form-select-sm reason-select"
+        name="reason_{{.ID}}" id="reason_{{.ID}}"
+        style="min-width:160px;display:{{if ne .Diff 0}}block{{else}}none{{end}}">
 <option value="">— причина —</option>
-<option value="Ошибка при продаже" {{if eq .Reason "Ошибка при продаже"}}selected{{end}}>Ошибка при продаже</option>
-<option value="Ошибка при приходе" {{if eq .Reason "Ошибка при приходе"}}selected{{end}}>Ошибка при приходе</option>
-<option value="Кража / потеря" {{if eq .Reason "Кража / потеря"}}selected{{end}}>Кража / потеря</option>
-<option value="Пересортица" {{if eq .Reason "Пересортица"}}selected{{end}}>Пересортица</option>
-<option value="Естественная убыль" {{if eq .Reason "Естественная убыль"}}selected{{end}}>Естественная убыль</option>
-<option value="Ошибка системы" {{if eq .Reason "Ошибка системы"}}selected{{end}}>Ошибка системы</option>
-<option value="Иное" {{if eq .Reason "Иное"}}selected{{end}}>Иное</option>
+<option value="Ошибка при продаже"   {{if eq .Reason "Ошибка при продаже"}}selected{{end}}>Ошибка при продаже</option>
+<option value="Ошибка при приходе"   {{if eq .Reason "Ошибка при приходе"}}selected{{end}}>Ошибка при приходе</option>
+<option value="Кража / потеря"       {{if eq .Reason "Кража / потеря"}}selected{{end}}>Кража / потеря</option>
+<option value="Пересортица"          {{if eq .Reason "Пересортица"}}selected{{end}}>Пересортица</option>
+<option value="Естественная убыль"   {{if eq .Reason "Естественная убыль"}}selected{{end}}>Естественная убыль</option>
+<option value="Ошибка системы"       {{if eq .Reason "Ошибка системы"}}selected{{end}}>Ошибка системы</option>
+<option value="Иное"                 {{if eq .Reason "Иное"}}selected{{end}}>Иное</option>
 </select>
 {{else}}
 {{if .Reason}}<span class="badge text-bg-secondary small">{{.Reason}}</span>{{else}}<span class="text-muted">—</span>{{end}}
 {{end}}
 </td>
-<td class="text-end">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
-<td class="text-end" id="total_{{.ID}}">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-end text-muted small">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-end pe-3 text-muted small" id="total_{{.ID}}">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
 {{else}}
-<tr><td colspan="7" class="text-center text-muted py-4">Нет позиций</td></tr>
+<tr><td colspan="8" class="text-center text-muted py-5">Нет позиций</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
 </div>
 
-<!-- КНОПКА ЗАВЕРШЕНИЯ -->
+<!-- ЗАВЕРШЕНИЕ -->
 {{if eq .Inventory.Status "draft"}}
-<div class="card p-4 border-warning">
-<h6 class="text-warning mb-2">⚠ Завершение инвентаризации</h6>
+<div class="card p-4 mb-4" style="border-color: rgba(255,193,7,0.4)">
+<div class="d-flex align-items-start gap-3">
+<div class="flex-fill">
+<h6 class="fw-semibold mb-1">Завершение инвентаризации</h6>
 <p class="text-muted small mb-3">
 После завершения фактические данные будут сохранены и остатки скорректированы.
 Это действие необратимо.
 </p>
-<div id="allZeroWarn" class="alert alert-warning mb-3" style="display:none">
-⚠ Все фактические количества совпадают с ожидаемыми — расхождений нет.
+<div id="allZeroWarn" class="alert alert-warning small py-2 mb-3" style="display:none">
+Все фактические количества совпадают с ожидаемыми — расхождений нет.
 </div>
-<button type="button" class="btn btn-warning"
-        onclick="confirmComplete()">Завершить инвентаризацию</button>
+<button type="button" class="btn btn-warning" onclick="confirmComplete()">
+Завершить инвентаризацию
+</button>
+</div>
+</div>
 </div>
 {{end}}
 </form>
 
-<!-- АКТ ИНВЕНТАРИЗАЦИИ — только для завершённых -->
+<!-- АКТ ИНВЕНТАРИЗАЦИИ -->
 {{if eq .Inventory.Status "completed"}}
 <div class="card p-4 mb-4">
-<div class="mb-3">
-<h5 class="mb-0">Акт инвентаризации</h5>
-</div>
+<h5 class="fw-semibold mb-4">Акт инвентаризации</h5>
 
 {{if .HasDiff}}
 <div class="row g-4">
 
-<!-- НЕДОСТАЧА -->
 <div class="col-md-6">
-<h6 class="text-danger mb-2">— Недостача (списание)</h6>
+<h6 class="text-danger mb-3">— Недостача (списание)</h6>
 {{if .HasShortage}}
 <table class="table table-sm">
-<thead><tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr></thead>
+<thead class="table-sm">
+<tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr>
+</thead>
 <tbody>
 {{range .Items}}{{if lt .Diff 0}}
 <tr class="table-danger">
@@ -167,12 +179,13 @@ input.actual-qty { width: 80px; text-align: center; }
 {{end}}
 </div>
 
-<!-- ИЗЛИШЕК -->
 <div class="col-md-6">
-<h6 class="text-success mb-2">+ Излишек (оприходование)</h6>
+<h6 class="text-success mb-3">+ Излишек (оприходование)</h6>
 {{if .HasSurplus}}
 <table class="table table-sm">
-<thead><tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr></thead>
+<thead class="table-sm">
+<tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr>
+</thead>
 <tbody>
 {{range .Items}}{{if gt .Diff 0}}
 <tr class="table-success">
@@ -191,12 +204,11 @@ input.actual-qty { width: 80px; text-align: center; }
 
 </div>
 {{else}}
-<div class="text-center py-3">
+<div class="text-center py-4">
 <div class="text-success fw-semibold mb-1">Расхождений не выявлено</div>
 <div class="text-muted small">Фактические остатки совпадают с учётными данными</div>
 </div>
 {{end}}
-
 </div>
 {{end}}
 
@@ -207,14 +219,14 @@ input.actual-qty { width: 80px; text-align: center; }
 <div class="modal fade" id="completeModal" tabindex="-1" data-bs-backdrop="static">
 <div class="modal-dialog modal-dialog-centered">
 <div class="modal-content">
-<div class="modal-header">
+<div class="modal-header border-0 pb-0">
 <h5 class="modal-title">Завершить инвентаризацию?</h5>
 </div>
 <div class="modal-body">
-<p>Фактические данные будут сохранены и остатки скорректированы.</p>
-<p class="text-danger mb-0">Это действие необратимо.</p>
+<p class="text-muted">Фактические данные будут сохранены и остатки скорректированы.</p>
+<p class="text-danger small mb-0">Это действие необратимо.</p>
 </div>
-<div class="modal-footer">
+<div class="modal-footer border-0 pt-0">
 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
 <button type="button" class="btn btn-warning" id="doCompleteBtn">Завершить</button>
 </div>
@@ -222,41 +234,26 @@ input.actual-qty { width: 80px; text-align: center; }
 </div>
 </div>
 
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
 function calcDiff(input, expected) {
-    var actual  = parseInt(input.value, 10) || 0;
-    var diff    = actual - expected;
-    var id      = input.name.replace('item_', '');
-    var diffEl  = document.getElementById('diff_' + id);
+    var actual   = parseInt(input.value, 10) || 0;
+    var diff     = actual - expected;
+    var id       = input.name.replace('item_', '');
+    var diffEl   = document.getElementById('diff_'   + id);
     var reasonEl = document.getElementById('reason_' + id);
-
     if (diffEl) {
-        diffEl.textContent  = (diff > 0 ? '+' : '') + diff;
-        diffEl.className    = diff > 0 ? 'diff-plus' : diff < 0 ? 'diff-minus' : 'diff-zero';
+        diffEl.textContent = (diff > 0 ? '+' : '') + diff;
+        diffEl.className   = diff > 0 ? 'diff-plus' : diff < 0 ? 'diff-minus' : 'diff-zero';
     }
-    // показываем/скрываем select причины
     if (reasonEl) {
         reasonEl.style.display = diff !== 0 ? 'block' : 'none';
         if (diff === 0) reasonEl.value = '';
     }
-    // обновляем строку подсветки
     var row = input.closest('tr');
     if (row) {
         row.classList.remove('table-success', 'table-danger');
@@ -266,9 +263,8 @@ function calcDiff(input, expected) {
 }
 
 function confirmComplete() {
-    // проверяем есть ли хоть одно расхождение
     var hasDiff = false;
-    document.querySelectorAll('[id^="diff_"]').forEach(function (el) {
+    document.querySelectorAll('[id^="diff_"]').forEach(function(el) {
         var val = parseInt(el.textContent, 10);
         if (!isNaN(val) && val !== 0) hasDiff = true;
     });
@@ -279,27 +275,20 @@ function confirmComplete() {
 
 document.addEventListener('DOMContentLoaded', function () {
     var doBtn = document.getElementById('doCompleteBtn');
-    if (!doBtn) return;
-
-    doBtn.addEventListener('click', function () {
-        // меняем action формы на save-complete и добавляем id
-        var invForm = document.getElementById('invForm');
-        invForm.action = '/inventory/save-complete';
-        // добавляем скрытый id если его нет
-        if (!invForm.querySelector('[name="id"]')) {
-            var hiddenId = document.createElement('input');
-            hiddenId.type  = 'hidden';
-            hiddenId.name  = 'id';
-            hiddenId.value = '{{.Inventory.ID}}';
-            invForm.appendChild(hiddenId);
-        }
-        doBtn.disabled = true;
-        doBtn.textContent = 'Завершение...';
-        invForm.submit();
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function () {
+    if (doBtn) {
+        doBtn.addEventListener('click', function () {
+            var invForm = document.getElementById('invForm');
+            invForm.action = '/inventory/save-complete';
+            if (!invForm.querySelector('[name="id"]')) {
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.name = 'id'; h.value = '{{.Inventory.ID}}';
+                invForm.appendChild(h);
+            }
+            doBtn.disabled = true;
+            doBtn.textContent = 'Завершение...';
+            invForm.submit();
+        });
+    }
     var err = document.getElementById('errorToast');
     var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();

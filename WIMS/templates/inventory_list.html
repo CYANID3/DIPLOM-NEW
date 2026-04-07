@@ -9,34 +9,36 @@
 <body class="bg-body">
 {{template "navbar" .}}
 
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-<h4 class="mb-0">Инвентаризация</h4>
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+<h4 class="fw-semibold mb-0">Инвентаризация</h4>
+<button type="button" class="btn btn-primary btn-sm"
+        data-bs-toggle="modal" data-bs-target="#createModal">
 + Новая инвентаризация
 </button>
 </div>
 
-<div class="card p-3">
-<table class="table table-striped">
-<thead>
+<div class="card p-0 overflow-hidden">
+<div class="table-responsive">
+<table class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th>ID</th>
+<th class="ps-3">ID</th>
 <th>Ответственный</th>
 <th>Статус</th>
-<th>Позиций</th>
-<th>Расхождений</th>
+<th class="text-center">Позиций</th>
+<th class="text-center">Расхождений</th>
 <th>Создана</th>
 <th>Завершена</th>
-<th class="text-end">Действия</th>
+<th class="text-end pe-3">Действия</th>
 </tr>
 </thead>
 <tbody>
 {{range .Inventories}}
 <tr>
-<td>{{.ID}}</td>
+<td class="ps-3 text-muted small">{{.ID}}</td>
 <td>{{.UserDisplay}}</td>
 <td>
 {{if eq .Status "draft"}}
@@ -45,28 +47,28 @@
 <span class="badge text-bg-success">Завершена</span>
 {{end}}
 </td>
-<td>{{.ItemCount}}</td>
-<td>
-{{if gt .DiffCount 0}}
-<span class="text-danger fw-semibold">{{.DiffCount}}</span>
-{{else}}
-<span class="text-muted">0</span>
-{{end}}
+<td class="text-center text-muted">{{.ItemCount}}</td>
+<td class="text-center">
+{{if gt .DiffCount 0}}<span class="fw-semibold text-danger">{{.DiffCount}}</span>
+{{else}}<span class="text-muted">0</span>{{end}}
 </td>
-<td>{{.CreatedAt}}</td>
-<td>{{if .CompletedAt}}{{.CompletedAt}}{{else}}<span class="text-muted">—</span>{{end}}</td>
-<td class="text-end">
+<td class="small text-muted">{{.CreatedAt}}</td>
+<td class="small text-muted">{{if .CompletedAt}}{{.CompletedAt}}{{else}}—{{end}}</td>
+<td class="text-end pe-3">
 <div class="d-flex justify-content-end gap-1">
 <a href="/inventory/{{.ID}}" class="btn btn-sm btn-outline-primary">Открыть</a>
+{{if eq .Status "completed"}}
 <a href="/inventory/export?id={{.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+{{end}}
 </div>
 </td>
 </tr>
 {{else}}
-<tr><td colspan="8" class="text-center text-muted py-4">Инвентаризаций пока нет</td></tr>
+<tr><td colspan="8" class="text-center text-muted py-5">Инвентаризаций пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
+</div>
 </div>
 
 </div>
@@ -82,8 +84,10 @@
 </div>
 <form action="/inventory/create" method="post">
 <div class="modal-body">
-<p class="text-muted small mb-3">Будет создан документ со всеми товарами и их текущими остатками.</p>
-<label class="form-label text-muted small mb-1">Примечание (необязательно)</label>
+<p class="text-muted small mb-3">
+Будет создан документ со всеми товарами и текущими остатками как ожидаемые значения.
+</p>
+<label class="form-label small mb-1">Примечание (необязательно)</label>
 <input class="form-control" name="note" placeholder="Плановая инвентаризация...">
 </div>
 <div class="modal-footer">
@@ -95,20 +99,8 @@
 </div>
 </div>
 
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
