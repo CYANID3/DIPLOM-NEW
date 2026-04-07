@@ -32,6 +32,7 @@ type InventoryItemRow struct {
 	Price       float64
 	Total       float64  // Price * ActualQty
 	DiffTotal   float64  // Price * |Diff| — для акта
+	Reason      string
 }
 
 // CreateInventory — создаёт новый документ инвентаризации
@@ -166,7 +167,7 @@ func GetInventoryByID(id int) (*Inventory, []InventoryItemRow, error) {
 
 	rows, err := database.DB.Query(`
 		SELECT id, inventory_id, product_id, product_name, barcode,
-		       expected_qty, actual_qty, diff, price
+		       expected_qty, actual_qty, diff, price, reason
 		FROM inventory_items
 		WHERE inventory_id = ?
 		ORDER BY product_name`, id,
@@ -181,7 +182,7 @@ func GetInventoryByID(id int) (*Inventory, []InventoryItemRow, error) {
 		var item InventoryItemRow
 		if err := rows.Scan(
 			&item.ID, &item.InventoryID, &item.ProductID, &item.ProductName,
-			&item.Barcode, &item.ExpectedQty, &item.ActualQty, &item.Diff, &item.Price,
+			&item.Barcode, &item.ExpectedQty, &item.ActualQty, &item.Diff, &item.Price, &item.Reason,
 		); err != nil {
 			return nil, nil, err
 		}
@@ -195,10 +196,10 @@ func GetInventoryByID(id int) (*Inventory, []InventoryItemRow, error) {
 }
 
 // UpdateInventoryItem — обновить фактическое количество по строке
-func UpdateInventoryItem(itemID, actualQty int) error {
+func UpdateInventoryItem(itemID, actualQty int, reason string) error {
 	_, err := database.DB.Exec(
-		`UPDATE inventory_items SET actual_qty = ?, diff = ? - expected_qty
-		 WHERE id = ?`, actualQty, actualQty, itemID,
+		`UPDATE inventory_items SET actual_qty = ?, diff = ? - expected_qty, reason = ?
+		 WHERE id = ?`, actualQty, actualQty, reason, itemID,
 	)
 	return err
 }
@@ -267,7 +268,7 @@ func ExportInventoryCSV(id int) ([][]string, error) {
 	}
 
 	result := [][]string{
-		{"ID", "Товар", "Штрихкод", "Ожидаемо", "Факт", "Разница", "Цена", "Сумма факт"},
+		{"ID", "Товар", "Штрихкод", "Ожидаемо", "Факт", "Разница", "Цена", "Сумма факт", "Причина расхождения"},
 	}
 	for _, item := range items {
 		diff := fmt.Sprintf("%+d", item.Diff)
@@ -280,6 +281,7 @@ func ExportInventoryCSV(id int) ([][]string, error) {
 			diff,
 			ftoa(item.Price),
 			ftoa(item.Total),
+			item.Reason,
 		})
 	}
 	return result, nil

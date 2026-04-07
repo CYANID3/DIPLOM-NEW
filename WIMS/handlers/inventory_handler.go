@@ -104,7 +104,8 @@ func InventoryDocPage(w http.ResponseWriter, r *http.Request) {
 				if err != nil || actualQty < 0 {
 					continue
 				}
-				models.UpdateInventoryItem(itemID, actualQty)
+				reason := r.FormValue("reason_" + key[5:])
+				models.UpdateInventoryItem(itemID, actualQty, reason)
 			}
 		}
 		http.Redirect(w, r, "/inventory/"+idStr+"?success="+url.QueryEscape("Сохранено"), http.StatusSeeOther)
@@ -119,6 +120,13 @@ func InventoryDocPage(w http.ResponseWriter, r *http.Request) {
 
 	settings := models.GetAllSettings()
 
+	// считаем флаги расхождений для шаблона
+	hasDiff, hasShortage, hasSurplus := false, false, false
+	for _, item := range items {
+		if item.Diff < 0 { hasDiff = true; hasShortage = true }
+		if item.Diff > 0 { hasDiff = true; hasSurplus = true }
+	}
+
 	data := map[string]interface{}{
 		"Username":    display,
 		"Role":        role,
@@ -126,6 +134,9 @@ func InventoryDocPage(w http.ResponseWriter, r *http.Request) {
 		"Inventory":   inv,
 		"Items":       items,
 		"Settings":    settings,
+		"HasDiff":     hasDiff,
+		"HasShortage": hasShortage,
+		"HasSurplus":  hasSurplus,
 		"Error":       r.URL.Query().Get("error"),
 		"Success":     r.URL.Query().Get("success"),
 	}
@@ -201,7 +212,8 @@ func SaveAndCompleteInventoryHandler(w http.ResponseWriter, r *http.Request) {
 				if err != nil || actualQty < 0 {
 					continue
 				}
-				models.UpdateInventoryItem(itemID, actualQty)
+				reason := r.FormValue("reason_" + key[5:])
+				models.UpdateInventoryItem(itemID, actualQty, reason)
 			}
 		}
 	}

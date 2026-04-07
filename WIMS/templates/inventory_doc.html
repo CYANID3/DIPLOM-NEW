@@ -61,6 +61,7 @@ input.actual-qty { width: 80px; text-align: center; }
 <th class="text-center">Ожидаемо</th>
 <th class="text-center">Факт</th>
 <th class="text-center">Разница</th>
+<th>Причина расхождения</th>
 <th class="text-end">Цена</th>
 <th class="text-end">Сумма факт</th>
 </tr>
@@ -86,6 +87,22 @@ input.actual-qty { width: 80px; text-align: center; }
 <span id="diff_{{.ID}}" class="{{if gt .Diff 0}}diff-plus{{else if lt .Diff 0}}diff-minus{{else}}diff-zero{{end}}">
 {{if gt .Diff 0}}+{{end}}{{.Diff}}
 </span>
+</td>
+<td>
+{{if eq $.Inventory.Status "draft"}}
+<select class="form-select form-select-sm reason-select" name="reason_{{.ID}}" id="reason_{{.ID}}" style="min-width:160px;display:{{if ne .Diff 0}}block{{else}}none{{end}}">
+<option value="">— причина —</option>
+<option value="Ошибка при продаже" {{if eq .Reason "Ошибка при продаже"}}selected{{end}}>Ошибка при продаже</option>
+<option value="Ошибка при приходе" {{if eq .Reason "Ошибка при приходе"}}selected{{end}}>Ошибка при приходе</option>
+<option value="Кража / потеря" {{if eq .Reason "Кража / потеря"}}selected{{end}}>Кража / потеря</option>
+<option value="Пересортица" {{if eq .Reason "Пересортица"}}selected{{end}}>Пересортица</option>
+<option value="Естественная убыль" {{if eq .Reason "Естественная убыль"}}selected{{end}}>Естественная убыль</option>
+<option value="Ошибка системы" {{if eq .Reason "Ошибка системы"}}selected{{end}}>Ошибка системы</option>
+<option value="Иное" {{if eq .Reason "Иное"}}selected{{end}}>Иное</option>
+</select>
+{{else}}
+{{if .Reason}}<span class="badge text-bg-secondary small">{{.Reason}}</span>{{else}}<span class="text-muted">—</span>{{end}}
+{{end}}
 </td>
 <td class="text-end">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="text-end" id="total_{{.ID}}">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
@@ -117,71 +134,70 @@ input.actual-qty { width: 80px; text-align: center; }
 
 <!-- АКТ ИНВЕНТАРИЗАЦИИ — только для завершённых -->
 {{if eq .Inventory.Status "completed"}}
-{{$hasDiff := false}}
-{{range .Items}}{{if ne .Diff 0}}{{$hasDiff = true}}{{end}}{{end}}
-
-
 <div class="card p-4 mb-4">
 <div class="d-flex justify-content-between align-items-center mb-3">
 <h5 class="mb-0">Акт инвентаризации</h5>
+{{if .HasDiff}}
 <a href="/inventory/export?id={{.Inventory.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+{{end}}
 </div>
 
+{{if .HasDiff}}
 <div class="row g-4">
 
 <!-- НЕДОСТАЧА -->
 <div class="col-md-6">
-<h6 class="text-danger mb-2">📉 Недостача (списание)</h6>
+<h6 class="text-danger mb-2">— Недостача (списание)</h6>
+{{if .HasShortage}}
 <table class="table table-sm">
-<thead>
-<tr>
-<th>Товар</th>
-<th class="text-center">Разница</th>
-<th class="text-end">Сумма</th>
-</tr>
-</thead>
+<thead><tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr></thead>
 <tbody>
-{{range .Items}}
-{{if lt .Diff 0}}
+{{range .Items}}{{if lt .Diff 0}}
 <tr class="table-danger">
 <td>{{.ProductName}}</td>
-<td class="text-center text-danger fw-semibold">{{.Diff}}</td>
+<td class="text-center fw-semibold">{{.Diff}}</td>
+<td class="small">{{if .Reason}}{{.Reason}}{{else}}<span class="text-muted">—</span>{{end}}</td>
 <td class="text-end">{{printf "%.2f" .DiffTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
-{{end}}
-{{end}}
+{{end}}{{end}}
 </tbody>
 </table>
+{{else}}
+<p class="text-muted small">Недостач нет</p>
+{{end}}
 </div>
 
 <!-- ИЗЛИШЕК -->
 <div class="col-md-6">
-<h6 class="text-success mb-2">📈 Излишек (оприходование)</h6>
+<h6 class="text-success mb-2">+ Излишек (оприходование)</h6>
+{{if .HasSurplus}}
 <table class="table table-sm">
-<thead>
-<tr>
-<th>Товар</th>
-<th class="text-center">Разница</th>
-<th class="text-end">Сумма</th>
-</tr>
-</thead>
+<thead><tr><th>Товар</th><th class="text-center">Разница</th><th>Причина</th><th class="text-end">Сумма</th></tr></thead>
 <tbody>
-{{range .Items}}
-{{if gt .Diff 0}}
+{{range .Items}}{{if gt .Diff 0}}
 <tr class="table-success">
 <td>{{.ProductName}}</td>
-<td class="text-center text-success fw-semibold">+{{.Diff}}</td>
+<td class="text-center fw-semibold">+{{.Diff}}</td>
+<td class="small">{{if .Reason}}{{.Reason}}{{else}}<span class="text-muted">—</span>{{end}}</td>
 <td class="text-end">{{printf "%.2f" .DiffTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 </tr>
-{{end}}
-{{end}}
+{{end}}{{end}}
 </tbody>
 </table>
+{{else}}
+<p class="text-muted small">Излишков нет</p>
+{{end}}
 </div>
 
 </div>
+{{else}}
+<div class="text-center py-3">
+<div class="text-success fw-semibold mb-1">Расхождений не выявлено</div>
+<div class="text-muted small">Фактические остатки совпадают с учётными данными</div>
 </div>
+{{end}}
 
+</div>
 {{end}}
 
 </div>
@@ -229,11 +245,16 @@ function calcDiff(input, expected) {
     var diff    = actual - expected;
     var id      = input.name.replace('item_', '');
     var diffEl  = document.getElementById('diff_' + id);
-    var totalEl = document.getElementById('total_' + id);
+    var reasonEl = document.getElementById('reason_' + id);
 
     if (diffEl) {
         diffEl.textContent  = (diff > 0 ? '+' : '') + diff;
         diffEl.className    = diff > 0 ? 'diff-plus' : diff < 0 ? 'diff-minus' : 'diff-zero';
+    }
+    // показываем/скрываем select причины
+    if (reasonEl) {
+        reasonEl.style.display = diff !== 0 ? 'block' : 'none';
+        if (diff === 0) reasonEl.value = '';
     }
     // обновляем строку подсветки
     var row = input.closest('tr');

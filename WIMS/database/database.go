@@ -219,8 +219,10 @@ func migrate() {
 			expected_qty INTEGER,
 			actual_qty   INTEGER DEFAULT 0,
 			diff         INTEGER DEFAULT 0,
-			price        REAL DEFAULT 0
+			price        REAL DEFAULT 0,
+			reason       TEXT DEFAULT ''
 		)`,
+		`ALTER TABLE inventory_items ADD COLUMN reason TEXT DEFAULT ''`,
 	}
 	for _, m := range migrations {
 		DB.Exec(m) // ошибка = колонка уже есть, игнорируем
