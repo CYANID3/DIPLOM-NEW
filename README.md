@@ -18,7 +18,7 @@
 - Bootstrap (frontend)
 
 ## 📁 Структура
-
+```
 WIMS/
 ├── main.go
 ├── database/ # инициализация БД, миграции
@@ -26,7 +26,7 @@ WIMS/
 ├── handlers/ # HTTP-обработчики
 ├── templates/ # HTML-шаблоны
 └── static/ # статика
-
+```
 ## ⚙️ Запуск
 ```bash
 git clone https://github.com/CYANID3/DIPLOM-NEW.git
