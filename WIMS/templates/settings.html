@@ -45,6 +45,30 @@
 </div>
 </div>
 
+<div class="card p-4 mb-4">
+<h6 class="fw-semibold mb-3 text-muted">Сессии</h6>
+<div class="mb-0">
+<label class="form-label small mb-1">Время жизни сессии</label>
+<select class="form-select" name="session_lifetime">
+<optgroup label="Часы">
+<option value="1"   {{if eq (index .Settings "session_lifetime") "1"}}selected{{end}}>1 час</option>
+<option value="2"   {{if eq (index .Settings "session_lifetime") "2"}}selected{{end}}>2 часа</option>
+<option value="8"   {{if eq (index .Settings "session_lifetime") "8"}}selected{{end}}>8 часов</option>
+<option value="12"  {{if eq (index .Settings "session_lifetime") "12"}}selected{{end}}>12 часов</option>
+</optgroup>
+<optgroup label="Дни">
+<option value="24"  {{if eq (index .Settings "session_lifetime") "24"}}selected{{end}}>Сутки</option>
+<option value="48"  {{if eq (index .Settings "session_lifetime") "48"}}selected{{end}}>Двое суток</option>
+<option value="168" {{if eq (index .Settings "session_lifetime") "168"}}selected{{end}}>Неделя</option>
+</optgroup>
+<optgroup label="Без ограничений">
+<option value="0"   {{if eq (index .Settings "session_lifetime") "0"}}selected{{end}}>Никогда</option>
+</optgroup>
+</select>
+<div class="form-text">Пользователь будет автоматически разлогинен после указанного периода неактивности.</div>
+</div>
+</div>
+
 <button class="btn btn-primary w-100">Сохранить</button>
 </form>
 

@@ -163,6 +163,7 @@ func seedSettings() {
 		"currency":           "сом",
 		"sell_confirm_limit": "10",
 		"low_stock_limit":    "5",
+		"session_lifetime":   "24",
 	}
 	for k, v := range defaults {
 		DB.Exec(

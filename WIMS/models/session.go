@@ -3,6 +3,7 @@ package models
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"strconv"
 	"time"
 	"wims/database"
 )
@@ -41,6 +42,20 @@ func GetSession(token string) *Session {
 	).Scan(&s.Token, &s.Username, &s.CreatedAt, &s.LastSeen, &s.UserAgent, &s.IP)
 	if err != nil {
 		return nil
+	}
+
+	// проверяем срок жизни сессии
+	var lifetimeStr string
+	database.DB.QueryRow(`SELECT value FROM settings WHERE key = 'session_lifetime'`).Scan(&lifetimeStr)
+	if lifetimeStr != "" {
+		if hours, err := strconv.Atoi(lifetimeStr); err == nil && hours > 0 {
+			lastSeen, err := time.Parse("2006-01-02T15:04:05Z", s.LastSeen)
+			if err == nil && time.Since(lastSeen) > time.Duration(hours)*time.Hour {
+				database.DB.Exec(`DELETE FROM sessions WHERE token = ?`, token)
+				return nil
+			}
+		}
+		// hours == 0 означает "никогда" — пропускаем проверку
 	}
 
 	database.DB.Exec(

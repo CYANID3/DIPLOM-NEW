@@ -16,7 +16,7 @@ func SettingsPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
-		keys := []string{"org_name", "currency", "sell_confirm_limit", "low_stock_limit"}
+		keys := []string{"org_name", "currency", "sell_confirm_limit", "low_stock_limit", "session_lifetime"}
 		for _, key := range keys {
 			val := r.FormValue(key)
 			if val == "" {
