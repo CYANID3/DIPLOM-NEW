@@ -30,19 +30,23 @@
 <div class="nav-item dropdown">
 <a class="nav-link nav-admin dropdown-toggle" href="#" data-bs-toggle="dropdown">Управление</a>
 <ul class="dropdown-menu">
+
 <li><a class="dropdown-item" href="/admin/dashboard">Дашборд</a></li>
 <li><a class="dropdown-item" href="/admin/products">Товары</a></li>
+
 <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="/admin">Пользователи</a></li>
 <li><a class="dropdown-item" href="/admin/sessions">Сессии</a></li>
 <li><a class="dropdown-item" href="/admin/log">Журнал</a></li>
-<li><hr class="dropdown-divider"></li>
+
 <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="/returns">Возвраты</a></li>
 <li><a class="dropdown-item" href="/regrade">Пересорт</a></li>
 <li><a class="dropdown-item" href="/inventory">Инвентаризация</a></li>
+
 <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="/admin/settings">Настройки</a></li>
+
 </ul>
 </div>
 {{end}}
@@ -53,15 +57,22 @@
 <div class="dropdown">
 <button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
 <ul class="dropdown-menu dropdown-menu-end user-dropdown">
-<li class="user-dropdown-info">
+<li class="px-3 pt-2 pb-2">
+<div class="d-flex align-items-center gap-2">
 <div class="user-avatar">{{slice .Username 0 1}}</div>
+<div>
 <div class="user-dropdown-name">{{.Username}}</div>
+<div class="mt-1">
 {{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
 {{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
 {{else}}<span class="badge text-bg-primary">user</span>{{end}}
+</div>
+</div>
+</div>
 </li>
 <li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><hr class="dropdown-divider"></li>
 <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
 </ul>
 </div>

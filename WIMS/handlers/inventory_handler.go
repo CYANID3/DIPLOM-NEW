@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/csv"
+	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
@@ -61,7 +62,11 @@ func CreateInventoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.WriteAdminLog(username, "create_inventory", strconv.Itoa(id), note)
+	noteStr := note
+	if noteStr == "" {
+		noteStr = "без примечания"
+	}
+	models.WriteAdminLog(username, "create_inventory", "Документ #"+strconv.Itoa(id), noteStr)
 	http.Redirect(w, r, "/inventory/"+strconv.Itoa(id), http.StatusSeeOther)
 }
 
@@ -153,7 +158,16 @@ func CompleteInventoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	models.WriteAdminLog(username, "complete_inventory", idStr, "")
+	// собираем статистику для лога
+	_, items, _ := models.GetInventoryByID(id)
+	surplus, shortage, total := 0, 0, 0
+	for _, item := range items {
+		if item.Diff > 0 { surplus++ }
+		if item.Diff < 0 { shortage++ }
+		if item.Diff != 0 { total++ }
+	}
+	detail := fmt.Sprintf("позиций: %d, излишков: %d, недостач: %d", len(items), surplus, shortage)
+	models.WriteAdminLog(username, "complete_inventory", "Документ #"+idStr, detail)
 	http.Redirect(w, r, "/inventory/"+idStr+"?success="+url.QueryEscape("Инвентаризация завершена, остатки скорректированы"), http.StatusSeeOther)
 }
 

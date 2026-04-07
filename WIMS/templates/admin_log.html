@@ -53,6 +53,10 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 {{else if eq .Action "kill_session"}}<span class="badge text-bg-warning">Завершена сессия</span>
 {{else if eq .Action "kill_all_sessions"}}<span class="badge text-bg-danger">Завершены все сессии</span>
 {{else if eq .Action "update_settings"}}<span class="badge text-bg-secondary">Настройки</span>
+{{else if eq .Action "return"}}<span class="badge text-bg-warning">Возврат</span>
+{{else if eq .Action "regrade"}}<span class="badge text-bg-info">Пересорт</span>
+{{else if eq .Action "create_inventory"}}<span class="badge text-bg-primary">📋 Инвентаризация создана</span>
+{{else if eq .Action "complete_inventory"}}<span class="badge text-bg-restock">✓ Инвентаризация завершена</span>
 {{else}}<span class="badge text-bg-secondary">{{.Action}}</span>
 {{end}}
 </td>
