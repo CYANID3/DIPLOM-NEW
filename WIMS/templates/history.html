@@ -12,89 +12,70 @@ th.sort-asc::after  { content: " ↑"; opacity: 1; }
 th.sort-desc::after { content: " ↓"; opacity: 1; }
 </style>
 </head>
-
 <body class="bg-body">
+{{template "navbar" .}}
 
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><hr class="dropdown-divider"></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
-
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
-<input id="historySearch" class="form-control mb-3" placeholder="Поиск по штрихкоду, названию или пользователю">
+<div class="d-flex justify-content-between align-items-center mb-3">
+<input id="historySearch" class="form-control" style="max-width:380px"
+       placeholder="Поиск по штрихкоду, названию, пользователю или действию">
+{{if or (eq .Role "manager") (eq .Role "admin")}}
+<a href="/history/export" class="btn btn-sm btn-outline-secondary ms-2">↓ CSV</a>
+{{end}}
+</div>
 
-<div class="card p-3">
-<h5>История действий</h5>
-<table id="historyTable" class="table table-striped">
-<thead>
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">История операций</h6>
+</div>
+<div class="table-responsive">
+<table id="historyTable" class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th class="sortable" data-col="0" data-type="num">ID</th>
+<th class="sortable ps-3" data-col="0" data-type="num">ID</th>
 <th class="sortable" data-col="1" data-type="action">Действие</th>
 <th class="sortable" data-col="2" data-type="str">Пользователь</th>
 <th class="sortable" data-col="3" data-type="str">Штрихкод</th>
 <th class="sortable" data-col="4" data-type="str">Товар</th>
-<th class="sortable" data-col="5" data-type="num">Цена</th>
+<th class="sortable" data-col="5" data-type="num">Цена за ед.</th>
 <th class="sortable" data-col="6" data-type="num">Кол-во</th>
 <th class="sortable" data-col="7" data-type="num">Сумма</th>
-<th class="sortable" data-col="8" data-type="date">Время</th>
+<th class="sortable pe-3" data-col="8" data-type="date">Время</th>
 </tr>
 </thead>
 <tbody>
 {{range .History}}
 <tr>
-<td>{{.ID}}</td>
+<td class="ps-3 text-muted small">{{.ID}}</td>
 <td data-action="{{.Action}}">
-{{if eq .Action "add"}}
-<span class="badge text-bg-success">Добавлено</span>
-{{else if eq .Action "sell"}}
-<span class="badge text-bg-primary">Продано</span>
-{{else if eq .Action "delete"}}
-<span class="badge text-bg-danger">Удалено</span>
-{{else}}
-<span class="badge text-bg-secondary">{{.Action}}</span>
+{{if eq .Action "add"}}<span class="badge text-bg-success">Создан</span>
+{{else if eq .Action "restock"}}<span class="badge text-bg-restock">Пополнен</span>
+{{else if eq .Action "sell"}}<span class="badge text-bg-primary">Продано</span>
+{{else if eq .Action "return"}}<span class="badge text-bg-warning">Возврат</span>
+{{else if eq .Action "regrade_out"}}<span class="badge text-bg-secondary">Пересорт −</span>
+{{else if eq .Action "regrade_in"}}<span class="badge text-bg-info">Пересорт +</span>
+{{else if eq .Action "surplus"}}<span class="badge text-bg-restock">Излишек</span>
+{{else if eq .Action "shortage"}}<span class="badge text-bg-danger">Недостача</span>
+{{else if eq .Action "delete"}}<span class="badge text-bg-danger">Удалено</span>
+{{else}}<span class="badge text-bg-secondary">{{.Action}}</span>
 {{end}}
 </td>
 <td>{{.UserFullName}}</td>
-<td>{{.Barcode}}</td>
+<td class="text-muted small">{{.Barcode}}</td>
 <td>{{.Target}}</td>
-<td>{{printf "%.2f" .Price}}</td>
+<td class="text-muted">{{printf "%.2f" .Price}}</td>
 <td>{{.Quantity}}</td>
 <td>{{printf "%.2f" .Total}}</td>
-<td data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+<td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
 </tr>
 {{else}}
-<tr>
-<td colspan="9" class="text-center text-muted py-4">📜 История пока пуста</td>
-</tr>
+<tr><td colspan="9" class="text-center text-muted py-5">История пока пуста</td></tr>
 {{end}}
 </tbody>
 </table>
+</div>
 </div>
 
 </div>
@@ -103,78 +84,55 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-// порядок сортировки для действий
-var ACTION_ORDER = { "add": 0, "sell": 1, "delete": 2 };
+var ACTION_ORDER = { 'add': 0, 'restock': 1, 'sell': 2, 'return': 3, 'regrade_out': 4, 'regrade_in': 5, 'surplus': 6, 'shortage': 7, 'delete': 8 };
 
 function getCellValue(row, col, type) {
     var cell = row.cells[col];
-    if (!cell) return "";
-    if (type === "date")   return cell.getAttribute("data-raw") || "";
-    if (type === "action") return cell.getAttribute("data-action") || "";
+    if (!cell) return '';
+    if (type === 'date')   return cell.getAttribute('data-raw') || '';
+    if (type === 'action') return cell.getAttribute('data-action') || '';
     return cell.innerText.trim();
 }
 
-function compareRows(a, b, col, type, asc) {
-    var av = getCellValue(a, col, type);
-    var bv = getCellValue(b, col, type);
-
-    var result;
-
-    if (type === "action") {
-        var an = ACTION_ORDER[av] !== undefined ? ACTION_ORDER[av] : 99;
-        var bn = ACTION_ORDER[bv] !== undefined ? ACTION_ORDER[bv] : 99;
-        result = an - bn;
-    } else if (type === "num") {
-        var an = parseFloat(av);
-        var bn = parseFloat(bv);
-        result = (!isNaN(an) && !isNaN(bn)) ? an - bn : av.localeCompare(bv, "ru");
-    } else {
-        // str и date — лексикографически
-        result = av.localeCompare(bv, "ru");
-    }
-
-    return asc ? result : -result;
-}
-
-// поиск
-document.getElementById("historySearch").addEventListener("keyup", function () {
-    var filter = this.value.toLowerCase();
-    var rows = document.querySelectorAll("#historyTable tbody tr");
-    for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var barcode = row.cells[3] ? row.cells[3].innerText.toLowerCase() : "";
-        var name    = row.cells[4] ? row.cells[4].innerText.toLowerCase() : "";
-        var user    = row.cells[2] ? row.cells[2].innerText.toLowerCase() : "";
-        row.style.display = (barcode.indexOf(filter) >= 0 || name.indexOf(filter) >= 0 || user.indexOf(filter) >= 0) ? "" : "none";
-    }
+document.getElementById('historySearch').addEventListener('keyup', function () {
+    var f = this.value.toLowerCase();
+    document.querySelectorAll('#historyTable tbody tr').forEach(function (row) {
+        var barcode = row.cells[3] ? row.cells[3].innerText.toLowerCase() : '';
+        var name    = row.cells[4] ? row.cells[4].innerText.toLowerCase() : '';
+        var user    = row.cells[2] ? row.cells[2].innerText.toLowerCase() : '';
+        var action  = row.cells[1] ? row.cells[1].innerText.toLowerCase() : '';
+        row.style.display = (barcode.indexOf(f) >= 0 || name.indexOf(f) >= 0 || user.indexOf(f) >= 0 || action.indexOf(f) >= 0) ? '' : 'none';
+    });
 });
 
-// сортировка
-var headers = document.querySelectorAll("#historyTable th.sortable");
+var headers = document.querySelectorAll('#historyTable th.sortable');
 for (var h = 0; h < headers.length; h++) {
-    headers[h].addEventListener("click", function () {
-        var col  = parseInt(this.getAttribute("data-col"), 10);
-        var type = this.getAttribute("data-type") || "str";
-        var tbody = document.querySelector("#historyTable tbody");
-        var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
-        var asc  = !this.classList.contains("sort-asc");
-
-        for (var i = 0; i < headers.length; i++) {
-            headers[i].classList.remove("sort-asc", "sort-desc");
-        }
-        this.classList.add(asc ? "sort-asc" : "sort-desc");
-
-        var self = this;
+    headers[h].addEventListener('click', function () {
+        var col  = parseInt(this.getAttribute('data-col'), 10);
+        var type = this.getAttribute('data-type') || 'str';
+        var tbody = document.querySelector('#historyTable tbody');
+        var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc   = !this.classList.contains('sort-asc');
+        for (var i = 0; i < headers.length; i++) headers[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
         rows.sort(function (a, b) {
-            return compareRows(a, b, col, type, asc);
+            var av = getCellValue(a, col, type), bv = getCellValue(b, col, type);
+            var result;
+            if (type === 'action') {
+                var an = ACTION_ORDER[av] !== undefined ? ACTION_ORDER[av] : 99;
+                var bn = ACTION_ORDER[bv] !== undefined ? ACTION_ORDER[bv] : 99;
+                result = an - bn;
+            } else if (type === 'num') {
+                var an = parseFloat(av), bn = parseFloat(bv);
+                result = (!isNaN(an) && !isNaN(bn)) ? an - bn : av.localeCompare(bv, 'ru');
+            } else {
+                result = av.localeCompare(bv, 'ru');
+            }
+            return asc ? result : -result;
         });
-
-        for (var i = 0; i < rows.length; i++) {
-            tbody.appendChild(rows[i]);
-        }
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
     });
 }
 </script>
-
 </body>
 </html>

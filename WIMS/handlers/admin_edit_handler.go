@@ -8,13 +8,11 @@ import (
 	"wims/models"
 )
 
-var adminEditTmpl = template.Must(template.ParseFiles("templates/admin_edit.html"))
+var adminEditTmpl = template.Must(template.ParseFiles("templates/admin_edit.html", "templates/navbar.html"))
 
 func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
-	username, role, display := GetSession(r)
-
-	if username == "" || role != "admin" {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	admin, role, display, ok := RequireRole(w, r, "admin")
+	if !ok {
 		return
 	}
 
@@ -32,80 +30,85 @@ func AdminEditUserPage(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		// обновление профиля
-		err := models.UpdateProfile(
+		if err := models.UpdateProfile(
 			target,
 			r.FormValue("first_name"),
 			r.FormValue("last_name"),
 			r.FormValue("middle_name"),
 			r.FormValue("position"),
 			r.FormValue("email"),
-		)
-		if err != nil {
+		); err != nil {
 			http.Redirect(w, r, editURL(target, "Ошибка обновления профиля", ""), http.StatusSeeOther)
 			return
 		}
 
 		// роль
-		newRole := r.FormValue("role")
+		newRole   := r.FormValue("role")
+		oldRole   := user.Role
 
-		// нельзя снять с себя права
-		if target == username && newRole != "admin" {
+		if target == admin && newRole != "admin" {
 			http.Redirect(w, r, editURL(target, "Нельзя снять с себя права администратора", ""), http.StatusSeeOther)
 			return
 		}
 
-		// повышение до admin — требует подтверждения паролем
-		if newRole == "admin" && user.Role != "admin" {
+		// повышение до admin требует пароль
+		if newRole == "admin" && oldRole != "admin" {
 			confirmPwd := r.FormValue("confirm_admin_password")
-			ok, _ := models.CheckPassword(username, confirmPwd)
+			ok, _ := models.CheckPassword(admin, confirmPwd)
 			if !ok {
-				http.Redirect(w, r, editURL(target, "Неверный пароль для подтверждения повышения до администратора", ""), http.StatusSeeOther)
+				http.Redirect(w, r, editURL(target, "Неверный пароль для подтверждения повышения", ""), http.StatusSeeOther)
 				return
 			}
 		}
 
-		_, err = database.DB.Exec(
-			"UPDATE users SET role=? WHERE username=?",
-			newRole, target,
-		)
-		if err != nil {
+		if _, err := database.DB.Exec(
+			`UPDATE users SET role=? WHERE username=?`, newRole, target,
+		); err != nil {
 			http.Redirect(w, r, editURL(target, "Ошибка обновления роли", ""), http.StatusSeeOther)
 			return
+		}
+
+		if newRole != oldRole {
+			models.WriteAdminLog(admin, "change_role", target,
+				oldRole+" → "+newRole)
+			// если роль снижена — разлогиниваем пользователя
+			if oldRole == "admin" && newRole != "admin" {
+				models.DeleteUserSessions(target)
+			}
 		}
 
 		// смена пароля
 		pass1 := r.FormValue("password1")
 		pass2 := r.FormValue("password2")
-
 		if pass1 != "" || pass2 != "" {
 			if pass1 != pass2 {
-				http.Redirect(w, r, editURL(target, "Пароли не совпадают", "password"), http.StatusSeeOther)
+				http.Redirect(w, r, editURL(target, "Пароли не совпадают", "")+"&pe=1", http.StatusSeeOther)
 				return
 			}
 			if len(pass1) < 4 {
 				http.Redirect(w, r, editURL(target, "Пароль слишком короткий (минимум 4 символа)", ""), http.StatusSeeOther)
 				return
 			}
-			err := models.UpdatePassword(target, pass1)
-			if err != nil {
+			if err := models.UpdatePassword(target, pass1); err != nil {
 				http.Redirect(w, r, editURL(target, "Ошибка смены пароля", ""), http.StatusSeeOther)
 				return
 			}
+			models.WriteAdminLog(admin, "change_password", target, "")
 		}
 
 		http.Redirect(w, r, editURL(target, "", "Изменения сохранены"), http.StatusSeeOther)
 		return
 	}
 
-	errorMsg := r.URL.Query().Get("error")
-	successMsg := r.URL.Query().Get("success")
+	settings := models.GetAllSettings()
 
 	data := map[string]interface{}{
 		"Username":      display,
 		"Role":          role,
 		"User":          user,
-		"Error":         errorMsg,
-		"Success":       successMsg,
+		"Settings":      settings,
+		"Error":         r.URL.Query().Get("error"),
+		"Success":       r.URL.Query().Get("success"),
 		"PasswordError": r.URL.Query().Get("pe") == "1",
 	}
 

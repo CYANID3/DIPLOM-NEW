@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Инвентаризация</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h4 class="fw-semibold mb-0">Инвентаризация</h4>
+<button type="button" class="btn btn-primary btn-sm"
+        data-bs-toggle="modal" data-bs-target="#createModal">
++ Новая инвентаризация
+</button>
+</div>
+
+<div class="card p-0 overflow-hidden">
+<div class="table-responsive">
+<table class="table table-hover mb-0">
+<thead class="table-sm">
+<tr>
+<th class="ps-3">ID</th>
+<th>Ответственный</th>
+<th>Статус</th>
+<th class="text-center">Позиций</th>
+<th class="text-center">Расхождений</th>
+<th>Создана</th>
+<th>Завершена</th>
+<th class="text-end pe-3">Действия</th>
+</tr>
+</thead>
+<tbody>
+{{range .Inventories}}
+<tr>
+<td class="ps-3 text-muted small">{{.ID}}</td>
+<td>{{.UserDisplay}}</td>
+<td>
+{{if eq .Status "draft"}}
+<span class="badge text-bg-warning">Черновик</span>
+{{else}}
+<span class="badge text-bg-success">Завершена</span>
+{{end}}
+</td>
+<td class="text-center text-muted">{{.ItemCount}}</td>
+<td class="text-center">
+{{if gt .DiffCount 0}}<span class="fw-semibold text-danger">{{.DiffCount}}</span>
+{{else}}<span class="text-muted">0</span>{{end}}
+</td>
+<td class="small text-muted">{{.CreatedAt}}</td>
+<td class="small text-muted">{{if .CompletedAt}}{{.CompletedAt}}{{else}}—{{end}}</td>
+<td class="text-end pe-3">
+<div class="d-flex justify-content-end gap-1">
+<a href="/inventory/{{.ID}}" class="btn btn-sm btn-outline-primary">Открыть</a>
+{{if eq .Status "completed"}}
+<a href="/inventory/export?id={{.ID}}" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+{{end}}
+</div>
+</td>
+</tr>
+{{else}}
+<tr><td colspan="8" class="text-center text-muted py-5">Инвентаризаций пока нет</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- МОДАЛКА СОЗДАНИЯ -->
+<div class="modal fade" id="createModal" tabindex="-1" data-bs-backdrop="static">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Новая инвентаризация</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<form action="/inventory/create" method="post">
+<div class="modal-body">
+<p class="text-muted small mb-3">
+Будет создан документ со всеми товарами и текущими остатками как ожидаемые значения.
+</p>
+<label class="form-label small mb-1">Примечание (необязательно)</label>
+<input class="form-control" name="note" placeholder="Плановая инвентаризация...">
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+<button type="submit" class="btn btn-primary">Создать</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
+});
+</script>
+</body>
+</html>

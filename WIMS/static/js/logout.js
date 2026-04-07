@@ -46,3 +46,24 @@
         });
     });
 }());
+
+// ===== АВАТАР =====
+// Берём первый символ логина через JS (поддержка кириллицы)
+(function () {
+    var el = document.getElementById('userAvatar');
+    if (el && el.dataset.username) {
+        // [...str][0] корректно берёт первый Unicode-символ
+        el.textContent = [...el.dataset.username][0].toUpperCase();
+    }
+}());
+
+// ===== АВАТАР =====
+// берём первый символ как руну (корректно для кириллицы)
+(function () {
+    var el = document.getElementById('userAvatar');
+    if (!el) return;
+    var username = el.getAttribute('data-username') || '?';
+    // Array.from корректно разбивает строку по Unicode code points
+    var first = Array.from(username)[0] || '?';
+    el.textContent = first.toUpperCase();
+}());

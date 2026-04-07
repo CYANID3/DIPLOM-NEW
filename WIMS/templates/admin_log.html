@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Журнал действий</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+<style>
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
+</style>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+<h4 class="fw-semibold mb-0">Журнал действий</h4>
+</div>
+
+<input id="logSearch" class="form-control mb-3" style="max-width:380px"
+       placeholder="Поиск по администратору, действию или объекту">
+
+<div class="card p-0 overflow-hidden">
+<div class="table-responsive">
+<table id="logTable" class="table table-hover mb-0">
+<thead class="table-sm">
+<tr>
+<th class="sortable ps-3" data-col="0">ID</th>
+<th class="sortable" data-col="1">Администратор</th>
+<th class="sortable" data-col="2">Действие</th>
+<th class="sortable" data-col="3">Объект</th>
+<th class="sortable" data-col="4">Детали</th>
+<th class="sortable pe-3" data-col="5" data-type="date">Время</th>
+</tr>
+</thead>
+<tbody>
+{{range .Logs}}
+<tr>
+<td class="ps-3 text-muted small">{{.ID}}</td>
+<td>{{.AdminDisplay}}</td>
+<td>
+{{if eq .Action "create_user"}}<span class="badge text-bg-success">Создан пользователь</span>
+{{else if eq .Action "delete_user"}}<span class="badge text-bg-danger">Удалён пользователь</span>
+{{else if eq .Action "change_role"}}<span class="badge text-bg-warning">Смена роли</span>
+{{else if eq .Action "change_password"}}<span class="badge text-bg-secondary">Смена пароля</span>
+{{else if eq .Action "add_product"}}<span class="badge text-bg-success">Добавлен товар</span>
+{{else if eq .Action "edit_product"}}<span class="badge text-bg-primary">Изменён товар</span>
+{{else if eq .Action "delete_product"}}<span class="badge text-bg-danger">Удалён товар</span>
+{{else if eq .Action "restock_product"}}<span class="badge text-bg-restock">Пополнен товар</span>
+{{else if eq .Action "kill_session"}}<span class="badge text-bg-warning">Завершена сессия</span>
+{{else if eq .Action "kill_all_sessions"}}<span class="badge text-bg-danger">Все сессии завершены</span>
+{{else if eq .Action "update_settings"}}<span class="badge text-bg-secondary">Настройки</span>
+{{else if eq .Action "return"}}<span class="badge text-bg-warning">Возврат</span>
+{{else if eq .Action "regrade"}}<span class="badge text-bg-info">Пересорт</span>
+{{else if eq .Action "create_inventory"}}<span class="badge text-bg-primary">Инвентаризация создана</span>
+{{else if eq .Action "complete_inventory"}}<span class="badge text-bg-restock">Инвентаризация завершена</span>
+{{else}}<span class="badge text-bg-secondary">{{.Action}}</span>
+{{end}}
+</td>
+<td class="fw-semibold small">{{.Target}}</td>
+<td class="text-muted small">{{.Detail}}</td>
+<td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+</tr>
+{{else}}
+<tr><td colspan="6" class="text-center text-muted py-5">Журнал пуст</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+document.getElementById('logSearch').addEventListener('keyup', function () {
+    var f = this.value.toLowerCase();
+    document.querySelectorAll('#logTable tbody tr').forEach(function(r) {
+        r.style.display = r.innerText.toLowerCase().indexOf(f) >= 0 ? '' : 'none';
+    });
+});
+var headers = document.querySelectorAll('#logTable th.sortable');
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener('click', function () {
+        var col  = parseInt(this.getAttribute('data-col'), 10);
+        var type = this.getAttribute('data-type') || 'str';
+        var tbody = document.querySelector('#logTable tbody');
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc  = !this.classList.contains('sort-asc');
+        var allTh = document.querySelectorAll('#logTable th.sortable');
+        for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        rows.sort(function(a,b) {
+            var ca = a.cells[col], cb = b.cells[col];
+            var av = type === 'date' ? (ca ? ca.getAttribute('data-raw') || '' : '') : (ca ? ca.innerText.trim() : '');
+            var bv = type === 'date' ? (cb ? cb.getAttribute('data-raw') || '' : '') : (cb ? cb.innerText.trim() : '');
+            var an = parseFloat(av), bn = parseFloat(bv);
+            if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            return asc ? av.localeCompare(bv,'ru') : bv.localeCompare(av,'ru');
+        });
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
+    });
+}
+</script>
+</body>
+</html>

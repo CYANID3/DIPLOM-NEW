@@ -6,159 +6,135 @@
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
 </head>
-
 <body class="bg-body">
+{{template "navbar" .}}
 
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><hr class="dropdown-divider"></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container" style="max-width:560px">
 
-<div class="wrapper w-100 pt-4">
-<div class="container">
-<div class="card p-4">
-<h3>Профиль</h3>
+<div class="d-flex align-items-center gap-2 mb-4">
+<h4 class="mb-0 fw-semibold">Профиль</h4>
+{{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
+{{else}}<span class="badge text-bg-primary">user</span>{{end}}
+</div>
 
 <form method="post" id="profileForm">
-<h5>Данные</h5>
-<input class="form-control mb-2" name="first_name"  value="{{.User.FirstName}}"  placeholder="Имя">
-<input class="form-control mb-2" name="last_name"   value="{{.User.LastName}}"   placeholder="Фамилия">
-<input class="form-control mb-2" name="middle_name" value="{{.User.MiddleName}}" placeholder="Отчество">
-<input class="form-control mb-2" name="position"    value="{{.User.Position}}"   placeholder="Должность">
-<input class="form-control mb-3" name="email"       value="{{.User.Email}}"      placeholder="Email">
 
-<h5>Смена пароля</h5>
-<div class="input-group mb-2">
-<input id="oldPass" class="form-control" type="password" name="old_password" placeholder="Текущий пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('oldPass', this)">👁</button>
+<div class="card p-4 mb-3">
+<h6 class="fw-semibold mb-3 text-muted">Личные данные</h6>
+<div class="mb-2">
+<label class="form-label small mb-1">Логин</label>
+<input class="form-control" value="{{.User.Username}}" disabled>
 </div>
-<div class="input-group mb-2">
-<input id="pass1" class="form-control {{if .PasswordError}}is-invalid{{end}}"
-       type="password" name="password1" placeholder="Новый пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass1', this)">👁</button>
+<div class="row g-2 mb-2">
+<div class="col-md-6">
+<label class="form-label small mb-1">Имя</label>
+<input class="form-control" name="first_name" value="{{.User.FirstName}}" placeholder="Иван">
 </div>
-<div class="input-group mb-3">
-<input id="pass2" class="form-control {{if .PasswordError}}is-invalid{{end}}"
-       type="password" name="password2" placeholder="Повторите пароль">
-<button class="btn btn-outline-secondary" type="button" onclick="togglePassword('pass2', this)">👁</button>
+<div class="col-md-6">
+<label class="form-label small mb-1">Фамилия</label>
+<input class="form-control" name="last_name" value="{{.User.LastName}}" placeholder="Иванов">
+</div>
+</div>
+<div class="mb-2">
+<label class="form-label small mb-1">Отчество</label>
+<input class="form-control" name="middle_name" value="{{.User.MiddleName}}" placeholder="Иванович">
+</div>
+<div class="mb-2">
+<label class="form-label small mb-1">Должность</label>
+<input class="form-control" name="position" value="{{.User.Position}}" placeholder="Менеджер">
+</div>
+<div class="mb-0">
+<label class="form-label small mb-1">Email</label>
+<input class="form-control" name="email" value="{{.User.Email}}" placeholder="ivan@example.com">
+</div>
 </div>
 
-<button class="btn btn-primary w-100" type="submit">Сохранить</button>
+<div class="card p-4 mb-3">
+<h6 class="fw-semibold mb-3 text-muted">Смена пароля</h6>
+<div class="mb-2">
+<label class="form-label small mb-1">Текущий пароль</label>
+<div class="input-group">
+<input id="oldPass" class="form-control" type="password" name="old_password" placeholder="••••••">
+<button class="btn btn-outline-secondary" type="button" onclick="togglePass('oldPass',this)">👁</button>
+</div>
+</div>
+<div class="mb-2">
+<label class="form-label small mb-1">Новый пароль</label>
+<div class="input-group">
+<input id="pass1" class="form-control {{if .PasswordError}}is-invalid{{end}}" type="password" name="password1" placeholder="••••••">
+<button class="btn btn-outline-secondary" type="button" onclick="togglePass('pass1',this)">👁</button>
+</div>
+</div>
+<div class="mb-0">
+<label class="form-label small mb-1">Повторите пароль</label>
+<div class="input-group">
+<input id="pass2" class="form-control {{if .PasswordError}}is-invalid{{end}}" type="password" name="password2" placeholder="••••••">
+<button class="btn btn-outline-secondary" type="button" onclick="togglePass('pass2',this)">👁</button>
+</div>
+</div>
+</div>
+
+<button class="btn btn-primary w-100" type="submit">Сохранить изменения</button>
 </form>
-</div>
+
 </div>
 </div>
 
-<!-- МОДАЛКА: НЕСОХРАНЁННЫЕ ИЗМЕНЕНИЯ -->
+<!-- МОДАЛКА НЕСОХРАНЁННЫХ ИЗМЕНЕНИЙ -->
 <div class="modal fade" id="unsavedModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-<div class="modal-dialog modal-dialog-centered">
+<div class="modal-dialog modal-dialog-centered modal-sm">
 <div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Несохранённые изменения</h5>
+<div class="modal-body pt-4">
+<p class="mb-3">Вы изменили данные, но не сохранили. Уйти?</p>
+<div class="d-flex gap-2">
+<button type="button" class="btn btn-secondary flex-fill" id="unsavedStayBtn">Остаться</button>
+<button type="button" class="btn btn-danger flex-fill" id="unsavedLeaveBtn">Уйти</button>
 </div>
-<div class="modal-body">
-<p class="mb-0">Вы изменили данные профиля, но не сохранили их. Всё равно уйти?</p>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" id="unsavedStayBtn">Остаться</button>
-<button type="button" class="btn btn-danger" id="unsavedLeaveBtn">Уйти без сохранения</button>
 </div>
 </div>
 </div>
 </div>
 
-<!-- TOAST -->
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-function togglePassword(id, btn) {
-    const input = document.getElementById(id);
-    if (input.type === "password") { input.type = "text"; btn.innerText = "🙈"; }
-    else { input.type = "password"; btn.innerText = "👁"; }
+function togglePass(id, btn) {
+    var inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.innerText = inp.type === 'password' ? '👁' : '🙈';
 }
 
 (function () {
-    let formDirty  = false;
-    let pendingUrl = null;
-
-    const unsavedModalEl = document.getElementById("unsavedModal");
-    const unsavedModal   = new bootstrap.Modal(unsavedModalEl);
-
-    document.getElementById("profileForm").addEventListener("input",  function () { formDirty = true; });
-    document.getElementById("profileForm").addEventListener("submit", function () { formDirty = false; });
-
-    document.getElementById("unsavedStayBtn").addEventListener("click", function () {
-        pendingUrl = null;
-        unsavedModal.hide();
-    });
-
-    document.getElementById("unsavedLeaveBtn").addEventListener("click", function () {
-        unsavedModal.hide();
-        unsavedModalEl.addEventListener("hidden.bs.modal", function () {
-            window.location.href = pendingUrl;
+    var dirty = false, pending = null;
+    var modal = new bootstrap.Modal(document.getElementById('unsavedModal'));
+    document.getElementById('profileForm').addEventListener('input', function() { dirty = true; });
+    document.getElementById('profileForm').addEventListener('submit', function() { dirty = false; });
+    document.getElementById('unsavedStayBtn').addEventListener('click', function() { pending = null; modal.hide(); });
+    document.getElementById('unsavedLeaveBtn').addEventListener('click', function() {
+        document.getElementById('unsavedModal').addEventListener('hidden.bs.modal', function() {
+            window.location.href = pending;
         }, { once: true });
+        modal.hide();
     });
-
-    // перехватываем все ссылки на странице
-    document.querySelectorAll("a[href]").forEach(function (link) {
-        const href = link.getAttribute("href");
-        if (!href || href.startsWith("#") || href.startsWith("javascript")) return;
-        link.addEventListener("click", function (e) {
-            if (!formDirty) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            pendingUrl = href;
-            unsavedModal.show();
+    document.querySelectorAll('a[href]').forEach(function(link) {
+        var href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript')) return;
+        link.addEventListener('click', function(e) {
+            if (!dirty) return;
+            e.preventDefault(); e.stopImmediatePropagation();
+            pending = href; modal.show();
         }, true);
     });
-
-    // тосты
-    const err = document.getElementById("errorToast");
-    const ok  = document.getElementById("successToast");
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 }());
 </script>
-
 </body>
 </html>

@@ -1,0 +1,83 @@
+{{define "navbar"}}
+<nav class="navbar navbar-expand-lg border-bottom px-3">
+<div class="container-fluid">
+<a class="navbar-brand fw-semibold" href="/">{{if .Settings}}{{index .Settings "org_name"}}{{else}}WIMS{{end}}</a>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="nav">
+<div class="navbar-nav">
+<a class="nav-link" href="/">Склад</a>
+<a class="nav-link" href="/transaction">Продажа</a>
+<a class="nav-link" href="/history">История</a>
+
+{{if eq .Role "manager"}}
+<a class="nav-link nav-admin" href="/admin/dashboard">Панель</a>
+<a class="nav-link nav-admin" href="/admin/products">Товары</a>
+<div class="nav-item dropdown">
+<a class="nav-link nav-admin dropdown-toggle" href="#" data-bs-toggle="dropdown">Операции</a>
+<ul class="dropdown-menu">
+<li><a class="dropdown-item" href="/returns">Возвраты</a></li>
+<li><a class="dropdown-item" href="/regrade">Пересорт</a></li>
+<li><a class="dropdown-item" href="/inventory">Инвентаризация</a></li>
+</ul>
+</div>
+{{end}}
+
+{{if eq .Role "admin"}}
+<div class="nav-item dropdown">
+<a class="nav-link nav-admin dropdown-toggle" href="#" data-bs-toggle="dropdown">Управление</a>
+<ul class="dropdown-menu">
+
+<li><a class="dropdown-item" href="/admin/dashboard">Аналитика</a></li>
+<li><a class="dropdown-item" href="/admin/products">Товары</a></li>
+
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/admin">Пользователи</a></li>
+<li><a class="dropdown-item" href="/admin/sessions">Сессии</a></li>
+<li><a class="dropdown-item" href="/admin/log">Журнал</a></li>
+
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/returns">Возвраты</a></li>
+<li><a class="dropdown-item" href="/regrade">Пересорт</a></li>
+<li><a class="dropdown-item" href="/inventory">Инвентаризация</a></li>
+
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/admin/settings">Настройки</a></li>
+
+</ul>
+</div>
+{{end}}
+</div>
+
+<div class="ms-auto d-flex gap-2 align-items-center">
+<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
+<div class="dropdown">
+<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
+<ul class="dropdown-menu dropdown-menu-end user-dropdown">
+<li class="px-3 pt-2 pb-2">
+<div class="d-flex align-items-center gap-2">
+<div class="user-avatar" data-username="{{.Username}}" id="userAvatar"></div>
+<div>
+<div class="user-dropdown-name">{{.Username}}</div>
+<div class="mt-1">
+{{if eq .Role "admin"}}<span class="badge text-bg-danger">admin</span>
+{{else if eq .Role "manager"}}<span class="badge text-bg-warning">manager</span>
+{{else}}<span class="badge text-bg-primary">user</span>{{end}}
+</div>
+</div>
+</div>
+</li>
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item" href="/profile">Профиль</a></li>
+<li><hr class="dropdown-divider"></li>
+<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</nav>
+{{end}}

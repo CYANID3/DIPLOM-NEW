@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>WIMS</title>
+<title>{{if .Settings}}{{index .Settings "org_name"}}{{else}}WIMS{{end}} - Склад</title>
 <link rel="stylesheet" href="/static/css/bootstrap.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 <script src="/static/js/theme.js"></script>
@@ -12,272 +12,133 @@ th.sort-asc::after  { content: " ↑"; opacity: 1; }
 th.sort-desc::after { content: " ↓"; opacity: 1; }
 </style>
 </head>
-
 <body class="bg-body">
+{{template "navbar" .}}
 
-<nav class="navbar navbar-expand-lg border-bottom px-3">
-<div class="container-fluid">
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
-<span class="navbar-toggler-icon"></span>
-</button>
-<div class="collapse navbar-collapse" id="nav">
-<div class="navbar-nav">
-<a class="nav-link" href="/">Главная</a>
-<a class="nav-link" href="/history">История</a>
-<a class="nav-link" href="/profile">Профиль</a>
-{{if eq .Role "admin"}}
-<a class="nav-link nav-admin" href="/admin">Админ-панель</a>
-{{end}}
-</div>
-<div class="ms-auto d-flex gap-2">
-<button class="btn btn-sm btn-outline-secondary" onclick="toggleTheme()">🌙</button>
-<div class="dropdown">
-<button class="btn btn-sm btn-success dropdown-toggle" data-bs-toggle="dropdown">{{.Username}}</button>
-<ul class="dropdown-menu dropdown-menu-end">
-<li><a class="dropdown-item" href="/profile">Профиль</a></li>
-<li><hr class="dropdown-divider"></li>
-<li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-</nav>
-
-<div class="wrapper w-100 pt-4">
+<div class="wrapper w-100 pt-4 pb-5">
 <div class="container">
 
-<div class="card p-3 mb-3">
-<h5>Добавить товар</h5>
-<form action="/add" method="post" class="row g-2">
-<div class="col-md-3">
-<input class="form-control" name="name" placeholder="Название" required>
-</div>
-<div class="col-md-3">
-<input class="form-control" name="barcode" placeholder="Штрихкод">
-</div>
-<div class="col-md-2">
-<input class="form-control" name="price" type="number" step="0.01" placeholder="Цена" required>
-</div>
-<div class="col-md-2">
-<input class="form-control" name="quantity" type="number" placeholder="Количество" required>
-</div>
-<div class="col-md-2">
-<button class="btn btn-primary w-100">Добавить</button>
-</div>
-</form>
+<div class="d-flex justify-content-between align-items-center mb-3">
+<input id="searchInput" class="form-control" style="max-width:380px"
+       placeholder="Поиск по названию, штрихкоду или категории">
+{{if or (eq .Role "manager") (eq .Role "admin")}}
+<a href="/admin/products" class="btn btn-sm btn-outline-secondary ms-2">Управление товарами →</a>
+{{end}}
 </div>
 
-<input id="searchInput" class="form-control mb-3" placeholder="Поиск">
-
-<div class="card p-3">
-<h5>Товары</h5>
-<table id="productsTable" class="table table-striped">
-<thead>
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">Товары на складе</h6>
+</div>
+<div class="table-responsive">
+<table id="productsTable" class="table table-hover mb-0">
+<thead class="table-sm">
 <tr>
-<th class="sortable" data-col="0">ID</th>
+<th class="sortable ps-3" data-col="0">ID</th>
 <th class="sortable" data-col="1">Штрихкод</th>
 <th class="sortable" data-col="2">Название</th>
-<th class="sortable" data-col="3">Цена</th>
-<th class="sortable" data-col="4">Остаток</th>
-<th class="sortable" data-col="5">Сумма</th>
-<th>Продать</th>
-<th>Удалить</th>
+<th class="sortable" data-col="3">Категория</th>
+<th class="sortable" data-col="4">Цена за ед.</th>
+<th class="sortable" data-col="5">Остаток</th>
+<th class="sortable" data-col="6">Сумма</th>
+<th class="pe-3">Продать</th>
 </tr>
 </thead>
 <tbody>
 {{range .Products}}
-<tr>
-<td>{{.ID}}</td>
-<td>{{.Barcode}}</td>
-<td>{{.Name}}</td>
-<td>{{printf "%.2f" .Price}}</td>
+<tr {{if eq .Quantity 0}}class="table-danger"{{else if and (gt .MinStock 0) (le .Quantity .MinStock)}}class="table-warning"{{end}}>
+<td class="ps-3 text-muted small">{{.ID}}</td>
+<td class="small text-muted">{{.Barcode}}</td>
+<td class="fw-semibold">{{.Name}}</td>
+<td>{{if .Category}}<span class="badge text-bg-secondary">{{.Category}}</span>{{else}}<span class="text-muted">—</span>{{end}}</td>
+<td>{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td>{{.Quantity}}</td>
-<td>{{printf "%.2f" .Total}}</td>
-<td>
-<form action="/sell" method="post" class="d-flex gap-1 sell-form"
-      data-name="{{.Name}}"
-      data-price="{{printf "%.2f" .Price}}"
-      data-stock="{{.Quantity}}">
-<input type="hidden" name="id" value="{{.ID}}">
-<input class="form-control form-control-sm sell-qty" name="quantity" type="number" min="1" data-stock="{{.Quantity}}" required>
-<button class="btn btn-success btn-sm" type="button" onclick="confirmSell(this.closest('.sell-form'))">OK</button>
-</form>
-</td>
-<td>
-<button type="button" class="btn btn-danger btn-sm w-100"
-        onclick="confirmDelete({{.ID}}, '{{.Name}}', {{.Quantity}}, '{{printf "%.2f" .Total}}')">
-Удалить
-</button>
+<td class="text-muted">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="pe-3">
+{{if eq .Quantity 0}}
+<span class="text-muted small fst-italic">Нет в наличии</span>
+{{else}}
+<div class="d-flex gap-1">
+<input class="form-control form-control-sm sell-qty-input" type="number"
+       min="1" style="width:90px" data-stock="{{.Quantity}}" data-id="{{.ID}}" placeholder="кол-во">
+<button class="btn btn-success btn-sm px-2" type="button" onclick="goToSell(this)">OK</button>
+</div>
+{{end}}
 </td>
 </tr>
 {{else}}
-<tr>
-<td colspan="8" class="text-center text-muted py-4">📦 Товаров пока нет</td>
-</tr>
+<tr><td colspan="8" class="text-center text-muted py-5">Товаров пока нет</td></tr>
 {{end}}
 </tbody>
 </table>
 </div>
-
-</div>
 </div>
 
-<!-- МОДАЛКА: УДАЛЕНИЕ ТОВАРА -->
-<div class="modal fade" id="deleteProductModal" tabindex="-1">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Удаление товара</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<form action="/delete" method="post">
-<div class="modal-body">
-<p class="mb-1">Вы собираетесь удалить товар <strong id="delProductName"></strong>.</p>
-<p class="mb-0 text-muted">Остаток: <span id="delProductQty"></span> шт. на сумму <span id="delProductTotal"></span></p>
-<input type="hidden" name="id" id="delProductId">
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-<button type="submit" class="btn btn-danger">Удалить</button>
-</div>
-</form>
-</div>
-</div>
-</div>
-
-<!-- МОДАЛКА: ПОДТВЕРЖДЕНИЕ ПРОДАЖИ (> 10 шт.) -->
-<div class="modal fade" id="confirmSellModal" tabindex="-1">
-<div class="modal-dialog modal-dialog-centered">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title">Подтверждение продажи</h5>
-<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-</div>
-<div class="modal-body">
-<p class="mb-1">Продать <strong id="sellQtyLabel"></strong> шт. товара <strong id="sellNameLabel"></strong>?</p>
-<p class="mb-0 text-muted">Сумма: <span id="sellTotalLabel"></span></p>
-</div>
-<div class="modal-footer">
-<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-<button type="button" class="btn btn-success" id="sellConfirmBtn">Продать</button>
-</div>
-</div>
 </div>
 </div>
 
 <div id="clientToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
-
-{{if .Error}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="errorToast" class="toast text-bg-danger" role="alert">
-<div class="toast-body">{{.Error}}</div>
-</div>
-</div>
-{{end}}
-
-{{if .Success}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-<div id="successToast" class="toast text-bg-success" role="alert">
-<div class="toast-body">{{.Success}}</div>
-</div>
-</div>
-{{end}}
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/logout.js"></script>
 <script>
-const SELL_CONFIRM_THRESHOLD = 10; // порог для подтверждения продажи
+var SELL_LIMIT = {{if .Settings}}{{index .Settings "sell_confirm_limit"}}{{else}}10{{end}};
 
-// --- УДАЛЕНИЕ ТОВАРА ---
-function confirmDelete(id, name, qty, total) {
-    document.getElementById("delProductId").value    = id;
-    document.getElementById("delProductName").textContent  = name;
-    document.getElementById("delProductQty").textContent   = qty;
-    document.getElementById("delProductTotal").textContent = total;
-    new bootstrap.Modal(document.getElementById("deleteProductModal")).show();
-}
-
-// --- ПРОДАЖА ---
-let pendingSellForm = null;
-
-function confirmSell(form) {
-    const input = form.querySelector(".sell-qty");
-    const qty   = parseInt(input.value, 10);
-    const stock = parseInt(input.dataset.stock, 10);
-    const name  = form.dataset.name;
-    const price = parseFloat(form.dataset.price);
-
-    if (!qty || qty < 1) return;
-
-    if (qty > stock) {
-        showClientError("Нельзя продать больше, чем есть на складе (остаток: " + stock + ")");
-        return;
-    }
-
-    if (qty > SELL_CONFIRM_THRESHOLD) {
-        const total = (qty * price).toFixed(2);
-        document.getElementById("sellQtyLabel").textContent   = qty;
-        document.getElementById("sellNameLabel").textContent  = name;
-        document.getElementById("sellTotalLabel").textContent = total;
-        pendingSellForm = form;
-        new bootstrap.Modal(document.getElementById("confirmSellModal")).show();
-        return;
-    }
-
-    form.submit();
-}
-
-document.getElementById("sellConfirmBtn").addEventListener("click", function () {
-    bootstrap.Modal.getInstance(document.getElementById("confirmSellModal")).hide();
-    if (pendingSellForm) { pendingSellForm.submit(); pendingSellForm = null; }
-});
-
-// --- TOAST ---
 function showClientError(msg) {
-    const container = document.getElementById("clientToastContainer");
-    const id  = "ct_" + Date.now();
-    const div = document.createElement("div");
-    div.innerHTML = '<div id="' + id + '" class="toast text-bg-danger" role="alert"><div class="toast-body">' + msg + '</div></div>';
-    container.appendChild(div.firstChild);
+    var c = document.getElementById('clientToastContainer');
+    var id = 'ct_' + Date.now();
+    var d = document.createElement('div');
+    d.innerHTML = '<div id="' + id + '" class="toast text-bg-danger"><div class="toast-body">' + msg + '</div></div>';
+    c.appendChild(d.firstChild);
     new bootstrap.Toast(document.getElementById(id)).show();
 }
 
-// --- ПОИСК ---
-document.getElementById("searchInput").addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll("#productsTable tbody tr").forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+function goToSell(btn) {
+    var input = btn.previousElementSibling;
+    var qty   = parseInt(input.value, 10);
+    var stock = parseInt(input.dataset.stock, 10);
+    var id    = input.dataset.id;
+    if (!qty || qty < 1) { showClientError('Укажите количество'); return; }
+    if (qty > stock) { showClientError('Нельзя продать больше остатка (' + stock + ')'); return; }
+    window.location.href = '/transaction?id=' + id + '&qty=' + qty;
+}
+
+document.getElementById('searchInput').addEventListener('keyup', function () {
+    var f = this.value.toLowerCase();
+    document.querySelectorAll('#productsTable tbody tr').forEach(function(r) {
+        r.style.display = r.innerText.toLowerCase().indexOf(f) >= 0 ? '' : 'none';
     });
 });
 
-// --- СОРТИРОВКА ---
-document.querySelectorAll("#productsTable th.sortable").forEach(th => {
-    th.addEventListener("click", function () {
-        const col   = parseInt(this.dataset.col);
-        const tbody = document.querySelector("#productsTable tbody");
-        const rows  = Array.from(tbody.querySelectorAll("tr"));
-        const asc   = !this.classList.contains("sort-asc");
-        document.querySelectorAll("#productsTable th.sortable").forEach(t => t.classList.remove("sort-asc","sort-desc"));
-        this.classList.add(asc ? "sort-asc" : "sort-desc");
-        rows.sort((a, b) => {
-            const av = a.cells[col]?.innerText.trim() || "";
-            const bv = b.cells[col]?.innerText.trim() || "";
-            const an = parseFloat(av), bn = parseFloat(bv);
+var headers = document.querySelectorAll('#productsTable th.sortable');
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener('click', function () {
+        var col   = parseInt(this.getAttribute('data-col'), 10);
+        var tbody = document.querySelector('#productsTable tbody');
+        var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc   = !this.classList.contains('sort-asc');
+        var allTh = document.querySelectorAll('#productsTable th.sortable');
+        for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        rows.sort(function (a, b) {
+            var av = a.cells[col] ? a.cells[col].innerText.trim() : '';
+            var bv = b.cells[col] ? b.cells[col].innerText.trim() : '';
+            var an = parseFloat(av), bn = parseFloat(bv);
             if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
-            return asc ? av.localeCompare(bv, "ru") : bv.localeCompare(av, "ru");
+            return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
         });
-        rows.forEach(r => tbody.appendChild(r));
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
     });
-});
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-    const err = document.getElementById("errorToast");
-    const ok  = document.getElementById("successToast");
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
     if (err) new bootstrap.Toast(err).show();
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
-
 </body>
 </html>

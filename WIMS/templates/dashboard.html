@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Аналитика склада</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+<style>
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
+
+.stat-card {
+    border-radius: 0.5rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--app-border);
+    background-color: var(--app-card-bg);
+}
+.stat-card .stat-label {
+    font-size: 0.78rem;
+    color: var(--app-muted);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.stat-card .stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--app-color);
+}
+.stat-card .stat-sub {
+    font-size: 0.78rem;
+    color: var(--app-muted);
+    margin-top: 0.25rem;
+}
+.stat-card.accent-warning .stat-value { color: #f59e0b; }
+.stat-card.accent-danger  .stat-value { color: #ef4444; }
+.stat-card.accent-success .stat-value { color: #22c55e; }
+.stat-card.accent-info    .stat-value { color: #38bdf8; }
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--app-muted);
+    margin-bottom: 0.75rem;
+}
+</style>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container-fluid px-4">
+
+<!-- ЗАГОЛОВОК -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h4 class="mb-0 fw-semibold">Аналитика склада</h4>
+<span class="text-muted small">Данные за последние 30 дней</span>
+</div>
+
+<!-- РЯД 1: ПРОДАЖИ -->
+<div class="section-title">Продажи</div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-md-4">
+<div class="stat-card">
+<div class="stat-label">Сегодня</div>
+<div class="stat-value">{{printf "%.2f" .Summary.TotalToday}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
+<div class="stat-sub">{{.Summary.CountToday}} операций</div>
+</div>
+</div>
+<div class="col-6 col-md-4">
+<div class="stat-card">
+<div class="stat-label">За неделю</div>
+<div class="stat-value">{{printf "%.2f" .Summary.TotalWeek}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
+<div class="stat-sub">{{.Summary.CountWeek}} операций</div>
+</div>
+</div>
+<div class="col-6 col-md-4">
+<div class="stat-card">
+<div class="stat-label">За месяц</div>
+<div class="stat-value">{{printf "%.2f" .Summary.TotalMonth}} {{if .Settings}}{{index .Settings "currency"}}{{end}}</div>
+<div class="stat-sub">{{.Summary.CountMonth}} операций</div>
+</div>
+</div>
+</div>
+
+<!-- РЯД 2: ОПЕРАЦИИ -->
+<div class="section-title">Операции</div>
+<div class="row g-3 mb-4">
+<div class="col-6 col-md col-lg">
+<div class="stat-card accent-warning">
+<div class="stat-label">Возвраты (30 дней)</div>
+<div class="stat-value">{{printf "%.2f" .ReturnsSummary.TotalMonth}}</div>
+<div class="stat-sub">{{.ReturnsSummary.CountMonth}} операций</div>
+</div>
+</div>
+<div class="col-6 col-md col-lg">
+<div class="stat-card accent-danger">
+<div class="stat-label">Недостачи (всего)</div>
+<div class="stat-value">{{printf "%.2f" .InvSummary.ShortageTotal}}</div>
+<div class="stat-sub">{{.InvSummary.ShortageCount}} позиций</div>
+</div>
+</div>
+<div class="col-6 col-md col-lg">
+<div class="stat-card accent-success">
+<div class="stat-label">Излишки (всего)</div>
+<div class="stat-value">{{printf "%.2f" .InvSummary.SurplusTotal}}</div>
+<div class="stat-sub">{{.InvSummary.SurplusCount}} позиций</div>
+</div>
+</div>
+<div class="col-6 col-md col-lg">
+<div class="stat-card accent-info">
+<div class="stat-label">Пересорты (30 дней)</div>
+<div class="stat-value">{{.RegradeSummary.CountMonth}}</div>
+<div class="stat-sub">операций</div>
+</div>
+</div>
+<div class="col-6 col-md col-lg">
+<div class="stat-card">
+<div class="stat-label">Инвентаризаций</div>
+<div class="stat-value">{{.InvSummary.CompletedCount}}</div>
+<div class="stat-sub">завершено</div>
+</div>
+</div>
+</div>
+
+<!-- ТОВАРЫ С НИЗКИМ ОСТАТКОМ -->
+{{if .LowStock}}
+<div class="card p-3 mb-4 border-warning">
+<div class="d-flex justify-content-between align-items-center mb-2">
+<span class="fw-semibold text-warning small">⚠ Товары с низким остатком</span>
+<span class="text-muted small">{{len .LowStock}} позиций</span>
+</div>
+<div style="max-height:160px; overflow-y:auto;">
+<table class="table table-sm mb-0">
+<thead>
+<tr>
+<th>Название</th>
+<th>Штрихкод</th>
+<th class="text-danger">Остаток</th>
+<th class="text-muted">Минимум</th>
+</tr>
+</thead>
+<tbody>
+{{range .LowStock}}
+<tr>
+<td>{{.Name}}</td>
+<td class="text-muted small">{{if .Barcode}}{{.Barcode}}{{else}}—{{end}}</td>
+<td class="text-danger fw-semibold">{{.Quantity}}</td>
+<td class="text-muted">{{.MinStock}}</td>
+</tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+{{end}}
+
+<!-- ТАБЛИЦЫ -->
+<div class="row g-4">
+
+<!-- ТОП ТОВАРОВ -->
+<div class="col-lg-6">
+<div class="card p-3">
+<div class="section-title mb-3">Топ продаваемых товаров (30 дней)</div>
+<table class="table table-sm" id="topTable">
+<thead>
+<tr>
+<th class="sortable" data-col="0">Товар</th>
+<th class="sortable" data-col="1">Кол-во</th>
+<th class="sortable" data-col="2">Сумма</th>
+</tr>
+</thead>
+<tbody>
+{{range .TopProducts}}
+<tr>
+<td>{{.Name}}</td>
+<td>{{.Quantity}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{else}}
+<tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- СТАТИСТИКА СОТРУДНИКОВ -->
+<div class="col-lg-6">
+<div class="card p-3">
+<div class="section-title mb-3">Продажи по сотрудникам (30 дней)</div>
+<table class="table table-sm" id="staffTable">
+<thead>
+<tr>
+<th class="sortable" data-col="0">Сотрудник</th>
+<th class="sortable" data-col="1">Операций</th>
+<th class="sortable" data-col="2">Сумма</th>
+</tr>
+</thead>
+<tbody>
+{{range .StaffStats}}
+<tr>
+<td>{{.UserFullName}}</td>
+<td>{{.SellCount}}</td>
+<td>{{printf "%.2f" .SellTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{else}}
+<tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- ПРОДАЖИ ПО ДНЯМ -->
+<div class="col-12">
+<div class="card p-3">
+<div class="section-title mb-3">Продажи по дням (30 дней)</div>
+<table class="table table-sm" id="dailyTable">
+<thead>
+<tr>
+<th class="sortable" data-col="0">Дата</th>
+<th class="sortable" data-col="1">Операций</th>
+<th class="sortable" data-col="2">Сумма</th>
+</tr>
+</thead>
+<tbody>
+{{range .DailyStats}}
+<tr>
+<td>{{.Day}}</td>
+<td>{{.Count}}</td>
+<td>{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+</tr>
+{{else}}
+<tr><td colspan="3" class="text-center text-muted py-3">Нет данных</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+</div><!-- /row -->
+</div>
+</div>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+function sortTable(tableId) {
+    var headers = document.querySelectorAll('#' + tableId + ' th.sortable');
+    for (var h = 0; h < headers.length; h++) {
+        headers[h].addEventListener('click', function () {
+            var col   = parseInt(this.getAttribute('data-col'), 10);
+            var tbody = this.closest('table').querySelector('tbody');
+            var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+            var asc   = !this.classList.contains('sort-asc');
+            var allTh = this.closest('thead').querySelectorAll('th.sortable');
+            for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+            this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+            rows.sort(function (a, b) {
+                var av = a.cells[col] ? a.cells[col].innerText.trim() : '';
+                var bv = b.cells[col] ? b.cells[col].innerText.trim() : '';
+                var an = parseFloat(av), bn = parseFloat(bv);
+                if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+                return asc ? av.localeCompare(bv, 'ru') : bv.localeCompare(av, 'ru');
+            });
+            for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
+        });
+    }
+}
+sortTable('topTable');
+sortTable('staffTable');
+sortTable('dailyTable');
+</script>
+</body>
+</html>

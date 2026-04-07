@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Возвраты</title>
+<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+<script src="/static/js/theme.js"></script>
+<style>
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: " ↕"; opacity: 0.4; font-size: 0.75em; }
+th.sort-asc::after  { content: " ↑"; opacity: 1; }
+th.sort-desc::after { content: " ↓"; opacity: 1; }
+</style>
+</head>
+<body class="bg-body">
+{{template "navbar" .}}
+
+<div class="wrapper w-100 pt-4 pb-5">
+<div class="container">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h4 class="fw-semibold mb-0">Возвраты</h4>
+<a href="/returns/export" class="btn btn-sm btn-outline-secondary">↓ CSV</a>
+</div>
+
+<!-- ФОРМА ВОЗВРАТА -->
+<div class="card p-4 mb-4">
+<h6 class="fw-semibold mb-3 text-muted">Оформить возврат</h6>
+<form action="/returns/create" method="post" id="returnForm">
+
+<div class="mb-3">
+<label class="form-label small mb-1">Выберите продажу из истории</label>
+<select class="form-select" name="history_id" id="sellSelect" required onchange="fillReturn(this)">
+<option value="">— выберите продажу —</option>
+{{range .Sells}}
+{{if gt .CanReturn 0}}
+<option value="{{.ID}}"
+        data-name="{{.ProductName}}"
+        data-barcode="{{.Barcode}}"
+        data-qty="{{.Quantity}}"
+        data-price="{{printf "%.2f" .Price}}"
+        data-returned="{{.AlreadyReturned}}"
+        data-canreturn="{{.CanReturn}}">
+#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}}){{if gt .AlreadyReturned 0}} [возвращено: {{.AlreadyReturned}}]{{end}}
+</option>
+{{else}}
+<option value="{{.ID}}" disabled>
+#{{.ID}} — {{.ProductName}} × {{.Quantity}} шт. ({{.Timestamp}}) — полностью возвращён
+</option>
+{{end}}
+{{end}}
+</select>
+</div>
+
+<div id="sellInfo" class="card p-3 mb-3" style="display:none">
+<div class="row g-3 small">
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Товар</div>
+<div id="infoName" class="fw-semibold"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Цена за ед.</div>
+<div id="infoPrice" class="fw-semibold text-success"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Продано</div>
+<div id="infoQty" class="fw-semibold"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Сумма продажи</div>
+<div id="infoTotal" class="fw-semibold text-warning"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Уже возвращено</div>
+<div id="infoReturned" class="text-danger"></div>
+</div>
+<div class="col-6 col-md-2">
+<div class="text-muted mb-1">Можно вернуть</div>
+<div id="infoCanReturn" class="fw-semibold text-success"></div>
+</div>
+</div>
+</div>
+
+<input type="hidden" name="product_id"   id="productId">
+<input type="hidden" name="product_name" id="productName">
+<input type="hidden" name="barcode"      id="barcode">
+<input type="hidden" name="price"        id="price">
+
+<div class="row g-2 mb-3">
+<div class="col-md-3">
+<label class="form-label small mb-1">Количество к возврату</label>
+<input class="form-control" name="quantity" id="returnQty" type="number" min="1" placeholder="0" required>
+</div>
+<div class="col-md-9">
+<label class="form-label small mb-1">Примечание</label>
+<input class="form-control" name="note" placeholder="Причина возврата (необязательно)">
+</div>
+</div>
+
+<button class="btn btn-warning px-4" type="submit">Оформить возврат</button>
+</form>
+</div>
+
+<!-- ИСТОРИЯ ВОЗВРАТОВ -->
+<div class="card p-0 overflow-hidden">
+<div class="px-3 pt-3 pb-2 border-bottom">
+<h6 class="mb-0 fw-semibold">История возвратов</h6>
+</div>
+<div class="table-responsive">
+<table id="returnsTable" class="table table-hover mb-0">
+<thead class="table-sm">
+<tr>
+<th class="sortable ps-3" data-col="0">ID</th>
+<th class="sortable" data-col="1">Сотрудник</th>
+<th class="sortable" data-col="2">Товар</th>
+<th class="sortable text-center" data-col="3">Возвращено</th>
+<th class="sortable" data-col="4">Цена за ед.</th>
+<th class="sortable" data-col="5">Сумма возврата</th>
+<th class="sortable" data-col="6">Итого у клиента</th>
+<th class="sortable" data-col="7">Осталось в кассе</th>
+<th class="sortable" data-col="8">Примечание</th>
+<th class="sortable pe-3" data-col="9" data-type="date">Время</th>
+</tr>
+</thead>
+<tbody>
+{{range .Returns}}
+<tr>
+<td class="ps-3 text-muted small">{{.ID}}</td>
+<td>{{.UserDisplay}}</td>
+<td class="fw-semibold">{{.ProductName}}</td>
+<td class="text-center">{{.Quantity}} шт.</td>
+<td class="text-muted">{{printf "%.2f" .Price}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-danger fw-semibold">−{{printf "%.2f" .ReturnTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-muted small" title="Сумма продажи: {{printf "%.2f" .SoldTotal}}">{{printf "%.2f" .SoldTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-success fw-semibold">{{printf "%.2f" .RemainTotal}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
+<td class="text-muted small" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{.Note}}">{{if .Note}}{{.Note}}{{else}}—{{end}}</td>
+<td class="text-muted small pe-3" data-raw="{{.TimestampRaw}}">{{.Timestamp}}</td>
+</tr>
+{{else}}
+<tr><td colspan="12" class="text-center text-muted py-5">Возвратов пока нет</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+</div>
+
+</div>
+</div>
+
+{{if .Error}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="errorToast" class="toast text-bg-danger"><div class="toast-body">{{.Error}}</div></div></div>{{end}}
+{{if .Success}}<div class="toast-container position-fixed bottom-0 end-0 p-3"><div id="successToast" class="toast text-bg-success"><div class="toast-body">{{.Success}}</div></div></div>{{end}}
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/logout.js"></script>
+<script>
+function fillReturn(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    if (!opt.value) { document.getElementById('sellInfo').style.display = 'none'; return; }
+    var qty       = parseInt(opt.dataset.qty, 10);
+    var returned  = parseInt(opt.dataset.returned || '0', 10);
+    var canReturn = parseInt(opt.dataset.canreturn || qty.toString(), 10);
+    var price     = parseFloat(opt.dataset.price);
+    var total     = (qty * price).toFixed(2);
+
+    document.getElementById('infoName').textContent       = opt.dataset.name;
+    document.getElementById('infoPrice').textContent      = opt.dataset.price;
+    document.getElementById('infoQty').textContent        = qty + ' шт.';
+    document.getElementById('infoTotal').textContent      = total;
+    document.getElementById('infoReturned').textContent   = returned + ' шт.';
+    document.getElementById('infoCanReturn').textContent  = canReturn + ' шт.';
+    document.getElementById('productName').value          = opt.dataset.name;
+    document.getElementById('barcode').value              = opt.dataset.barcode;
+    document.getElementById('price').value                = opt.dataset.price;
+    document.getElementById('returnQty').max              = canReturn;
+    document.getElementById('sellInfo').style.display     = '';
+    fetch('/api/product-by-name?name=' + encodeURIComponent(opt.dataset.name))
+        .then(function(r) { return r.json(); })
+        .then(function(p) { document.getElementById('productId').value = p.id; })
+        .catch(function() {});
+}
+var headers = document.querySelectorAll('#returnsTable th.sortable');
+for (var h = 0; h < headers.length; h++) {
+    headers[h].addEventListener('click', function () {
+        var col  = parseInt(this.getAttribute('data-col'), 10);
+        var type = this.getAttribute('data-type') || 'str';
+        var tbody = document.querySelector('#returnsTable tbody');
+        var rows  = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc   = !this.classList.contains('sort-asc');
+        var allTh = document.querySelectorAll('#returnsTable th.sortable');
+        for (var i = 0; i < allTh.length; i++) allTh[i].classList.remove('sort-asc','sort-desc');
+        this.classList.add(asc ? 'sort-asc' : 'sort-desc');
+        rows.sort(function(a,b) {
+            var ca = a.cells[col], cb = b.cells[col];
+            var av = type === 'date' ? (ca ? ca.getAttribute('data-raw') || '' : '') : (ca ? ca.innerText.trim() : '');
+            var bv = type === 'date' ? (cb ? cb.getAttribute('data-raw') || '' : '') : (cb ? cb.innerText.trim() : '');
+            var an = parseFloat(av), bn = parseFloat(bv);
+            if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+            return asc ? av.localeCompare(bv,'ru') : bv.localeCompare(av,'ru');
+        });
+        for (var i = 0; i < rows.length; i++) tbody.appendChild(rows[i]);
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    var err = document.getElementById('errorToast');
+    var ok  = document.getElementById('successToast');
+    if (err) new bootstrap.Toast(err).show();
+    if (ok)  new bootstrap.Toast(ok).show();
+});
+</script>
+</body>
+</html>

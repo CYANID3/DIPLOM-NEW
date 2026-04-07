@@ -3,50 +3,75 @@ package handlers
 import (
 	"html/template"
 	"net/http"
-	"time"
 	"wims/models"
 )
 
 var AuthTmpl = template.Must(template.ParseGlob("templates/*.html"))
 
+// GetSession читает токен из cookie, возвращает (username, role, displayName)
 func GetSession(r *http.Request) (string, string, string) {
 	cookie, err := r.Cookie("session")
-	if err != nil {
+	if err != nil || cookie.Value == "" {
 		return "", "", ""
 	}
 
-	username := cookie.Value
-	user := models.GetUserByUsername(username)
+	sess := models.GetSession(cookie.Value)
+	if sess == nil {
+		return "", "", ""
+	}
 
+	user := models.GetUserByUsername(sess.Username)
 	if user == nil {
 		return "", "", ""
 	}
 
-	display := username
+	display := user.Username
 	if user.FirstName != "" {
 		display = user.FirstName
 	}
 
-	return username, user.Role, display
+	return user.Username, user.Role, display
 }
 
-func SetSession(w http.ResponseWriter, username string) {
+// GetSessionToken возвращает токен из cookie (нужен для logout)
+func GetSessionToken(r *http.Request) string {
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		return ""
+	}
+	return cookie.Value
+}
+
+func SetSession(w http.ResponseWriter, r *http.Request, username string) error {
+	ua := r.Header.Get("User-Agent")
+	ip := r.RemoteAddr
+
+	token, err := models.CreateSession(username, ua, ip)
+	if err != nil {
+		return err
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session",
-		Value:    username,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
+		Value:    token,
 		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
 	})
+	return nil
 }
 
-func ClearSession(w http.ResponseWriter) {
+func ClearSession(w http.ResponseWriter, r *http.Request) {
+	token := GetSessionToken(r)
+	if token != "" {
+		models.DeleteSession(token)
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session",
 		Value:    "",
+		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Path:     "/",
 	})
 }
 
@@ -55,27 +80,23 @@ func LoginPage(w http.ResponseWriter, r *http.Request) {
 		u := r.FormValue("username")
 		p := r.FormValue("password")
 
-		ok, user := models.CheckUser(u, p)
-
-		if ok && user != nil {
-			SetSession(w, u)
+		ok, _ := models.CheckUser(u, p)
+		if ok {
+			if err := SetSession(w, r, u); err != nil {
+				http.Error(w, "Ошибка сессии", http.StatusInternalServerError)
+				return
+			}
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 
-		err := AuthTmpl.ExecuteTemplate(w, "login.html", map[string]string{
+		AuthTmpl.ExecuteTemplate(w, "login.html", map[string]string{
 			"Error": "Неверный логин или пароль",
 		})
-		if err != nil {
-			http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-		}
 		return
 	}
 
-	err := AuthTmpl.ExecuteTemplate(w, "login.html", nil)
-	if err != nil {
-		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-	}
+	AuthTmpl.ExecuteTemplate(w, "login.html", nil)
 }
 
 func RegisterPage(w http.ResponseWriter, r *http.Request) {
@@ -85,28 +106,20 @@ func RegisterPage(w http.ResponseWriter, r *http.Request) {
 			r.FormValue("password"),
 			"user", "", "", "", "", "",
 		)
-
 		if err != nil {
-			err := AuthTmpl.ExecuteTemplate(w, "register.html", map[string]string{
-				"Error": "Ошибка регистрации",
+			AuthTmpl.ExecuteTemplate(w, "register.html", map[string]string{
+				"Error": "Пользователь уже существует",
 			})
-			if err != nil {
-				http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-			}
 			return
 		}
-
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	err := AuthTmpl.ExecuteTemplate(w, "register.html", nil)
-	if err != nil {
-		http.Error(w, "Ошибка шаблона", http.StatusInternalServerError)
-	}
+	AuthTmpl.ExecuteTemplate(w, "register.html", nil)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	ClearSession(w)
+	ClearSession(w, r)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

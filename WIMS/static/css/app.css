@@ -1,14 +1,11 @@
 /* ==============================================
    app.css — кастомная тема поверх Bootstrap
-   Покрывает: index, history, profile, admin,
-              admin_edit, login, register, 404
    ============================================== */
 
 /* ===== ПЕРЕМЕННЫЕ: СВЕТЛАЯ ТЕМА ===== */
 :root {
     --app-bg:                #f5f6fa;
     --app-color:             #212529;
-
     --app-card-bg:           #ffffff;
     --app-border:            #dee2e6;
 
@@ -35,90 +32,101 @@
 
     --app-link-color:        #0d6efd;
     --app-link-hover:        #0a58ca;
-
     --app-muted:             #6c757d;
     --app-placeholder:       #6c757d;
 
     --app-alert-danger-bg:   #f8d7da;
     --app-alert-danger-color:#842029;
     --app-alert-danger-border:#f5c2c7;
+
+    --row-danger-bg:         #f5c6cb;
+    --row-danger-color:      #58151c;
+    --row-danger-border:     #f1aeb5;
+    --row-warning-bg:        #ffeaa0;
+    --row-warning-color:     #5a3e00;
+    --row-warning-border:    #ffd84a;
+    --row-success-bg:        #d1e7dd;
+    --row-success-color:     #0a3622;
+    --row-success-border:    #a3cfbb;
 }
 
 /* ===== ПЕРЕМЕННЫЕ: ТЁМНАЯ ТЕМА ===== */
 [data-theme="dark"] {
-    --app-bg:                #121212;
-    --app-color:             #e9ecef;
+    --app-bg:                #323232;
+    --app-color:             #e2e5e9;
+    --app-card-bg:           #3d3d3d;
+    --app-border:            #555b63;
 
-    --app-card-bg:           #1e1e1e;
-    --app-border:            #343a40;
+    --app-input-bg:          #464646;
+    --app-input-color:       #e2e5e9;
+    --app-input-focus-border:#6ea8fe;
+    --app-input-focus-shadow:0 0 0 0.25rem rgba(110,168,254,0.2);
+    --app-input-disabled-bg: #3a3a3a;
 
-    --app-input-bg:          #2b2b2b;
-    --app-input-color:       #e9ecef;
-    --app-input-focus-border:#5a9cf8;
-    --app-input-focus-shadow:0 0 0 0.25rem rgba(90,156,248,0.25);
-    --app-input-disabled-bg: #252525;
+    --app-table-bg:          #3d3d3d;
+    --app-table-color:       #e2e5e9;
+    --app-table-stripe:      rgba(255,255,255,0.04);
+    --app-table-border:      #555b63;
 
-    --app-table-bg:          #1e1e1e;
-    --app-table-color:       #e9ecef;
-    --app-table-stripe:      rgba(255,255,255,0.05);
-    --app-table-border:      #343a40;
-
-    --app-dropdown-bg:       #2b2b2b;
-    --app-dropdown-color:    #e9ecef;
-    --app-dropdown-hover-bg: #3a3a3a;
+    --app-dropdown-bg:       #464646;
+    --app-dropdown-color:    #e2e5e9;
+    --app-dropdown-hover-bg: #525252;
     --app-dropdown-hover-color: #ffffff;
     --app-dropdown-active-bg:#0d6efd;
 
-    --app-navbar-bg:         #1e1e1e;
-    --app-nav-color:         #e9ecef;
+    --app-navbar-bg:         #3d3d3d;
+    --app-nav-color:         #e2e5e9;
     --app-nav-hover-color:   #ffffff;
 
-    --app-link-color:        #9ecbff;
-    --app-link-hover:        #cfe2ff;
-
-    --app-muted:             #adb5bd;
-    --app-placeholder:       #adb5bd;
+    --app-link-color:        #8ab4f8;
+    --app-link-hover:        #aecbfa;
+    --app-muted:             #9aa0a6;
+    --app-placeholder:       #9aa0a6;
 
     --app-alert-danger-bg:   rgba(220,53,69,0.15);
     --app-alert-danger-color:#f5a7ae;
-    --app-alert-danger-border:rgba(220,53,69,0.35);
+    --app-alert-danger-border:rgba(220,53,69,0.3);
+
+    --row-danger-bg:         #7a3540;
+    --row-danger-color:      #ffd7d9;
+    --row-danger-border:     #8f3d49;
+    --row-warning-bg:        #6b5000;
+    --row-warning-color:     #ffe9a0;
+    --row-warning-border:    #7d5e00;
+    --row-success-bg:        #1e5c3a;
+    --row-success-color:     #b7f0cc;
+    --row-success-border:    #236b44;
+
+    --bs-body-color:         #e2e5e9;
+    --bs-body-bg:            #323232;
+    --bs-secondary-color:    #9aa0a6;
+    --bs-tertiary-color:     #9aa0a6;
 
     color-scheme: dark;
 }
 
 /* ===== ПЛАВНОЕ ПЕРЕКЛЮЧЕНИЕ ТЕМЫ ===== */
 body, body * {
-    transition:
-        background-color 0.2s ease,
-        border-color     0.2s ease,
-        color            0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 /* ===== BODY ===== */
-/* bg-body стоит на <body> во всех страницах */
-html,
-body,
-body.bg-body {
+html, body, body.bg-body {
     background-color: var(--app-bg)    !important;
     color:            var(--app-color) !important;
 }
 
-/* ===== ЗАГОЛОВКИ ===== */
-h1, h2, h3, h4, h5, h6 {
-    color: var(--app-color);
-}
+/* ===== ТИПОГРАФИКА ===== */
+h1, h2, h3, h4, h5, h6 { color: var(--app-color); }
 
-/* ===== ССЫЛКИ ===== */
-/* /register → /login ссылки на login/register страницах */
-a {
-    color: var(--app-link-color);
-}
-a:hover {
-    color: var(--app-link-hover);
-}
+label, .form-label { color: var(--app-color); }
+.form-text         { color: var(--app-muted) !important; }
+.text-muted        { color: var(--app-muted) !important; }
+
+a       { color: var(--app-link-color); }
+a:hover { color: var(--app-link-hover); }
 
 /* ===== CARD ===== */
-/* card p-3 (index, history, admin) и card p-4 (profile, admin_edit) */
 .card {
     background-color: var(--app-card-bg) !important;
     color:            var(--app-color)   !important;
@@ -126,78 +134,62 @@ a:hover {
 }
 
 /* ===== NAVBAR ===== */
-/* border-bottom на navbar — нужен кастомный цвет в тёмной теме */
-.navbar {
-    background-color: var(--app-navbar-bg) !important;
-}
-.navbar.border-bottom {
-    border-color: var(--app-border) !important;
-}
+.navbar { background-color: var(--app-navbar-bg) !important; }
+.navbar.border-bottom { border-color: var(--app-border) !important; }
 
-/* nav-link — Главная / История / Профиль */
-.navbar .nav-link {
-    color: var(--app-nav-color) !important;
-}
+.navbar .nav-link { color: var(--app-nav-color) !important; }
 .navbar .nav-link:hover,
-.navbar .nav-link:focus {
-    color: var(--app-nav-hover-color) !important;
-}
+.navbar .nav-link:focus { color: var(--app-nav-hover-color) !important; }
 
-/* Админ-панель — text-danger всегда красный */
-.navbar .nav-link.text-danger,
-.navbar .nav-link.text-danger:hover,
-.navbar .nav-link.text-danger:focus {
-    color: #dc3545 !important;
-}
+.navbar .nav-link.nav-admin,
+.navbar .nav-link.nav-admin:hover,
+.navbar .nav-link.nav-admin:focus { color: #198754 !important; }
 
-/* Кнопка-гамбургер на мобиле */
-.navbar-toggler {
-    border-color: var(--app-border);
-}
-[data-theme="dark"] .navbar-toggler-icon {
-    filter: invert(1);
-}
+.navbar-toggler { border-color: var(--app-border); }
+[data-theme="dark"] .navbar-toggler-icon { filter: invert(1); }
 
-/* ===== КНОПКА ТЕМЫ 🌙 ===== */
-/* btn btn-sm btn-outline-secondary в navbar */
+/* ===== NAVBAR BRAND ===== */
+.navbar-brand,
+.navbar-brand:hover,
+.navbar-brand:focus { color: var(--app-nav-color) !important; }
+
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .navbar-brand:hover,
+[data-theme="dark"] .navbar-brand:focus { color: #ffffff !important; }
+
+/* ===== КНОПКА ТЕМЫ (в navbar) ===== */
 .navbar .btn-outline-secondary {
-    color:            var(--app-nav-color);
-    border-color:     var(--app-border);
+    color: var(--app-nav-color);
+    border-color: var(--app-border);
     background-color: transparent;
 }
 .navbar .btn-outline-secondary:hover {
     background-color: var(--app-dropdown-hover-bg);
-    color:            var(--app-nav-hover-color);
-    border-color:     var(--app-border);
+    color: var(--app-nav-hover-color);
+    border-color: var(--app-border);
 }
 
-/* ===== КНОПКА USERNAME В NAVBAR ===== */
-/* btn btn-sm btn-outline-primary (history, profile, admin, admin_edit) */
+/* ===== КНОПКА USERNAME (в navbar) ===== */
 .navbar .btn-outline-primary {
-    color:            var(--app-nav-color);
-    border-color:     var(--app-border);
+    color: var(--app-nav-color);
+    border-color: var(--app-border);
     background-color: transparent;
 }
 .navbar .btn-outline-primary:hover,
 .navbar .btn-outline-primary:focus,
 .navbar .btn-outline-primary[aria-expanded="true"] {
     background-color: var(--app-dropdown-hover-bg);
-    color:            var(--app-nav-hover-color);
-    border-color:     var(--app-border);
-    box-shadow:       none;
+    color: var(--app-nav-hover-color);
+    border-color: var(--app-border);
+    box-shadow: none;
 }
-/* btn btn-sm btn-success (index.html) — Bootstrap-зелёный, не перекрываем */
 
 /* ===== DROPDOWN ===== */
-/* dropdown-menu dropdown-menu-end — в navbar всех страниц */
 .dropdown-menu {
     background-color: var(--app-dropdown-bg) !important;
     border-color:     var(--app-border)      !important;
 }
-
-.dropdown-item {
-    color: var(--app-dropdown-color) !important;
-}
+.dropdown-item { color: var(--app-dropdown-color) !important; }
 .dropdown-item:hover,
 .dropdown-item:focus {
     background-color: var(--app-dropdown-hover-bg)    !important;
@@ -205,84 +197,129 @@ a:hover {
 }
 .dropdown-item:active {
     background-color: var(--app-dropdown-active-bg) !important;
-    color:            #ffffff                       !important;
+    color: #ffffff !important;
 }
-
-/* "Выход" — text-danger, красный в обоих темах */
 .dropdown-item.text-danger,
 .dropdown-item.text-danger:hover,
-.dropdown-item.text-danger:focus {
-    color: #dc3545 !important;
+.dropdown-item.text-danger:focus { color: #dc3545 !important; }
+.dropdown-item.text-danger:hover { background-color: rgba(220,53,69,0.1) !important; }
+
+[data-theme="dark"] .dropdown-divider { border-color: #555b63 !important; opacity: 1; }
+
+/* ===== USER DROPDOWN ===== */
+.user-dropdown { min-width: 210px; }
+
+.user-dropdown-info {
+    display: flex; align-items: center;
+    gap: 10px; padding: 12px 16px; cursor: default;
 }
-.dropdown-item.text-danger:hover {
-    background-color: rgba(220,53,69,0.1) !important;
+.user-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background-color: #198754; color: #ffffff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.95rem;
+    text-transform: uppercase; flex-shrink: 0;
 }
+.user-dropdown-name {
+    font-weight: 600; font-size: 0.875rem;
+    margin-bottom: 3px; color: #212529;
+}
+[data-theme="dark"] .user-dropdown-name { color: #e9ecef !important; }
 
 /* ===== TABLE ===== */
-/* table table-striped — index.html (товары) и history.html (история) */
 .table {
     --bs-table-bg:            var(--app-table-bg);
     --bs-table-color:         var(--app-table-color);
     --bs-table-border-color:  var(--app-table-border);
     --bs-table-striped-bg:    var(--app-table-stripe);
     --bs-table-striped-color: var(--app-table-color);
-    color:       var(--app-table-color);
-    border-color:var(--app-table-border);
-}
-
-.table th,
-.table td {
-    color:        var(--app-table-color);
+    color: var(--app-table-color);
     border-color: var(--app-table-border);
 }
+.table th, .table td {
+    color: var(--app-table-color);
+    border-color: var(--app-table-border);
+}
+.table tbody .text-muted { color: var(--app-muted) !important; }
 
-/* Пустые строки: "Товаров пока нет", "История пуста", "Пользователей нет" */
-.table tbody .text-muted {
-    color: var(--app-muted) !important;
+/* отключаем hover */
+.table tbody tr:hover > td,
+.table tbody tr:hover > th {
+    background-color: inherit !important;
+    color: inherit !important;
+    --bs-table-hover-bg: transparent;
+}
+
+/* ===== ЦВЕТНЫЕ СТРОКИ ТАБЛИЦ ===== */
+.table-danger, .table-danger td, .table-danger th {
+    --bs-table-bg:            var(--row-danger-bg)     !important;
+    --bs-table-color:         var(--row-danger-color)  !important;
+    --bs-table-border-color:  var(--row-danger-border) !important;
+    --bs-table-striped-bg:    var(--row-danger-bg)     !important;
+    --bs-table-striped-color: var(--row-danger-color)  !important;
+    background-color: var(--row-danger-bg)    !important;
+    color:            var(--row-danger-color) !important;
+    border-color:     var(--row-danger-border)!important;
+}
+.table-warning, .table-warning td, .table-warning th {
+    --bs-table-bg:            var(--row-warning-bg)     !important;
+    --bs-table-color:         var(--row-warning-color)  !important;
+    --bs-table-border-color:  var(--row-warning-border) !important;
+    --bs-table-striped-bg:    var(--row-warning-bg)     !important;
+    --bs-table-striped-color: var(--row-warning-color)  !important;
+    background-color: var(--row-warning-bg)    !important;
+    color:            var(--row-warning-color) !important;
+    border-color:     var(--row-warning-border)!important;
+}
+.table-success, .table-success td, .table-success th {
+    --bs-table-bg:            var(--row-success-bg)     !important;
+    --bs-table-color:         var(--row-success-color)  !important;
+    --bs-table-border-color:  var(--row-success-border) !important;
+    --bs-table-striped-bg:    var(--row-success-bg)     !important;
+    --bs-table-striped-color: var(--row-success-color)  !important;
+    background-color: var(--row-success-bg)    !important;
+    color:            var(--row-success-color) !important;
+    border-color:     var(--row-success-border)!important;
 }
 
 /* ===== BADGE ===== */
-/* text-bg-success/primary/danger/secondary/warning — history.html и admin.html */
-/* Bootstrap 5 text-bg-* работают в светлой теме, но secondary в тёмной теряет контраст */
 [data-theme="dark"] .text-bg-secondary {
     background-color: #495057 !important;
-    color:            #ffffff !important;
+    color: #ffffff !important;
+}
+.badge.text-bg-restock, span.text-bg-restock, .text-bg-restock {
+    --bs-badge-color: #ffffff;
+    background-color: #11a6ab !important;
+    color: #ffffff !important;
 }
 
+/* ===== DIFF PLUS/MINUS ===== */
+[data-theme="dark"] .diff-plus  { color: #4caf85; }
+[data-theme="dark"] .diff-minus { color: #f07070; }
+
 /* ===== FORM-CONTROL ===== */
-/* используется везде: поля товара, поиск, профиль, логин, регистрация, админка */
 .form-control {
     background-color: var(--app-input-bg)    !important;
     color:            var(--app-input-color) !important;
     border-color:     var(--app-border)      !important;
 }
 .form-control:focus {
-    background-color: var(--app-input-bg)            !important;
-    color:            var(--app-input-color)         !important;
-    border-color:     var(--app-input-focus-border)  !important;
-    box-shadow:       var(--app-input-focus-shadow)  !important;
-    outline:          none;
+    background-color: var(--app-input-bg)           !important;
+    color:            var(--app-input-color)        !important;
+    border-color:     var(--app-input-focus-border) !important;
+    box-shadow:       var(--app-input-focus-shadow) !important;
+    outline: none;
 }
-
-/* disabled — admin_edit.html: поле логина задизейблено */
-.form-control:disabled,
-.form-control[readonly] {
+.form-control:disabled, .form-control[readonly] {
     background-color: var(--app-input-disabled-bg) !important;
     color:            var(--app-muted)             !important;
-    opacity:          0.8;
-    cursor:           not-allowed;
+    opacity: 0.8; cursor: not-allowed;
 }
-
-/* is-invalid — profile.html и admin_edit.html: несовпадение паролей */
-.form-control.is-invalid {
-    border-color: #dc3545 !important;
-}
+.form-control.is-invalid { border-color: #dc3545 !important; }
 .form-control.is-invalid:focus {
-    border-color: #dc3545                              !important;
-    box-shadow:   0 0 0 0.25rem rgba(220,53,69,0.25)  !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220,53,69,0.25) !important;
 }
-
-/* form-control-sm — поле кол-ва в форме "Продать" в index.html */
 .form-control-sm {
     background-color: var(--app-input-bg)    !important;
     color:            var(--app-input-color) !important;
@@ -290,7 +327,6 @@ a:hover {
 }
 
 /* ===== FORM-SELECT ===== */
-/* admin.html: select роли (user/manager/admin) при создании и редактировании */
 .form-select {
     background-color: var(--app-input-bg)    !important;
     color:            var(--app-input-color) !important;
@@ -300,24 +336,15 @@ a:hover {
     border-color: var(--app-input-focus-border) !important;
     box-shadow:   var(--app-input-focus-shadow) !important;
 }
-/* В тёмной теме стрелка Bootstrap по умолчанию тёмная — делаем светлой */
 [data-theme="dark"] .form-select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 
 /* ===== PLACEHOLDER ===== */
-::placeholder {
-    color:   var(--app-placeholder);
-    opacity: 1;
-}
-[data-theme="dark"] ::placeholder {
-    color:   var(--app-placeholder) !important;
-    opacity: 1;
-}
+::placeholder { color: var(--app-placeholder); opacity: 1; }
+[data-theme="dark"] ::placeholder { color: var(--app-placeholder) !important; opacity: 1; }
 
 /* ===== INPUT-GROUP ===== */
-/* input-group mb-2 — поля паролей в login, register, profile, admin_edit */
-/* Кнопка 👁 должна визуально продолжать инпут */
 .input-group .btn-outline-secondary {
     background-color: var(--app-input-bg)    !important;
     color:            var(--app-input-color) !important;
@@ -331,11 +358,17 @@ a:hover {
 .input-group .btn-outline-secondary:focus {
     box-shadow:   var(--app-input-focus-shadow) !important;
     border-color: var(--app-input-focus-border) !important;
-    outline:      none;
+    outline: none;
+}
+
+/* ===== ПОИСКОВЫЕ ИНПУТЫ ===== */
+#searchInput, #historySearch, #userSearch {
+    background-color: var(--app-input-bg)    !important;
+    color:            var(--app-input-color) !important;
+    border-color:     var(--app-border)      !important;
 }
 
 /* ===== ALERT ===== */
-/* alert alert-danger — login.html и register.html (неверный логин/пароль) */
 .alert-danger {
     background-color: var(--app-alert-danger-bg)     !important;
     color:            var(--app-alert-danger-color)  !important;
@@ -343,99 +376,107 @@ a:hover {
 }
 
 /* ===== TOAST ===== */
-/* toast text-bg-danger / text-bg-success — profile.html, admin_edit.html */
 [data-theme="dark"] .toast.text-bg-danger {
     background-color: rgba(220,53,69,0.9) !important;
-    color:            #ffffff             !important;
-    border-color:     rgba(220,53,69,0.5) !important;
+    color: #ffffff !important; border-color: rgba(220,53,69,0.5) !important;
 }
 [data-theme="dark"] .toast.text-bg-success {
     background-color: rgba(25,135,84,0.9) !important;
-    color:            #ffffff             !important;
-    border-color:     rgba(25,135,84,0.5) !important;
-}
-
-/* ===== ПОИСКОВЫЕ ИНПУТЫ ===== */
-/* #searchInput (index.html), #historySearch (history.html), #userSearch (admin.html) */
-/* Наследуют .form-control, но явно дублируем на случай перебития Bootstrap */
-#searchInput,
-#historySearch,
-#userSearch {
-    background-color: var(--app-input-bg)    !important;
-    color:            var(--app-input-color) !important;
-    border-color:     var(--app-border)      !important;
-}
-
-/* ===== УТИЛИТЫ ===== */
-.text-muted {
-    color: var(--app-muted) !important;
+    color: #ffffff !important; border-color: rgba(25,135,84,0.5) !important;
 }
 
 /* ===== MODAL ===== */
-/* Bootstrap modal не подхватывает наши переменные — переопределяем явно */
-/* admin.html: модалка удаления пользователя */
 .modal-content {
-    background-color: var(--app-card-bg)  !important;
-    color:            var(--app-color)    !important;
-    border-color:     var(--app-border)   !important;
+    background-color: var(--app-card-bg) !important;
+    color:            var(--app-color)   !important;
+    border-color:     var(--app-border)  !important;
 }
+.modal-header, .modal-footer { border-color: var(--app-border) !important; }
+.modal-title { color: var(--app-color) !important; }
 
-.modal-header,
-.modal-footer {
-    border-color: var(--app-border) !important;
-}
-
-.modal-title {
-    color: var(--app-color) !important;
-}
-
-/* btn-close в тёмной теме — иконка крестика светлая */
-[data-theme="dark"] .btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%);
-}
-
-/* backdrop чуть темнее в тёмной теме */
-[data-theme="dark"] .modal-backdrop {
-    background-color: #000;
-    opacity:          0.7 !important;
-}
-
-/* ===== MODAL DARK FIX =====
-   Bootstrap читает --bs-modal-* напрямую с :root,
-   data-theme стоит на <html> — явно прописываем тёмные значения */
+[data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+[data-theme="dark"] .modal-backdrop { background-color: #000; opacity: 0.7 !important; }
 
 [data-theme="dark"] .modal-content {
-    --bs-modal-bg:           #1e1e1e;
+    --bs-modal-bg:           #3d3d3d;
     --bs-modal-color:        #e9ecef;
-    --bs-modal-border-color: #343a40;
-    background-color: #1e1e1e !important;
+    --bs-modal-border-color: #555b63;
+    background-color: #3d3d3d !important;
     color:            #e9ecef !important;
-    border-color:     #343a40 !important;
+    border-color:     #555b63 !important;
 }
-
 [data-theme="dark"] .modal-header,
-[data-theme="dark"] .modal-footer {
-    border-color: #343a40 !important;
-}
-
-[data-theme="dark"] .modal-title {
-    color: #ffffff !important;
-}
-
+[data-theme="dark"] .modal-footer { border-color: #555b63 !important; }
+[data-theme="dark"] .modal-title  { color: #ffffff !important; }
 [data-theme="dark"] .modal p,
 [data-theme="dark"] .modal label,
-[data-theme="dark"] .modal strong {
-    color: #e9ecef;
+[data-theme="dark"] .modal strong { color: #e9ecef; }
+[data-theme="dark"] .modal .text-muted { color: #9aa0a6 !important; }
+
+/* ===== BORDER WARNING CARD ===== */
+[data-theme="dark"] .border-warning { border-color: rgba(255,193,7,0.4) !important; }
+
+/* ===== КНОПКИ outline В ТЁМНОЙ ТЕМЕ ===== */
+/* Общие outline кнопки — чуть заметнее */
+[data-theme="dark"] .btn-outline-secondary {
+    color: #c0c7cf; border-color: #555b63;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #555b63; color: #ffffff;
+}
+[data-theme="dark"] .btn-outline-primary {
+    color: #8ab4f8; border-color: #6ea8fe;
+}
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #0d6efd; color: #ffffff; border-color: #0d6efd;
+}
+[data-theme="dark"] .btn-outline-warning {
+    color: #ffc107; border-color: #ffc107;
+}
+[data-theme="dark"] .btn-outline-warning:hover {
+    background-color: #ffc107; color: #000;
+}
+[data-theme="dark"] .btn-outline-danger {
+    color: #f07070; border-color: #dc3545;
+}
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #dc3545; color: #ffffff;
+}
+[data-theme="dark"] .btn-outline-success {
+    color: #4caf85; border-color: #198754;
+}
+[data-theme="dark"] .btn-outline-success:hover {
+    background-color: #198754; color: #ffffff;
 }
 
-[data-theme="dark"] .modal .text-muted {
-    color: #adb5bd !important;
+/* Маленькие кнопки в таблицах — заполненные */
+[data-theme="dark"] .btn-outline-secondary.btn-sm {
+    background-color: #555b63; color: #ffffff; border-color: #555b63;
 }
-
-/* ===== NAV-ADMIN ===== */
-/* Ссылка "Админ-панель" — зелёная, перебивает общий nav-link !important */
-.navbar .nav-link.nav-admin,
-.navbar .nav-link.nav-admin:hover,
-.navbar .nav-link.nav-admin:focus {
-    color: #198754 !important;
+[data-theme="dark"] .btn-outline-secondary.btn-sm:hover {
+    background-color: #636970; border-color: #636970;
+}
+[data-theme="dark"] .btn-outline-primary.btn-sm {
+    background-color: #0d6efd; color: #ffffff; border-color: #0d6efd;
+}
+[data-theme="dark"] .btn-outline-primary.btn-sm:hover {
+    background-color: #0b5ed7; border-color: #0b5ed7;
+}
+[data-theme="dark"] .btn-outline-danger.btn-sm {
+    background-color: #dc3545; color: #ffffff; border-color: #dc3545;
+}
+[data-theme="dark"] .btn-outline-danger.btn-sm:hover {
+    background-color: #bb2d3b; border-color: #bb2d3b;
+}
+[data-theme="dark"] .btn-outline-warning.btn-sm {
+    background-color: #ffc107; color: #000000; border-color: #ffc107;
+}
+[data-theme="dark"] .btn-outline-warning.btn-sm:hover {
+    background-color: #e0a800; border-color: #e0a800;
+}
+[data-theme="dark"] .btn-outline-success.btn-sm {
+    background-color: #198754; color: #ffffff; border-color: #198754;
+}
+[data-theme="dark"] .btn-outline-success.btn-sm:hover {
+    background-color: #157347; border-color: #157347;
 }
