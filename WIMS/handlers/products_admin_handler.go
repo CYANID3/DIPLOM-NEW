@@ -50,7 +50,7 @@ func ProductsAdminPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AddProductAdminHandler — добавление товара (manager + admin)
+// AddProductAdminHandler — добавление / пополнение товара (manager + admin)
 func AddProductAdminHandler(w http.ResponseWriter, r *http.Request) {
 	username, _, _, ok := RequireRole(w, r, "admin", "manager")
 	if !ok {
@@ -69,18 +69,21 @@ func AddProductAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-	if err != nil {
-		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверная цена"), http.StatusSeeOther)
+	if err != nil || price < 0 {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Цена должна быть числом ≥ 0"), http.StatusSeeOther)
 		return
 	}
 
 	qty, err := strconv.Atoi(r.FormValue("quantity"))
-	if err != nil {
-		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверное количество"), http.StatusSeeOther)
+	if err != nil || qty <= 0 {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Количество должно быть больше нуля"), http.StatusSeeOther)
 		return
 	}
 
-	minStock, _ := strconv.Atoi(r.FormValue("min_stock"))
+	minStock, err := strconv.Atoi(r.FormValue("min_stock"))
+	if err != nil || minStock < 0 {
+		minStock = 0
+	}
 
 	if err := models.CreateProduct(name, barcode, category, price, qty, minStock, username); err != nil {
 		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
@@ -120,15 +123,18 @@ func EditProductPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-		if err != nil {
-			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Неверная цена"), http.StatusSeeOther)
+		if err != nil || price < 0 {
+			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Цена должна быть числом ≥ 0"), http.StatusSeeOther)
 			return
 		}
 
-		minStock, _ := strconv.Atoi(r.FormValue("min_stock"))
+		minStock, err := strconv.Atoi(r.FormValue("min_stock"))
+		if err != nil || minStock < 0 {
+			minStock = 0
+		}
 
 		if err := models.UpdateProduct(id, name, barcode, category, price, minStock); err != nil {
-			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Ошибка сохранения"), http.StatusSeeOther)
+			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
 			return
 		}
 
@@ -138,7 +144,6 @@ func EditProductPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	categories, _ := models.GetCategories()
-
 	settings := models.GetAllSettings()
 
 	data := map[string]interface{}{
@@ -172,7 +177,6 @@ func DeleteProductAdminHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// получаем имя до удаления для лога
 	product, _ := models.GetProductByID(id)
 	name := ""
 	if product != nil {
@@ -203,11 +207,10 @@ func ExportProductsCSVHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", `attachment; filename="products.csv"`)
-	// BOM для корректного открытия в Excel
-	w.Write([]byte{0xEF, 0xBB, 0xBF})
+	w.Write([]byte{0xEF, 0xBB, 0xBF}) // BOM для корректного открытия в Excel
 
 	writer := csv.NewWriter(w)
-	writer.Comma = ';' // точка с запятой — стандарт для Excel в русской локали
+	writer.Comma = ';'
 	writer.WriteAll(data)
 	writer.Flush()
 }
@@ -230,7 +233,7 @@ func ExportHistoryCSVHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte{0xEF, 0xBB, 0xBF})
 
 	writer := csv.NewWriter(w)
-	writer.Comma = ';' // точка с запятой — стандарт для Excel в русской локали
+	writer.Comma = ';'
 	writer.WriteAll(data)
 	writer.Flush()
 }
@@ -254,7 +257,7 @@ func RestockProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	qty, err := strconv.Atoi(r.FormValue("quantity"))
 	if err != nil || qty <= 0 {
-		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверное количество"), http.StatusSeeOther)
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Количество должно быть больше нуля"), http.StatusSeeOther)
 		return
 	}
 

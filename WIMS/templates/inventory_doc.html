@@ -54,7 +54,7 @@ input.actual-qty {
 </div>
 
 <!-- ТАБЛИЦА ПОЗИЦИЙ -->
-<form method="post" id="invForm">
+<form method="post" id="invForm" novalidate>
 <div class="card p-0 overflow-hidden mb-4">
 <div class="px-3 pt-3 pb-2 border-bottom d-flex justify-content-between align-items-center">
 <h6 class="mb-0 fw-semibold">Позиции ({{len .Items}})</h6>
@@ -296,5 +296,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
+<script src="/static/js/validate.js"></script>
 </body>
 </html>

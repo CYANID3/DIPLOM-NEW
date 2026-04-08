@@ -24,7 +24,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <!-- ФОРМА -->
 <div class="card p-4 mb-4">
 <h6 class="fw-semibold mb-3 text-muted">Оформить пересорт</h6>
-<form action="/regrade/create" method="post">
+<form action="/regrade/create" method="post" novalidate>
 <div class="row g-3 mb-3">
 
 <div class="col-md-6">
@@ -157,5 +157,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
+<script src="/static/js/validate.js"></script>
 </body>
 </html>

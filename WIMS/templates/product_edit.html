@@ -18,7 +18,7 @@
 <h4 class="fw-semibold mb-0">Редактирование товара</h4>
 </div>
 
-<form method="post">
+<form method="post" novalidate>
 <div class="card p-4 mb-3">
 <h6 class="fw-semibold mb-3 text-muted">Основное</h6>
 <div class="mb-2">
@@ -32,12 +32,12 @@
 <div class="row g-2 mb-2">
 <div class="col-md-6">
 <label class="form-label small mb-1">Цена</label>
-<input class="form-control" name="price" type="number" step="0.01"
+<input class="form-control" name="price" type="number" min="0" step="0.01"
        value="{{printf "%.2f" .Product.Price}}" required>
 </div>
 <div class="col-md-6">
 <label class="form-label small mb-1">Мин. остаток</label>
-<input class="form-control" name="min_stock" type="number" value="{{.Product.MinStock}}">
+<input class="form-control" name="min_stock" type="number" min="0" value="{{.Product.MinStock}}">
 </div>
 </div>
 <div class="mb-0">
@@ -84,5 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (err) new bootstrap.Toast(err).show();
 });
 </script>
+<script src="/static/js/validate.js"></script>
 </body>
 </html>

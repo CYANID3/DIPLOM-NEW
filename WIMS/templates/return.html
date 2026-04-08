@@ -27,7 +27,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <!-- ФОРМА ВОЗВРАТА -->
 <div class="card p-4 mb-4">
 <h6 class="fw-semibold mb-3 text-muted">Оформить возврат</h6>
-<form action="/returns/create" method="post" id="returnForm">
+<form action="/returns/create" method="post" id="returnForm" novalidate>
 
 <div class="mb-3">
 <label class="form-label small mb-1">Выберите продажу из истории</label>
@@ -208,5 +208,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ok)  new bootstrap.Toast(ok).show();
 });
 </script>
+<script src="/static/js/validate.js"></script>
 </body>
 </html>

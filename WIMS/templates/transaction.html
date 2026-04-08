@@ -15,7 +15,7 @@
 
 <h4 class="fw-semibold mb-4">Новая продажа</h4>
 
-<form action="/transaction/sell" method="post" id="sellForm">
+<form action="/transaction/sell" method="post" id="sellForm" novalidate>
 
 <div class="card p-4 mb-3">
 <label class="form-label small mb-1">Выберите товар</label>
@@ -191,5 +191,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+<script src="/static/js/validate.js"></script>
 </body>
 </html>

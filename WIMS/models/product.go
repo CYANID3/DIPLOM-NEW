@@ -81,9 +81,20 @@ func GetCategories() ([]string, error) {
 	return cats, rows.Err()
 }
 
+// CreateProduct — добавляет новый товар или пополняет остаток существующего.
+// Если товар с таким именем уже есть — пишет в историю "restock", иначе "add".
 func CreateProduct(name, barcode, category string, price float64, quantity, minStock int, username string) error {
+	if name == "" {
+		return errors.New("Наименование не может быть пустым")
+	}
+	if price < 0 {
+		return errors.New("Цена не может быть отрицательной")
+	}
 	if quantity <= 0 {
 		return errors.New("Количество должно быть больше нуля")
+	}
+	if minStock < 0 {
+		return errors.New("Минимальный остаток не может быть отрицательным")
 	}
 
 	tx, err := database.DB.Begin()
@@ -92,16 +103,21 @@ func CreateProduct(name, barcode, category string, price float64, quantity, minS
 	}
 	defer tx.Rollback()
 
-	var id int
-	err = tx.QueryRow(`SELECT id FROM products WHERE name = ?`, name).Scan(&id)
+	var existingID int
+	err = tx.QueryRow(`SELECT id FROM products WHERE name = ?`, name).Scan(&existingID)
 
+	var action string
 	if err == nil {
+		// Товар существует — пополняем остаток
+		action = "restock"
 		_, err = tx.Exec(
 			`UPDATE products SET quantity=quantity+?, price=?, barcode=?,
 			 category=?, min_stock=? WHERE name=?`,
 			quantity, price, barcode, category, minStock, name,
 		)
 	} else if err == sql.ErrNoRows {
+		// Новый товар
+		action = "add"
 		_, err = tx.Exec(
 			`INSERT INTO products(name, barcode, price, quantity, category, min_stock)
 			 VALUES(?, ?, ?, ?, ?, ?)`,
@@ -117,7 +133,7 @@ func CreateProduct(name, barcode, category string, price float64, quantity, minS
 	_, err = tx.Exec(
 		`INSERT INTO history(action, username, target, barcode, quantity, price)
 		 VALUES(?, ?, ?, ?, ?, ?)`,
-		"add", username, name, barcode, quantity, price,
+		action, username, name, barcode, quantity, price,
 	)
 	if err != nil {
 		return err
@@ -125,7 +141,18 @@ func CreateProduct(name, barcode, category string, price float64, quantity, minS
 	return tx.Commit()
 }
 
+// UpdateProduct — редактирует атрибуты товара (без изменения остатка).
 func UpdateProduct(id int, name, barcode, category string, price float64, minStock int) error {
+	if name == "" {
+		return errors.New("Наименование не может быть пустым")
+	}
+	if price < 0 {
+		return errors.New("Цена не может быть отрицательной")
+	}
+	if minStock < 0 {
+		return errors.New("Минимальный остаток не может быть отрицательным")
+	}
+
 	_, err := database.DB.Exec(
 		`UPDATE products SET name=?, barcode=?, price=?, category=?, min_stock=? WHERE id=?`,
 		name, barcode, price, category, minStock, id,
@@ -207,6 +234,45 @@ func SellProduct(id, qty int, username string) error {
 	return tx.Commit()
 }
 
+// RestockProduct — пополняет остаток существующего товара.
+func RestockProduct(id, qty int, username string) error {
+	if qty <= 0 {
+		return errors.New("Количество должно быть больше нуля")
+	}
+
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var name, barcode string
+	var price float64
+	err = tx.QueryRow(
+		`SELECT name, barcode, price FROM products WHERE id=?`, id,
+	).Scan(&name, &barcode, &price)
+	if err != nil {
+		return err
+	}
+
+	if _, err = tx.Exec(
+		`UPDATE products SET quantity = quantity + ? WHERE id=?`, qty, id,
+	); err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`INSERT INTO history(action, username, target, barcode, quantity, price)
+		 VALUES(?, ?, ?, ?, ?, ?)`,
+		"restock", username, name, barcode, qty, price,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func ExportProductsCSV() ([][]string, error) {
 	rows, err := database.DB.Query(
 		`SELECT id, name, barcode, category, price, quantity, min_stock
@@ -260,39 +326,4 @@ func ExportHistoryCSV() ([][]string, error) {
 		})
 	}
 	return result, rows.Err()
-}
-
-// RestockProduct — пополняет остаток существующего товара
-func RestockProduct(id, qty int, username string) error {
-	tx, err := database.DB.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	var name, barcode string
-	var price float64
-	err = tx.QueryRow(
-		`SELECT name, barcode, price FROM products WHERE id=?`, id,
-	).Scan(&name, &barcode, &price)
-	if err != nil {
-		return err
-	}
-
-	if _, err = tx.Exec(
-		`UPDATE products SET quantity = quantity + ? WHERE id=?`, qty, id,
-	); err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(
-		`INSERT INTO history(action, username, target, barcode, quantity, price)
-		 VALUES(?, ?, ?, ?, ?, ?)`,
-		"restock", username, name, barcode, qty, price,
-	)
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
 }
