@@ -57,7 +57,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 <td class="text-muted">{{printf "%.2f" .Total}} {{if $.Settings}}{{index $.Settings "currency"}}{{end}}</td>
 <td class="pe-3">
 {{if eq .Quantity 0}}
-<span class="small fst-italic">Нет в наличии</span>
+<span class="text-muted small fst-italic">Нет в наличии</span>
 {{else}}
 <div class="d-flex gap-1">
 <input class="form-control form-control-sm sell-qty-input" type="number"

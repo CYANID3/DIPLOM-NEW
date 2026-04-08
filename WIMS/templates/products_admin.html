@@ -101,11 +101,11 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 <div class="col-md-2">
 <label class="form-label small mb-1">Цена</label>
-<input class="form-control" name="price" type="number" step="0.01" placeholder="0.00" required>
+<input class="form-control" name="price" type="number" step="0.01" min="0" placeholder="0.00" required>
 </div>
 <div class="col-md-2">
 <label class="form-label small mb-1">Количество</label>
-<input class="form-control" name="quantity" type="number" placeholder="0" required>
+<input class="form-control" name="quantity" type="number" min="0" placeholder="0" required>
 </div>
 </div>
 <div class="row g-2">
@@ -125,7 +125,7 @@ th.sort-desc::after { content: " ↓"; opacity: 1; }
 </div>
 <div class="col-md-2">
 <label class="form-label small mb-1">Мин. остаток</label>
-<input class="form-control" name="min_stock" type="number" placeholder="0"
+<input class="form-control" name="min_stock" type="number" min="0" placeholder="0"
        value="{{if .Settings}}{{index .Settings "low_stock_limit"}}{{else}}0{{end}}">
 </div>
 </div>
