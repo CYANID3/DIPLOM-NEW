@@ -69,18 +69,21 @@ func AddProductAdminHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-	if err != nil {
-		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверная цена"), http.StatusSeeOther)
+	if err != nil || price < 0 {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Цена не может быть отрицательной"), http.StatusSeeOther)
 		return
 	}
 
 	qty, err := strconv.Atoi(r.FormValue("quantity"))
-	if err != nil {
-		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Неверное количество"), http.StatusSeeOther)
+	if err != nil || qty < 0 {
+		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape("Количество не может быть отрицательным"), http.StatusSeeOther)
 		return
 	}
 
 	minStock, _ := strconv.Atoi(r.FormValue("min_stock"))
+	if minStock < 0 {
+		minStock = 0
+	}
 
 	if err := models.CreateProduct(name, barcode, category, price, qty, minStock, username); err != nil {
 		http.Redirect(w, r, "/admin/products?error="+url.QueryEscape(err.Error()), http.StatusSeeOther)
@@ -120,12 +123,15 @@ func EditProductPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-		if err != nil {
-			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Неверная цена"), http.StatusSeeOther)
+		if err != nil || price < 0 {
+			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Цена не может быть отрицательной"), http.StatusSeeOther)
 			return
 		}
 
 		minStock, _ := strconv.Atoi(r.FormValue("min_stock"))
+		if minStock < 0 {
+			minStock = 0
+		}
 
 		if err := models.UpdateProduct(id, name, barcode, category, price, minStock); err != nil {
 			http.Redirect(w, r, "/admin/products/edit?id="+idStr+"&error="+url.QueryEscape("Ошибка сохранения"), http.StatusSeeOther)
