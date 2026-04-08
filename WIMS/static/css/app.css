@@ -480,15 +480,3 @@ a:hover { color: var(--app-link-hover); }
 [data-theme="dark"] .btn-outline-success.btn-sm:hover {
     background-color: #157347; border-color: #157347;
 }
-
-/* ===== INPUT-GROUP-TEXT ===== */
-.input-group-text {
-    background-color: var(--app-input-bg)    !important;
-    color:            var(--app-muted)       !important;
-    border-color:     var(--app-border)      !important;
-}
-
-/* ===== INPUT-GROUP-TEXT DARK FIX ===== */
-[data-theme="dark"] {
-    --bs-tertiary-bg: #464646;
-}
