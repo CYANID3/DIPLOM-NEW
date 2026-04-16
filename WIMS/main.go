@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"time"
 	"wims/database"
 	"wims/handlers"
@@ -63,6 +65,11 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime)
+
+	// Заголовок окна консоли (только Windows)
+	if runtime.GOOS == "windows" {
+		exec.Command("cmd", "/c", "title WIMS - управляй складом!").Run()
+	}
 
 	log.Println("[INFO]  Инициализация базы данных...")
 	database.InitDB()
